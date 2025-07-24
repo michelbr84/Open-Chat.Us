@@ -11,6 +11,8 @@ interface Message {
   sender_name: string;
   sender_id: string | null;
   created_at: string;
+  edited_at?: string | null;
+  is_deleted?: boolean;
 }
 
 interface ChatMessageProps {
@@ -20,6 +22,8 @@ interface ChatMessageProps {
   reactions?: Record<string, { count: number; users: string[]; hasReacted: boolean }>;
   onReact?: (messageId: string, emoji: string) => void;
   onReport?: (messageId: string, reason: string, details?: string) => void;
+  onEdit?: (messageId: string, newContent: string) => void;
+  onDelete?: (messageId: string) => void;
 }
 
 export const ChatMessage = ({ 
@@ -28,7 +32,9 @@ export const ChatMessage = ({
   guestName,
   reactions = {},
   onReact,
-  onReport
+  onReport,
+  onEdit,
+  onDelete
 }: ChatMessageProps) => {
   const { user } = useAuth();
   const [isHovered, setIsHovered] = useState(false);
@@ -105,6 +111,11 @@ export const ChatMessage = ({
           {/* Message content */}
           <div className="text-sm leading-relaxed break-words">
             {message.content}
+            {message.edited_at && (
+              <span className="text-xs text-muted-foreground ml-2 italic">
+                (edited)
+              </span>
+            )}
           </div>
 
           {/* Hover actions */}
@@ -124,6 +135,9 @@ export const ChatMessage = ({
               isOwn={isOwn}
               content={message.content}
               onReport={!isOwn ? handleReport : undefined}
+              onEdit={isOwn && onEdit ? (newContent) => onEdit(message.id, newContent) : undefined}
+              onDelete={isOwn && onDelete ? () => onDelete(message.id) : undefined}
+              onReply={undefined} // TODO: Implement reply functionality later
             />
           </div>
         </div>

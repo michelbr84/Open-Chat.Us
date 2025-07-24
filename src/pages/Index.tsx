@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageReports } from '@/hooks/useMessageReports';
+import { useMessageEditing } from '@/hooks/useMessageEditing';
 import { AgeGate } from '@/components/AgeGate';
 import { ChatHeader } from '@/components/ChatHeader';
 import { UserList } from '@/components/UserList';
@@ -19,6 +20,8 @@ interface Message {
   sender_name: string;
   sender_id: string | null;
   created_at: string;
+  edited_at?: string | null;
+  is_deleted?: boolean;
 }
 
 interface OnlineUser {
@@ -32,6 +35,7 @@ const Index = () => {
   const { toast } = useToast();
   const { reactions, toggleReaction } = useMessageReactions();
   const { submitReport } = useMessageReports();
+  const { editMessage, deleteMessage } = useMessageEditing();
   
   // App state
   const [ageVerified, setAgeVerified] = useState(false);
@@ -80,6 +84,7 @@ const Index = () => {
       const { data, error } = await supabase
         .from('messages')
         .select('*')
+        .eq('is_deleted', false) // Don't load deleted messages
         .order('created_at', { ascending: false })
         .limit(100);
 
@@ -90,7 +95,7 @@ const Index = () => {
 
     loadMessages();
 
-    // Subscribe to new messages
+    // Subscribe to new and updated messages
     const messagesChannel = supabase
       .channel('public-messages')
       .on(
@@ -98,6 +103,17 @@ const Index = () => {
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
           setMessages((prev) => [...prev, payload.new as Message]);
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: 'UPDATE', schema: 'public', table: 'messages' },
+        (payload) => {
+          setMessages((prev) => 
+            prev.map((msg) => 
+              msg.id === payload.new.id ? payload.new as Message : msg
+            )
+          );
         }
       )
       .subscribe();
@@ -280,6 +296,16 @@ const Index = () => {
     submitReport(messageId, reason, details);
   };
 
+  // Handle message editing
+  const handleEdit = (messageId: string, newContent: string) => {
+    editMessage(messageId, newContent);
+  };
+
+  // Handle message deletion
+  const handleDelete = (messageId: string) => {
+    deleteMessage(messageId);
+  };
+
   const isSearching = searchQuery.length > 0;
   const displayMessages = isSearching ? searchResults : messages;
 
@@ -334,6 +360,8 @@ const Index = () => {
                     reactions={reactions[message.id]}
                     onReact={handleReaction}
                     onReport={handleReport}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
                   />
                 </div>
               );
