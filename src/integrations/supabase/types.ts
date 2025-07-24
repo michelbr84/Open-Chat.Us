@@ -2881,12 +2881,25 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_rate_limit: {
+        Args: {
+          user_identifier: string
+          action_type: string
+          max_actions?: number
+          time_window_minutes?: number
+        }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
       }
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      validate_message_content: {
+        Args: { content: string }
         Returns: boolean
       }
     }
