@@ -35,8 +35,8 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange }: U
   };
 
   return (
-    <aside className="w-64 chat-sidebar border-r border-border flex flex-col h-full">
-      <div className="p-4 border-b border-border">
+    <aside className="w-full md:w-64 chat-sidebar border-r border-border flex flex-col h-full">
+      <div className="p-3 md:p-4 border-b border-border">
         <div className="flex items-center gap-2 mb-3">
           <Users className="w-4 h-4" />
           <h3 className="font-semibold text-sm">
@@ -49,35 +49,35 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange }: U
           <div className="space-y-2">
             {editingName ? (
               <div className="flex items-center gap-1">
-                <Input
-                  value={tempName}
-                  onChange={(e) => setTempName(e.target.value)}
-                  className="h-7 text-xs"
-                  placeholder="Your nickname"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleSaveName();
-                    if (e.key === 'Escape') handleCancelEdit();
-                  }}
-                />
-                <Button size="sm" variant="ghost" onClick={handleSaveName} className="h-7 w-7 p-0">
-                  <Check className="w-3 h-3" />
-                </Button>
-                <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-7 w-7 p-0">
-                  <X className="w-3 h-3" />
-                </Button>
+                 <Input
+                   value={tempName}
+                   onChange={(e) => setTempName(e.target.value)}
+                   className="h-8 md:h-7 text-sm md:text-xs"
+                   placeholder="Your nickname"
+                   onKeyDown={(e) => {
+                     if (e.key === 'Enter') handleSaveName();
+                     if (e.key === 'Escape') handleCancelEdit();
+                   }}
+                 />
+                 <Button size="sm" variant="ghost" onClick={handleSaveName} className="h-8 w-8 md:h-7 md:w-7 p-0">
+                   <Check className="w-4 h-4 md:w-3 md:h-3" />
+                 </Button>
+                 <Button size="sm" variant="ghost" onClick={handleCancelEdit} className="h-8 w-8 md:h-7 md:w-7 p-0">
+                   <X className="w-4 h-4 md:w-3 md:h-3" />
+                 </Button>
               </div>
             ) : (
               <div className="flex items-center gap-2 text-xs">
                 <span className="text-muted-foreground">You:</span>
                 <span className="font-medium user-guest">{guestName}</span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setEditingName(true)}
-                  className="h-5 w-5 p-0"
-                >
-                  <Pencil className="w-3 h-3" />
-                </Button>
+                 <Button
+                   size="sm"
+                   variant="ghost"
+                   onClick={() => setEditingName(true)}
+                   className="h-6 w-6 md:h-5 md:w-5 p-0"
+                 >
+                   <Pencil className="w-3 h-3" />
+                 </Button>
               </div>
             )}
           </div>
@@ -94,8 +94,8 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange }: U
               <li
                 key={key}
                 className={`
-                  px-3 py-2 rounded-md cursor-pointer text-sm transition-colors
-                  hover:bg-muted/50
+                  px-3 py-3 md:py-2 rounded-md cursor-pointer text-sm md:text-sm transition-colors
+                  hover:bg-muted/50 active:bg-muted
                   ${isCurrentUser ? 'font-semibold bg-muted' : ''}
                 `}
                 onClick={() => !isCurrentUser && onUserClick(name, isMember, key)}

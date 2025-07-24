@@ -14,6 +14,7 @@ import { MessageInput } from '@/components/MessageInput';
 import { PrivateChat } from '@/components/PrivateChat';
 import { LoginModal } from '@/components/LoginModal';
 import { DonateModal } from '@/components/DonateModal';
+import { Users } from 'lucide-react';
 
 interface Message {
   id: string;
@@ -42,6 +43,7 @@ const Index = () => {
   const [ageVerified, setAgeVerified] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showDonate, setShowDonate] = useState(false);
+  const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
@@ -305,6 +307,7 @@ const Index = () => {
 
     // Open private chat
     setActivePrivateChat({ id: key, name });
+    setShowMobileSidebar(false); // Close mobile sidebar
   };
 
   // Handle guest name change with validation
@@ -376,16 +379,36 @@ const Index = () => {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <UserList
-          users={userList}
-          guestName={guestName}
-          onUserClick={handleUserClick}
-          onGuestNameChange={handleGuestNameChange}
-        />
+        {/* Mobile sidebar overlay */}
+        <div className={`
+          fixed inset-0 bg-black/50 z-40 transition-opacity md:hidden
+          ${showMobileSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+        `} onClick={() => setShowMobileSidebar(false)} />
+        
+        {/* Sidebar with user list */}
+        <div className={`
+          fixed left-0 top-0 h-full z-50 transition-transform md:relative md:translate-x-0 md:z-auto
+          ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}
+        `}>
+          <UserList
+            users={userList}
+            guestName={guestName}
+            onUserClick={handleUserClick}
+            onGuestNameChange={handleGuestNameChange}
+          />
+        </div>
 
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col relative">
+          {/* Mobile sidebar toggle */}
+          <button
+            onClick={() => setShowMobileSidebar(!showMobileSidebar)}
+            className="md:hidden absolute top-4 left-4 z-10 bg-primary text-primary-foreground rounded-full p-2 shadow-lg"
+          >
+            <Users className="w-5 h-5" />
+          </button>
+          
           {/* Messages area */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-1">
+          <div className="flex-1 overflow-y-auto p-4 pt-16 md:pt-4 space-y-1">
             {isSearching && (
               <div className="mb-4 p-3 bg-muted rounded-lg animate-fade-in">
                 <h3 className="font-semibold text-sm mb-2">

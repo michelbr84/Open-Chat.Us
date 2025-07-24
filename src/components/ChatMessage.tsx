@@ -83,23 +83,24 @@ export const ChatMessage = ({
 
   return (
     <div 
-      className={`group flex gap-3 mb-4 animate-fade-in transition-all duration-200 ${
+      className={`group flex gap-2 md:gap-3 mb-3 md:mb-4 animate-fade-in transition-all duration-200 ${
         isOwn ? 'flex-row-reverse' : 'flex-row'
       }`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={() => setIsHovered(true)}
+      onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
     >
       {/* Avatar */}
-      <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
         {getAvatar()}
       </div>
 
       {/* Message content */}
-      <div className={`max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col relative`}>
+      <div className={`max-w-[80%] md:max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col relative`}>
         <div className={`
-          px-4 py-2 rounded-lg relative group/bubble
+          px-3 py-2 md:px-4 md:py-2 rounded-lg relative group/bubble
           ${isOwn ? 'chat-bubble-own rounded-br-sm' : 'chat-bubble-other rounded-bl-sm'}
-          ${isOwn ? 'rounded-br-sm' : 'rounded-bl-sm'}
           neon-border transition-all duration-200 hover:shadow-lg
         `}>
           {/* Message meta */}
@@ -109,7 +110,7 @@ export const ChatMessage = ({
           </div>
           
           {/* Message content */}
-          <div className="text-sm leading-relaxed break-words">
+          <div className="text-sm md:text-sm leading-relaxed break-words">
             {message.content}
             {message.edited_at && (
               <span className="text-xs text-muted-foreground ml-2 italic">
@@ -120,7 +121,7 @@ export const ChatMessage = ({
 
           {/* Hover actions */}
           <div className={`
-            absolute ${isOwn ? 'left-0 top-2 -translate-x-full -ml-2' : 'right-0 top-2 translate-x-full mr-2'}
+            absolute ${isOwn ? 'left-0 top-1 md:top-2 -translate-x-full -ml-1 md:-ml-2' : 'right-0 top-1 md:top-2 translate-x-full mr-1 md:mr-2'}
             flex items-center gap-1 transition-all duration-200
             ${isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}
           `}>
@@ -153,16 +154,17 @@ export const ChatMessage = ({
           </div>
         )}
 
-        {/* Legacy action buttons (fallback for mobile) */}
+        {/* Mobile action buttons (always visible on mobile) */}
         <div className={`
           flex items-center gap-1 mt-1 transition-opacity duration-200
-          ${isHovered ? 'opacity-0 md:hidden' : 'opacity-100 md:opacity-0'}
+          ${isHovered ? 'md:opacity-0' : 'opacity-100'}
+          md:hidden
         `}>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleReaction('❤️')}
-            className="h-6 px-2 text-xs text-muted-foreground hover:text-red-500 transition-colors"
+            className="h-7 px-2 text-xs text-muted-foreground hover:text-red-500 transition-colors"
           >
             <Heart className="w-3 h-3 mr-1" />
             Like
@@ -173,7 +175,7 @@ export const ChatMessage = ({
               variant="ghost"
               size="sm"
               onClick={() => handleReport('inappropriate')}
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-orange-500 transition-colors"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-orange-500 transition-colors"
             >
               <Flag className="w-3 h-3 mr-1" />
               Report

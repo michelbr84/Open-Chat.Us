@@ -58,8 +58,8 @@ export const MessageInput = ({
   const isNearLimit = remainingChars <= 100;
   
   return (
-    <div className="border-t border-border p-4">
-      <div className="flex gap-2">
+    <div className="border-t border-border p-3 md:p-4">
+      <div className="flex gap-2 items-end">
         <div className="flex-1 relative">
           <Input
             value={message}
@@ -67,7 +67,7 @@ export const MessageInput = ({
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             disabled={disabled}
-            className="chat-input pr-16"
+            className="chat-input pr-16 h-12 md:h-10 text-base md:text-sm"
             maxLength={MAX_MESSAGE_LENGTH}
           />
           {isNearLimit && (
@@ -81,9 +81,9 @@ export const MessageInput = ({
         <Button
           onClick={handleSend}
           disabled={!message.trim() || disabled || message.length > MAX_MESSAGE_LENGTH}
-          size="sm"
+          className="h-12 md:h-10 px-4 md:px-3 min-w-[48px]"
         >
-          <Send className="w-4 h-4" />
+          <Send className="w-5 h-5 md:w-4 md:h-4" />
         </Button>
       </div>
     </div>
