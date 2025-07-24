@@ -5,7 +5,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageReports } from '@/hooks/useMessageReports';
 import { useMessageEditing } from '@/hooks/useMessageEditing';
-import { getOrCreateGuestId, getOrCreateGuestName, updateGuestName, clearGuestData, isValidGuestName } from '@/utils/secureGuestId';
+import { useSecureMessageHandling } from '@/hooks/useSecureMessageHandling';
+import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
+import { getOrCreateGuestId, getOrCreateGuestName, updateGuestName, clearGuestData, validateGuestSession } from '@/utils/secureGuestId';
+import { sanitizeGuestName } from '@/utils/sanitization';
 import { AgeGate } from '@/components/AgeGate';
 import { ChatHeader } from '@/components/ChatHeader';
 import { UserList } from '@/components/UserList';
@@ -38,6 +41,8 @@ const Index = () => {
   const { reactions, toggleReaction } = useMessageReactions();
   const { submitReport } = useMessageReports();
   const { editMessage, deleteMessage } = useMessageEditing();
+  const { validateAndSanitizeMessage, logSecurityEvent } = useSecureMessageHandling();
+  const { logSecurityEvent: logSecurity } = useSecurityMonitoring();
   
   // App state
   const [ageVerified, setAgeVerified] = useState(false);
@@ -310,28 +315,37 @@ const Index = () => {
     setShowMobileSidebar(false); // Close mobile sidebar
   };
 
-  // Handle guest name change with validation
+  // Handle guest name change with enhanced validation
   const handleGuestNameChange = async (newName: string) => {
     if (!presenceChannelRef.current) return;
 
-    // Validate guest name
-    if (!isValidGuestName(newName)) {
+    // Use enhanced sanitization
+    const validation = sanitizeGuestName(newName);
+    
+    if (!validation.valid) {
       toast({
         title: "Invalid name",
-        description: "Name must be 3-20 characters and contain only letters, numbers, dashes, and underscores.",
+        description: validation.error || "Please choose a different name.",
         variant: "destructive",
       });
       return;
     }
 
     try {
+      // Log security event
+      logSecurityEvent('guest_name_change', { 
+        oldName: guestName, 
+        newName: validation.sanitized,
+        timestamp: new Date().toISOString()
+      });
+
       await presenceChannelRef.current.untrack();
       await presenceChannelRef.current.track({ 
-        name: newName, 
+        name: validation.sanitized, 
         isMember: false 
       });
-      setGuestName(newName);
-      updateGuestName(newName);
+      setGuestName(validation.sanitized);
+      updateGuestName(validation.sanitized);
     } catch (error) {
       console.error('Failed to change name:', error);
       toast({

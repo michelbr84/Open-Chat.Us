@@ -11,6 +11,31 @@ export const generateSecureGuestId = (): string => {
   return `guest-${timestamp}-${randomPart}`;
 };
 
+// Enhanced guest session security
+export const generateSecureSessionToken = (): string => {
+  const timestamp = Date.now().toString(36);
+  const randomPart = crypto.getRandomValues(new Uint32Array(2))
+    .reduce((acc, val) => acc + val.toString(36), '');
+  return `${timestamp}-${randomPart}`;
+};
+
+// Validate guest session integrity
+export const validateGuestSession = (guestId: string): boolean => {
+  if (!guestId || !guestId.startsWith('guest-')) return false;
+  
+  const parts = guestId.split('-');
+  if (parts.length !== 3) return false;
+  
+  // Check if timestamp is reasonable (not too old, not future)
+  const timestamp = parseInt(parts[1], 36);
+  const now = Date.now();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  
+  return timestamp > 0 && 
+         timestamp <= now && 
+         timestamp > (now - oneWeek);
+};
+
 // Get or create persistent guest ID
 export const getOrCreateGuestId = (): string => {
   let guestId = localStorage.getItem(GUEST_ID_KEY);
@@ -68,29 +93,4 @@ export const isValidGuestName = (name: string): boolean => {
   ];
   
   return !restrictedPatterns.some(pattern => pattern.test(trimmed));
-};
-
-// Enhanced guest session security
-export const generateSecureSessionToken = (): string => {
-  const timestamp = Date.now().toString(36);
-  const randomPart = crypto.getRandomValues(new Uint32Array(2))
-    .reduce((acc, val) => acc + val.toString(36), '');
-  return `${timestamp}-${randomPart}`;
-};
-
-// Validate guest session integrity
-export const validateGuestSession = (guestId: string): boolean => {
-  if (!guestId || !guestId.startsWith('guest-')) return false;
-  
-  const parts = guestId.split('-');
-  if (parts.length !== 3) return false;
-  
-  // Check if timestamp is reasonable (not too old, not future)
-  const timestamp = parseInt(parts[1], 36);
-  const now = Date.now();
-  const oneWeek = 7 * 24 * 60 * 60 * 1000;
-  
-  return timestamp > 0 && 
-         timestamp <= now && 
-         timestamp > (now - oneWeek);
 };

@@ -2890,6 +2890,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      enhanced_rate_limit_check: {
+        Args: {
+          user_identifier: string
+          action_type: string
+          max_actions?: number
+          time_window_minutes?: number
+          strict_mode?: boolean
+        }
+        Returns: boolean
+      }
       get_current_user_role: {
         Args: Record<PropertyKey, never>
         Returns: string
