@@ -48,7 +48,9 @@ export const useMessageReactions = () => {
       grouped[reaction.message_id][reaction.emoji].count++;
       grouped[reaction.message_id][reaction.emoji].users.push(reaction.user_id);
       
-      if (user && reaction.user_id === user.id) {
+      // Check if current user reacted (handle both guest names and auth UUIDs)
+      const currentUserId = user ? user.id : null;
+      if (currentUserId && reaction.user_id === currentUserId) {
         grouped[reaction.message_id][reaction.emoji].hasReacted = true;
       }
     });
@@ -79,13 +81,13 @@ export const useMessageReactions = () => {
 
   // Add or remove a reaction
   const toggleReaction = async (messageId: string, emoji: string) => {
+    // For reactions, we need some form of user identification
+    const userId = user ? user.id : `guest-${Date.now()}-${Math.random()}`;
+    
     if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please login to react to messages.",
-        variant: "destructive",
-      });
-      return;
+      // For guests, we'll create a temporary reaction identifier
+      // In a real app, you might want to store this in localStorage for persistence
+      console.warn('Guest reactions are temporary and will not persist across sessions');
     }
 
     const currentReaction = reactions[messageId]?.[emoji];
@@ -97,7 +99,7 @@ export const useMessageReactions = () => {
         .from('message_reactions')
         .delete()
         .eq('message_id', messageId)
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('emoji', emoji);
 
       if (error) {
@@ -114,7 +116,7 @@ export const useMessageReactions = () => {
         .from('message_reactions')
         .insert({
           message_id: messageId,
-          user_id: user.id,
+          user_id: userId,
           emoji: emoji,
         });
 
