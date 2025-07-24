@@ -7,6 +7,7 @@ import { ChatHeader } from '@/components/ChatHeader';
 import { UserList } from '@/components/UserList';
 import { ChatMessage } from '@/components/ChatMessage';
 import { MessageInput } from '@/components/MessageInput';
+import { PrivateChat } from '@/components/PrivateChat';
 import { LoginModal } from '@/components/LoginModal';
 import { DonateModal } from '@/components/DonateModal';
 
@@ -27,68 +28,369 @@ interface OnlineUser {
 const Index = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  
+  // App state
   const [ageVerified, setAgeVerified] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showDonate, setShowDonate] = useState(false);
+  
+  // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [guestName, setGuestName] = useState('Guest' + Math.floor(1000 + Math.random() * 9000));
+  const [searchResults, setSearchResults] = useState<Message[]>([]);
+  
+  // User state
+  const [guestName, setGuestName] = useState('');
   const [userList, setUserList] = useState<OnlineUser[]>([]);
+  
+  // Private chat state
+  const [activePrivateChat, setActivePrivateChat] = useState<{id: string; name: string} | null>(null);
+  
+  // Refs and throttling
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const presenceChannelRef = useRef<any>(null);
+  const lastMessageTimeRef = useRef(0);
 
+  // Mock reactions data (in real app, this would come from backend)
+  const [messageReactions, setMessageReactions] = useState<Record<string, Record<string, {count: number; users: string[]; hasReacted: boolean}>>>({});
+
+  // Check age verification on mount
   useEffect(() => {
-    if (localStorage.getItem('ageVerified') === 'true') {
+    const previouslyConfirmed = localStorage.getItem('ageVerified');
+    if (previouslyConfirmed === 'true') {
       setAgeVerified(true);
     }
   }, []);
 
-  const sendMessage = async (content: string) => {
-    const senderName = user?.user_metadata?.name || user?.email || guestName;
-    await supabase.from('messages').insert({
+  // Initialize guest name
+  useEffect(() => {
+    if (ageVerified && !user && !guestName) {
+      const randomName = 'Guest' + Math.floor(1000 + Math.random() * 9000);
+      setGuestName(randomName);
+    }
+  }, [ageVerified, user, guestName]);
+
+  // Load recent messages and subscribe to new ones
+  useEffect(() => {
+    if (!ageVerified) return;
+
+    const loadMessages = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (!error && data) {
+        setMessages(data.reverse());
+      }
+    };
+
+    loadMessages();
+
+    // Subscribe to new messages
+    const messagesChannel = supabase
+      .channel('public-messages')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages' },
+        (payload) => {
+          setMessages((prev) => [...prev, payload.new as Message]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(messagesChannel);
+    };
+  }, [ageVerified]);
+
+  // Handle user presence
+  useEffect(() => {
+    if (!ageVerified) return;
+
+    // Remove existing channel
+    if (presenceChannelRef.current) {
+      supabase.removeChannel(presenceChannelRef.current);
+      presenceChannelRef.current = null;
+    }
+
+    const setupPresence = () => {
+      const currentUser = user;
+      const currentGuestName = guestName;
+      
+      if (!currentUser && !currentGuestName) return;
+
+      const name = currentUser 
+        ? (currentUser.user_metadata?.name || currentUser.email)
+        : currentGuestName;
+      
+      const key = currentUser ? currentUser.id : `${currentGuestName}_${Date.now()}`;
+      const isMember = !!currentUser;
+
+      const channel = supabase.channel('online-users', {
+        config: { presence: { key } }
+      });
+
+      channel
+        .on('presence', { event: 'sync' }, () => {
+          const state = channel.presenceState();
+          const online: OnlineUser[] = [];
+          
+          for (const presenceKey in state) {
+            state[presenceKey].forEach((entry: any) => {
+              online.push({
+                name: entry.name,
+                isMember: entry.isMember,
+                key: presenceKey,
+              });
+            });
+          }
+          
+          setUserList(online);
+        })
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            channel.track({ name, isMember });
+          }
+        });
+
+      presenceChannelRef.current = channel;
+    };
+
+    setupPresence();
+
+    return () => {
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
+        presenceChannelRef.current = null;
+      }
+    };
+  }, [ageVerified, user, guestName]);
+
+  // Auto-scroll to bottom
+  useEffect(() => {
+    if (searchQuery === '') {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, searchQuery]);
+
+  // Handle search
+  useEffect(() => {
+    if (!ageVerified) return;
+    
+    if (!searchQuery) {
+      setSearchResults([]);
+      return;
+    }
+
+    const performSearch = async () => {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .ilike('content', `%${searchQuery}%`)
+        .order('created_at', { ascending: true });
+
+      if (!error) {
+        setSearchResults(data || []);
+      }
+    };
+
+    const debounceTimer = setTimeout(performSearch, 300);
+    return () => clearTimeout(debounceTimer);
+  }, [searchQuery, ageVerified]);
+
+  // Send public message with spam protection
+  const sendPublicMessage = async (content: string) => {
+    const now = Date.now();
+    if (now - lastMessageTimeRef.current < 1000) {
+      toast({
+        title: "Slow down!",
+        description: "Please wait a moment before sending another message.",
+        variant: "destructive",
+      });
+      return;
+    }
+    lastMessageTimeRef.current = now;
+
+    const senderName = user 
+      ? (user.user_metadata?.name || user.email)
+      : guestName;
+
+    const { error } = await supabase.from('messages').insert({
       content,
       sender_name: senderName,
       sender_id: user?.id || null,
     });
+
+    if (error) {
+      toast({
+        title: "Failed to send message",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
   };
 
+  // Handle user click for private messaging
+  const handleUserClick = (name: string, isMember: boolean, key: string) => {
+    if (!isMember) {
+      toast({
+        title: "Cannot message guest",
+        description: "This user is not available for private chat.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!user) {
+      setShowLogin(true);
+      return;
+    }
+
+    // Open private chat
+    setActivePrivateChat({ id: key, name });
+  };
+
+  // Handle guest name change
+  const handleGuestNameChange = async (newName: string) => {
+    if (!presenceChannelRef.current) return;
+
+    try {
+      await presenceChannelRef.current.untrack();
+      await presenceChannelRef.current.track({ 
+        name: newName, 
+        isMember: false 
+      });
+      setGuestName(newName);
+    } catch (error) {
+      console.error('Failed to change name:', error);
+    }
+  };
+
+  // Handle emoji reactions
+  const handleReaction = (messageId: string, emoji: string) => {
+    setMessageReactions(prev => {
+      const messageReactions = prev[messageId] || {};
+      const emojiReaction = messageReactions[emoji] || { count: 0, users: [], hasReacted: false };
+      
+      const userId = user?.id || guestName;
+      const hasReacted = emojiReaction.users.includes(userId);
+      
+      return {
+        ...prev,
+        [messageId]: {
+          ...messageReactions,
+          [emoji]: {
+            count: hasReacted ? emojiReaction.count - 1 : emojiReaction.count + 1,
+            users: hasReacted 
+              ? emojiReaction.users.filter(u => u !== userId)
+              : [...emojiReaction.users, userId],
+            hasReacted: !hasReacted,
+          }
+        }
+      };
+    });
+
+    // Show feedback
+    toast({
+      title: `${emoji} reaction ${messageReactions[messageId]?.[emoji]?.hasReacted ? 'removed' : 'added'}`,
+      description: "Your reaction has been updated.",
+    });
+  };
+
+  // Handle message reporting
+  const handleReport = (messageId: string, reason: string, details?: string) => {
+    // In a real app, this would send to backend for moderation
+    console.log('Message reported:', { messageId, reason, details });
+    
+    toast({
+      title: "Report submitted",
+      description: "Thank you for helping keep our community safe.",
+    });
+  };
+
+  const isSearching = searchQuery.length > 0;
+  const displayMessages = isSearching ? searchResults : messages;
+
+  if (!ageVerified) {
+    return <AgeGate onConfirm={() => setAgeVerified(true)} />;
+  }
+
   return (
-    <>
-      {!ageVerified ? (
-        <AgeGate onConfirm={() => setAgeVerified(true)} />
-      ) : (
-        <div className="h-screen flex flex-col">
-          <ChatHeader
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            onLoginClick={() => setShowLogin(true)}
-            onDonateClick={() => setShowDonate(true)}
-          />
-          <div className="flex-1 flex">
-            <UserList
-              users={userList}
-              guestName={guestName}
-              onUserClick={() => {}}
-              onGuestNameChange={setGuestName}
-            />
-            <main className="flex-1 flex flex-col">
-              <div className="flex-1 overflow-y-auto p-4">
-                {messages.map((message) => (
-                  <ChatMessage 
-                    key={message.id}
-                    message={message} 
-                    isOwn={user ? message.sender_id === user.id : message.sender_name === guestName}
-                  />
-                ))}
-                <div ref={messagesEndRef} />
+    <div className="h-screen flex flex-col bg-chat-background">
+      <ChatHeader
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        onLoginClick={() => setShowLogin(true)}
+        onDonateClick={() => setShowDonate(true)}
+      />
+
+      <div className="flex-1 flex overflow-hidden">
+        <UserList
+          users={userList}
+          guestName={guestName}
+          onUserClick={handleUserClick}
+          onGuestNameChange={handleGuestNameChange}
+        />
+
+        <main className="flex-1 flex flex-col">
+          {/* Messages area */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-1">
+            {isSearching && (
+              <div className="mb-4 p-3 bg-muted rounded-lg animate-fade-in">
+                <h3 className="font-semibold text-sm mb-2">
+                  Search Results ({searchResults.length})
+                </h3>
+                {searchResults.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    No messages found for "{searchQuery}"
+                  </p>
+                )}
               </div>
-              <MessageInput onSendMessage={sendMessage} />
-            </main>
+            )}
+
+            {displayMessages.map((message) => {
+              const isOwn = user 
+                ? message.sender_id === user.id
+                : message.sender_name === guestName;
+
+              return (
+                <div key={message.id} className="group">
+                  <ChatMessage 
+                    message={message} 
+                    isOwn={isOwn}
+                    guestName={guestName}
+                    reactions={messageReactions[message.id]}
+                    onReact={handleReaction}
+                    onReport={handleReport}
+                  />
+                </div>
+              );
+            })}
+            <div ref={messagesEndRef} />
           </div>
-        </div>
-      )}
+
+          {/* Message input */}
+          {!isSearching && (
+            <MessageInput
+              onSendMessage={sendPublicMessage}
+              placeholder="Type a message..."
+            />
+          )}
+        </main>
+      </div>
+
+      {/* Modals and overlays */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
       {showDonate && <DonateModal onClose={() => setShowDonate(false)} />}
-    </>
+      {activePrivateChat && (
+        <PrivateChat
+          partner={activePrivateChat}
+          onClose={() => setActivePrivateChat(null)}
+        />
+      )}
+    </div>
   );
 };
 
