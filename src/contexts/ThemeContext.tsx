@@ -23,7 +23,7 @@ interface ThemeProviderProps {
 }
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
-  const [theme, setThemeState] = useState<Theme>('theme-dark');
+  const [theme, setThemeState] = useState<Theme>('theme-neon');
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
@@ -34,16 +34,16 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   };
 
   const cycleTheme = () => {
-    const themes: Theme[] = ['theme-dark', 'theme-light', 'theme-neon'];
+    const themes: Theme[] = ['theme-neon', 'theme-dark', 'theme-light'];
     const currentIndex = themes.indexOf(theme);
     const nextIndex = (currentIndex + 1) % themes.length;
     setTheme(themes[nextIndex]);
   };
 
   useEffect(() => {
-    // Load saved theme or default to dark
+    // Load saved theme or default to neon
     const savedTheme = localStorage.getItem('preferredTheme') as Theme;
-    const initialTheme = savedTheme || 'theme-dark';
+    const initialTheme = savedTheme || 'theme-neon';
     setTheme(initialTheme);
   }, []);
 
