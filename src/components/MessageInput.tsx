@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { sanitizeMessageContent, containsInappropriateContent, isContentValidationRateLimited } from '@/utils/sanitization';
+import { getOrCreateGuestId } from '@/utils/secureGuestId';
 
 interface MessageInputProps {
   onSendMessage: (message: string) => void;
@@ -40,9 +42,41 @@ export const MessageInput = ({
       });
       return;
     }
+
+    // Rate limiting check
+    const guestId = getOrCreateGuestId();
+    if (isContentValidationRateLimited(guestId)) {
+      toast({
+        title: "Too many messages",
+        description: "Please wait before sending another message.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Content sanitization and validation
+    const sanitizedMessage = sanitizeMessageContent(trimmedMessage);
+    
+    if (!sanitizedMessage) {
+      toast({
+        title: "Invalid message",
+        description: "Message contains prohibited content.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (containsInappropriateContent(sanitizedMessage)) {
+      toast({
+        title: "Inappropriate content",
+        description: "Message contains content that is not allowed.",
+        variant: "destructive",
+      });
+      return;
+    }
     
     if (!disabled) {
-      onSendMessage(trimmedMessage);
+      onSendMessage(sanitizedMessage);
       setMessage('');
     }
   };

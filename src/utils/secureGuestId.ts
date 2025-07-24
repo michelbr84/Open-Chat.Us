@@ -49,10 +49,48 @@ export const clearGuestData = (): void => {
   localStorage.removeItem(GUEST_NAME_KEY);
 };
 
-// Validate guest name format
+// Validate guest name format (enhanced security)
 export const isValidGuestName = (name: string): boolean => {
-  return name && 
-         name.trim().length >= 3 && 
-         name.trim().length <= 20 &&
-         /^[a-zA-Z0-9_-]+$/.test(name.trim());
+  if (!name || typeof name !== 'string') return false;
+  
+  const trimmed = name.trim();
+  
+  // Length validation
+  if (trimmed.length < 3 || trimmed.length > 20) return false;
+  
+  // Character validation - only alphanumeric, underscore, hyphen
+  if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) return false;
+  
+  // Prevent impersonation patterns
+  const restrictedPatterns = [
+    /admin/i, /moderator/i, /mod/i, /support/i, /staff/i,
+    /system/i, /bot/i, /service/i, /official/i, /verified/i
+  ];
+  
+  return !restrictedPatterns.some(pattern => pattern.test(trimmed));
+};
+
+// Enhanced guest session security
+export const generateSecureSessionToken = (): string => {
+  const timestamp = Date.now().toString(36);
+  const randomPart = crypto.getRandomValues(new Uint32Array(2))
+    .reduce((acc, val) => acc + val.toString(36), '');
+  return `${timestamp}-${randomPart}`;
+};
+
+// Validate guest session integrity
+export const validateGuestSession = (guestId: string): boolean => {
+  if (!guestId || !guestId.startsWith('guest-')) return false;
+  
+  const parts = guestId.split('-');
+  if (parts.length !== 3) return false;
+  
+  // Check if timestamp is reasonable (not too old, not future)
+  const timestamp = parseInt(parts[1], 36);
+  const now = Date.now();
+  const oneWeek = 7 * 24 * 60 * 60 * 1000;
+  
+  return timestamp > 0 && 
+         timestamp <= now && 
+         timestamp > (now - oneWeek);
 };
