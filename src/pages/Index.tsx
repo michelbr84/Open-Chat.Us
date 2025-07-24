@@ -2,6 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useMessageReactions } from '@/hooks/useMessageReactions';
+import { useMessageReports } from '@/hooks/useMessageReports';
 import { AgeGate } from '@/components/AgeGate';
 import { ChatHeader } from '@/components/ChatHeader';
 import { UserList } from '@/components/UserList';
@@ -28,6 +30,8 @@ interface OnlineUser {
 const Index = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { reactions, toggleReaction } = useMessageReactions();
+  const { submitReport } = useMessageReports();
   
   // App state
   const [ageVerified, setAgeVerified] = useState(false);
@@ -51,8 +55,6 @@ const Index = () => {
   const presenceChannelRef = useRef<any>(null);
   const lastMessageTimeRef = useRef(0);
 
-  // Mock reactions data (in real app, this would come from backend)
-  const [messageReactions, setMessageReactions] = useState<Record<string, Record<string, {count: number; users: string[]; hasReacted: boolean}>>>({});
 
   // Check age verification on mount
   useEffect(() => {
@@ -268,46 +270,14 @@ const Index = () => {
     }
   };
 
-  // Handle emoji reactions
+  // Handle emoji reactions - now connected to real backend
   const handleReaction = (messageId: string, emoji: string) => {
-    setMessageReactions(prev => {
-      const messageReactions = prev[messageId] || {};
-      const emojiReaction = messageReactions[emoji] || { count: 0, users: [], hasReacted: false };
-      
-      const userId = user?.id || guestName;
-      const hasReacted = emojiReaction.users.includes(userId);
-      
-      return {
-        ...prev,
-        [messageId]: {
-          ...messageReactions,
-          [emoji]: {
-            count: hasReacted ? emojiReaction.count - 1 : emojiReaction.count + 1,
-            users: hasReacted 
-              ? emojiReaction.users.filter(u => u !== userId)
-              : [...emojiReaction.users, userId],
-            hasReacted: !hasReacted,
-          }
-        }
-      };
-    });
-
-    // Show feedback
-    toast({
-      title: `${emoji} reaction ${messageReactions[messageId]?.[emoji]?.hasReacted ? 'removed' : 'added'}`,
-      description: "Your reaction has been updated.",
-    });
+    toggleReaction(messageId, emoji);
   };
 
-  // Handle message reporting
+  // Handle message reporting - now connected to real backend
   const handleReport = (messageId: string, reason: string, details?: string) => {
-    // In a real app, this would send to backend for moderation
-    console.log('Message reported:', { messageId, reason, details });
-    
-    toast({
-      title: "Report submitted",
-      description: "Thank you for helping keep our community safe.",
-    });
+    submitReport(messageId, reason, details);
   };
 
   const isSearching = searchQuery.length > 0;
@@ -361,7 +331,7 @@ const Index = () => {
                     message={message} 
                     isOwn={isOwn}
                     guestName={guestName}
-                    reactions={messageReactions[message.id]}
+                    reactions={reactions[message.id]}
                     onReact={handleReaction}
                     onReport={handleReport}
                   />
