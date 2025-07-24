@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageReports } from '@/hooks/useMessageReports';
 import { useMessageEditing } from '@/hooks/useMessageEditing';
+import { getOrCreateGuestId, getOrCreateGuestName, updateGuestName, clearGuestData, isValidGuestName } from '@/utils/secureGuestId';
 import { AgeGate } from '@/components/AgeGate';
 import { ChatHeader } from '@/components/ChatHeader';
 import { UserList } from '@/components/UserList';
@@ -68,11 +69,17 @@ const Index = () => {
     }
   }, []);
 
-  // Initialize guest name
+  // Initialize secure guest identity
   useEffect(() => {
     if (ageVerified && !user && !guestName) {
-      const randomName = 'Guest' + Math.floor(1000 + Math.random() * 9000);
-      setGuestName(randomName);
+      const secureGuestName = getOrCreateGuestName();
+      setGuestName(secureGuestName);
+    }
+    
+    // Clear guest data when user logs in
+    if (user && guestName) {
+      clearGuestData();
+      setGuestName('');
     }
   }, [ageVerified, user, guestName]);
 
@@ -218,8 +225,9 @@ const Index = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, ageVerified]);
 
-  // Send public message with spam protection
+  // Send public message with enhanced security validation
   const sendPublicMessage = async (content: string) => {
+    // Client-side rate limiting (backup to server-side)
     const now = Date.now();
     if (now - lastMessageTimeRef.current < 1000) {
       toast({
@@ -235,16 +243,45 @@ const Index = () => {
       ? (user.user_metadata?.name || user.email)
       : guestName;
 
-    const { error } = await supabase.from('messages').insert({
-      content,
-      sender_name: senderName,
-      sender_id: user?.id || null,
-    });
+    try {
+      const { error } = await supabase.from('messages').insert({
+        content,
+        sender_name: senderName,
+        sender_id: user?.id || null,
+      });
 
-    if (error) {
+      if (error) {
+        // Handle specific error types
+        if (error.message.includes('too long')) {
+          toast({
+            title: "Message too long",
+            description: "Please keep your message under 1000 characters.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes('prohibited content')) {
+          toast({
+            title: "Message blocked",
+            description: "Your message contains prohibited content.",
+            variant: "destructive",
+          });
+        } else if (error.message.includes('rate limit')) {
+          toast({
+            title: "Rate limited",
+            description: "You're sending messages too quickly. Please slow down.",
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Failed to send message",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      }
+    } catch (error) {
       toast({
-        title: "Failed to send message",
-        description: error.message,
+        title: "Network error",
+        description: "Failed to send message. Please check your connection.",
         variant: "destructive",
       });
     }
@@ -270,9 +307,19 @@ const Index = () => {
     setActivePrivateChat({ id: key, name });
   };
 
-  // Handle guest name change
+  // Handle guest name change with validation
   const handleGuestNameChange = async (newName: string) => {
     if (!presenceChannelRef.current) return;
+
+    // Validate guest name
+    if (!isValidGuestName(newName)) {
+      toast({
+        title: "Invalid name",
+        description: "Name must be 3-20 characters and contain only letters, numbers, dashes, and underscores.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       await presenceChannelRef.current.untrack();
@@ -281,8 +328,14 @@ const Index = () => {
         isMember: false 
       });
       setGuestName(newName);
+      updateGuestName(newName);
     } catch (error) {
       console.error('Failed to change name:', error);
+      toast({
+        title: "Failed to change name",
+        description: "Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

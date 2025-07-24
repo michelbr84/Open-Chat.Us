@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { getOrCreateGuestId } from '@/utils/secureGuestId';
 
 interface ReactionData {
   count: number;
@@ -48,9 +49,9 @@ export const useMessageReactions = () => {
       grouped[reaction.message_id][reaction.emoji].count++;
       grouped[reaction.message_id][reaction.emoji].users.push(reaction.user_id);
       
-      // Check if current user reacted (handle both guest names and auth UUIDs)
-      const currentUserId = user ? user.id : null;
-      if (currentUserId && reaction.user_id === currentUserId) {
+      // Check if current user reacted (handle both authenticated users and secure guest IDs)
+      const currentUserId = user ? user.id : getOrCreateGuestId();
+      if (reaction.user_id === currentUserId) {
         grouped[reaction.message_id][reaction.emoji].hasReacted = true;
       }
     });
@@ -81,17 +82,16 @@ export const useMessageReactions = () => {
 
   // Add or remove a reaction
   const toggleReaction = async (messageId: string, emoji: string) => {
-    // For reactions, we need some form of user identification
-    const userId = user ? user.id : `guest-${Date.now()}-${Math.random()}`;
+    // Use secure guest ID for consistent identification
+    const userId = user ? user.id : getOrCreateGuestId();
     
     if (!user) {
-      // For guests, we'll create a temporary reaction identifier
-      // In a real app, you might want to store this in localStorage for persistence
-      console.warn('Guest reactions are temporary and will not persist across sessions');
+      // For guests, reactions will persist using secure localStorage-based IDs
+      console.log('Guest reaction will persist using secure guest ID');
     }
 
     const currentReaction = reactions[messageId]?.[emoji];
-    const hasReacted = currentReaction?.hasReacted;
+    const hasReacted = currentReaction?.hasReacted || false;
 
     if (hasReacted) {
       // Remove reaction
