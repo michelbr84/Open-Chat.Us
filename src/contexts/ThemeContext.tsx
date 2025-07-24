@@ -24,6 +24,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider = ({ children }: ThemeProviderProps) => {
   const [theme, setThemeState] = useState<Theme>('theme-neon');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
@@ -45,7 +46,13 @@ export const ThemeProvider = ({ children }: ThemeProviderProps) => {
     const savedTheme = localStorage.getItem('preferredTheme') as Theme;
     const initialTheme = savedTheme || 'theme-neon';
     setTheme(initialTheme);
+    setIsInitialized(true);
   }, []);
+
+  // Don't render children until context is initialized
+  if (!isInitialized) {
+    return null;
+  }
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, cycleTheme }}>
