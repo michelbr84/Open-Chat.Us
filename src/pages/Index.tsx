@@ -315,6 +315,11 @@ const Index = () => {
     setShowMobileSidebar(false); // Close mobile sidebar
   };
 
+  // Handle opening private chat from header notification
+  const handleOpenPrivateChat = (senderId: string, senderName: string) => {
+    setActivePrivateChat({ id: senderId, name: senderName });
+  };
+
   // Handle guest name change with enhanced validation
   const handleGuestNameChange = async (newName: string) => {
     if (!presenceChannelRef.current) return;
@@ -390,6 +395,7 @@ const Index = () => {
         onSearchChange={setSearchQuery}
         onLoginClick={() => setShowLogin(true)}
         onDonateClick={() => setShowDonate(true)}
+        onOpenPrivateChat={handleOpenPrivateChat}
       />
 
       <div className="flex-1 flex overflow-hidden">

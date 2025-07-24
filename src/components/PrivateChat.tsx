@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useUnreadMessages } from '@/hooks/useUnreadMessages';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Send, MoreVertical, Phone, Video, Info } from 'lucide-react';
 import {
@@ -35,6 +36,7 @@ interface PrivateChatProps {
 export const PrivateChat = ({ partner, onClose }: PrivateChatProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { markMessagesAsRead } = useUnreadMessages();
   const [messages, setMessages] = useState<PrivateMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
@@ -58,6 +60,9 @@ export const PrivateChat = ({ partner, onClose }: PrivateChatProps) => {
 
         if (error) throw error;
         setMessages(data || []);
+        
+        // Mark messages from this partner as read
+        await markMessagesAsRead(partner.id);
       } catch (error: any) {
         toast({
           title: "Failed to load messages",
@@ -83,7 +88,13 @@ export const PrivateChat = ({ partner, onClose }: PrivateChatProps) => {
           filter: `or(and(sender_id.eq.${user.id},receiver_id.eq.${partner.id}),and(sender_id.eq.${partner.id},receiver_id.eq.${user.id}))`,
         },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as PrivateMessage]);
+          const newMessage = payload.new as PrivateMessage;
+          setMessages((prev) => [...prev, newMessage]);
+          
+          // If the new message is from the partner (not from us), mark it as read
+          if (newMessage.sender_id === partner.id) {
+            markMessagesAsRead(partner.id);
+          }
         }
       )
       .subscribe();

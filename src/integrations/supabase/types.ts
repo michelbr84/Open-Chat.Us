@@ -1577,6 +1577,8 @@ export type Database = {
           content: string
           created_at: string
           id: string
+          is_read: boolean | null
+          read_at: string | null
           receiver_id: string
           receiver_name: string
           sender_id: string
@@ -1586,6 +1588,8 @@ export type Database = {
           content: string
           created_at?: string
           id?: string
+          is_read?: boolean | null
+          read_at?: string | null
           receiver_id: string
           receiver_name: string
           sender_id: string
@@ -1595,6 +1599,8 @@ export type Database = {
           content?: string
           created_at?: string
           id?: string
+          is_read?: boolean | null
+          read_at?: string | null
           receiver_id?: string
           receiver_name?: string
           sender_id?: string
@@ -2904,9 +2910,27 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_unread_conversation_partners: {
+        Args: { p_user_id: string }
+        Returns: {
+          sender_id: string
+          sender_name: string
+          unread_count: number
+          latest_message: string
+          latest_message_time: string
+        }[]
+      }
+      get_unread_private_message_count: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      mark_private_messages_as_read: {
+        Args: { p_sender_id: string; p_receiver_id: string }
+        Returns: number
       }
       validate_message_content: {
         Args: { content: string }

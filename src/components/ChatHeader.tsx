@@ -5,19 +5,22 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Search, Palette, LogIn, LogOut, Heart, X } from 'lucide-react';
+import { UnreadMessageIndicator } from '@/components/UnreadMessageIndicator';
 
 interface ChatHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onLoginClick: () => void;
   onDonateClick: () => void;
+  onOpenPrivateChat: (senderId: string, senderName: string) => void;
 }
 
 export const ChatHeader = ({ 
   searchQuery, 
   onSearchChange, 
   onLoginClick, 
-  onDonateClick 
+  onDonateClick,
+  onOpenPrivateChat
 }: ChatHeaderProps) => {
   const { cycleTheme, theme } = useTheme();
   const { user } = useAuth();
@@ -81,6 +84,10 @@ export const ChatHeader = ({
 
       {/* Action buttons */}
       <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
+        {user && (
+          <UnreadMessageIndicator onOpenPrivateChat={onOpenPrivateChat} />
+        )}
+        
         {!user ? (
           <Button variant="outline" onClick={onLoginClick} className="min-h-[40px] px-4">
             <LogIn className="w-4 h-4 mr-2" />
