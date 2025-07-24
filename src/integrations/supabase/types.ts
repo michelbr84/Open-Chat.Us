@@ -116,21 +116,30 @@ export type Database = {
       chat_messages: {
         Row: {
           content: string
+          deleted_at: string | null
+          edited_at: string | null
           id: string
+          is_deleted: boolean
           role: string
           timestamp: string
           user_id: string | null
         }
         Insert: {
           content: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
+          is_deleted?: boolean
           role: string
           timestamp?: string
           user_id?: string | null
         }
         Update: {
           content?: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
+          is_deleted?: boolean
           role?: string
           timestamp?: string
           user_id?: string | null
@@ -811,6 +820,33 @@ export type Database = {
           },
         ]
       }
+      message_edit_history: {
+        Row: {
+          edited_at: string
+          editor_id: string
+          id: string
+          message_id: string
+          new_content: string
+          original_content: string
+        }
+        Insert: {
+          edited_at?: string
+          editor_id: string
+          id?: string
+          message_id: string
+          new_content: string
+          original_content: string
+        }
+        Update: {
+          edited_at?: string
+          editor_id?: string
+          id?: string
+          message_id?: string
+          new_content?: string
+          original_content?: string
+        }
+        Relationships: []
+      }
       message_reactions: {
         Row: {
           created_at: string
@@ -875,21 +911,30 @@ export type Database = {
         Row: {
           content: string
           created_at: string
+          deleted_at: string | null
+          edited_at: string | null
           id: string
+          is_deleted: boolean
           sender_id: string | null
           sender_name: string
         }
         Insert: {
           content: string
           created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
+          is_deleted?: boolean
           sender_id?: string | null
           sender_name: string
         }
         Update: {
           content?: string
           created_at?: string
+          deleted_at?: string | null
+          edited_at?: string | null
           id?: string
+          is_deleted?: boolean
           sender_id?: string | null
           sender_name?: string
         }
