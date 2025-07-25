@@ -30,6 +30,9 @@ export const DonateModal = ({ onClose }: DonateModalProps) => {
         src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(data)}`}
         alt={alt}
         className="border border-border rounded-lg"
+        loading="lazy"
+        width="150"
+        height="150"
       />
     </div>
   );

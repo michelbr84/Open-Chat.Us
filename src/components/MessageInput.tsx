@@ -103,11 +103,17 @@ export const MessageInput = ({
             disabled={disabled}
             className="chat-input pr-16 h-12 md:h-10 text-base md:text-sm"
             maxLength={MAX_MESSAGE_LENGTH}
+            aria-label="Type your message"
+            aria-describedby={isNearLimit ? "char-count" : undefined}
           />
           {isNearLimit && (
-            <div className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs ${
-              remainingChars <= 50 ? 'text-destructive' : 'text-muted-foreground'
-            }`}>
+            <div 
+              id="char-count"
+              className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs ${
+                remainingChars <= 50 ? 'text-destructive' : 'text-muted-foreground'
+              }`}
+              aria-live="polite"
+            >
               {remainingChars}
             </div>
           )}
@@ -116,8 +122,9 @@ export const MessageInput = ({
           onClick={handleSend}
           disabled={!message.trim() || disabled || message.length > MAX_MESSAGE_LENGTH}
           className="h-12 md:h-10 px-4 md:px-3 min-w-[48px]"
+          aria-label="Send message"
         >
-          <Send className="w-5 h-5 md:w-4 md:h-4" />
+          <Send className="w-5 h-5 md:w-4 md:h-4" aria-hidden="true" />
         </Button>
       </div>
     </div>

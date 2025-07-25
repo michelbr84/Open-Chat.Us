@@ -1,0 +1,7 @@
+Contact: mailto:security@open-chat.us
+Contact: https://github.com/michelbr84/neon-chat-pulse/security/advisories/new
+Expires: 2025-12-31T23:59:59.000Z
+Encryption: https://github.com/michelbr84/neon-chat-pulse/blob/main/public/pgp-key.asc
+Preferred-Languages: en
+Canonical: https://open-chat.us/.well-known/security.txt
+Policy: https://github.com/michelbr84/neon-chat-pulse/blob/main/SECURITY.md

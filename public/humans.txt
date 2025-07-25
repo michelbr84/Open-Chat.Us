@@ -1,0 +1,21 @@
+/* TEAM */
+    Developer: OpenChat Team
+    Contact: support [at] open-chat.us
+    GitHub: https://github.com/michelbr84/neon-chat-pulse
+    Location: Open Source Community
+
+/* THANKS */
+    Supabase for backend infrastructure
+    ShadCN for UI components
+    Tailwind CSS for styling
+    React and TypeScript communities
+    All open source contributors
+
+/* SITE */
+    Last update: 2025/01/25
+    Language: English
+    Doctype: HTML5
+    IDE: VS Code, Lovable AI
+    Standards: HTML5, CSS3, WCAG AA
+    Components: React, TypeScript, Tailwind
+    Software: Supabase, Vite, Node.js
