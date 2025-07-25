@@ -4,6 +4,7 @@ import { Heart, Flag } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { EmojiReactions } from './EmojiReactions';
 import { MessageActions } from './MessageActions';
+import { renderLinksInText } from '@/utils/sanitization';
 
 interface Message {
   id: string;
@@ -110,14 +111,17 @@ export const ChatMessage = ({
           </div>
           
           {/* Message content */}
-          <div className="text-sm md:text-sm leading-relaxed break-words">
-            {message.content}
-            {message.edited_at && (
-              <span className="text-xs text-muted-foreground ml-2 italic">
-                (edited)
-              </span>
-            )}
-          </div>
+          <div 
+            className="text-sm md:text-sm leading-relaxed break-words"
+            dangerouslySetInnerHTML={{ 
+              __html: renderLinksInText(message.content) 
+            }}
+          />
+          {message.edited_at && (
+            <span className="text-xs text-muted-foreground ml-2 italic">
+              (edited)
+            </span>
+          )}
 
           {/* Hover actions */}
           <div className={`

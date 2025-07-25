@@ -2,8 +2,8 @@ import DOMPurify from 'dompurify';
 
 // XSS Protection Configuration
 const PURIFY_CONFIG = {
-  ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'code'],
-  ALLOWED_ATTR: [],
+  ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'code', 'a'],
+  ALLOWED_ATTR: ['href', 'target', 'rel', 'class'],
   FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input'],
   FORBID_ATTR: ['onerror', 'onload', 'onclick', 'onmouseover', 'onfocus', 'onblur'],
   KEEP_CONTENT: false,
@@ -134,4 +134,28 @@ export const containsInappropriateContent = (content: string): boolean => {
   ];
 
   return inappropriatePatterns.some(pattern => pattern.test(content));
+};
+
+// Convert URLs in text to clickable links while maintaining XSS safety
+export const renderLinksInText = (text: string): string => {
+  if (!text || typeof text !== 'string') {
+    return '';
+  }
+
+  // First sanitize the text
+  const sanitized = sanitizeMessageContent(text);
+  
+  // URL detection regex - matches http/https URLs
+  const urlRegex = /(https?:\/\/[^\s<>"']+[^\s<>"'.,;!?])/gi;
+  
+  return sanitized.replace(urlRegex, (url) => {
+    // Sanitize the URL to ensure it's safe
+    const safeUrl = sanitizeUrl(url);
+    if (!safeUrl) {
+      return url; // Return original text if URL is invalid
+    }
+    
+    // Create a safe clickable link
+    return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="text-primary hover:text-primary/80 underline transition-colors">${url}</a>`;
+  });
 };

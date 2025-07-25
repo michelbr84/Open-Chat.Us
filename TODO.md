@@ -24,11 +24,18 @@
 - [x] Built unread conversation preview in header
 - [x] Auto-mark messages as read when chat is opened
 
-### 4. Full Regression Testing (Next Step)
+### ✅ 4. Security & Usability Enhancements
+- [x] Made URLs in chat messages clickable and secure
+- [x] Fixed Content Security Policy frame-ancestors warning
+- [x] Implemented XSS-safe link rendering with proper sanitization
+- [x] Created edge function for proper HTTP security headers
+
+### 5. Full Regression Testing (Next Step)
 - [ ] Test login/signup flows on both desktop and mobile
 - [ ] Verify guest user experience 
 - [x] Test private messaging functionality with unread indicators
 - [ ] Validate message reactions and reporting
+- [x] Test clickable links in messages
 - [ ] Confirm search functionality works
 - [ ] Test theme switching across devices
 - [ ] Verify age gate and donation modal
