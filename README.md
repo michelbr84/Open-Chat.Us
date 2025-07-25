@@ -1,73 +1,150 @@
-# Welcome to your Lovable project
+# OpenChat
 
-## Project info
+<p align="center">
+  <img src="https://github.com/michelbr84/neon-chat-pulse/blob/main/openchat.png" alt="OpenChat Banner" width="600"/>
+</p>
 
-**URL**: https://lovable.dev/projects/2822e602-69b6-4772-af8c-0ae02ce6f809
+**OpenChat** is a modern, real-time, open community chat platform.  
+It’s designed for seamless public and private conversations with a beautiful, mobile-friendly UI, advanced moderation tools, and full crypto donation support.
 
-## How can I edit this code?
+---
 
-There are several ways of editing your application.
+## 🚀 Features
 
-**Use Lovable**
+- **Open public chat** with instant messaging for everyone
+- **Private messaging** with unread notifications and real-time updates (for authenticated users)
+- **Live user list:** See who is online
+- **Guest and member support:** Chat as a guest or log in for advanced features
+- **Multi-theme UI:** Neon (default), Dark, and Light modes
+- **Mobile-first responsive design**
+- **Crypto donations:** Bitcoin and Ethereum QR codes, easy copy/paste
+- **Message search/filter**
+- **Emoji reactions**
+- **Content reporting and moderation tools**
+- **Advanced security:** CSP, XSS protection, RLS, rate limiting, and more
+- **No ads, no tracking—privacy first**
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/2822e602-69b6-4772-af8c-0ae02ce6f809) and start prompting.
+---
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Tech Stack
 
-**Use your preferred IDE**
+- **Frontend:** React, TypeScript, Vite, Tailwind CSS, ShadCN UI
+- **Backend/Database:** Supabase (PostgreSQL, Auth, Storage, Realtime)
+- **Security:** DOMPurify, advanced CSP, audit logs
+- **Deployment:** Vercel, Netlify, or Supabase Hosting
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+---
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🔥 Demo
 
-Follow these steps:
+> **Live Preview:** [https://open-chat.us](https://open-chat.us)
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+---
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## ⚡ Quick Start
 
-# Step 3: Install the necessary dependencies.
-npm i
+### 1. Clone the repository
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+git clone https://github.com/michelbr84/neon-chat-pulse.git
+cd openchat
+````
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+### 3. Configure environment variables
+
+* Copy `.env.example` to `.env.local` and set your Supabase credentials.
+
+### 4. Run locally
+
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The app will be available at [http://localhost:5173](http://localhost:5173).
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+---
 
-**Use GitHub Codespaces**
+## 🪙 Crypto Donations
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+Support this open-source project!
 
-## What technologies are used for this project?
+* **Bitcoin (BTC):** `3FV6kFsNTXEzPpLKKG5SrChXdgGSSNFN9P`
+* **Ethereum (ETH):** `0xe527C13F23799e5a7d038B70765128c5e928f07d`
 
-This project is built with:
+You can donate via the "Donate" button in the app as well.
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+---
 
-## How can I deploy this project?
+## 🛡️ Security
 
-Simply open [Lovable](https://lovable.dev/projects/2822e602-69b6-4772-af8c-0ae02ce6f809) and click on Share -> Publish.
+OpenChat is built with security best practices:
 
-## Can I connect a custom domain to my Lovable project?
+* **RLS policies** for all sensitive tables
+* **Input sanitization** and content filtering
+* **Strict CSP and security headers**
+* **Real-time audit logging**
+* **Rate limiting (database and client side)**
+* **Guest and member isolation**
 
-Yes, you can!
+> **Note:** Password leak protection is available with Supabase Pro plan.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+---
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+## 📱 Mobile Friendly
+
+OpenChat is designed to work beautifully on all devices, with special care for touch and small screens.
+If you notice any layout issues on your device, please open an issue!
+
+---
+
+## 📚 License
+
+This project is [MIT Licensed](LICENSE).
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! To contribute:
+
+1. Fork this repo
+2. Create your feature branch (`git checkout -b feature/my-feature`)
+3. Commit your changes (`git commit -am 'Add my feature'`)
+4. Push to the branch (`git push origin feature/my-feature`)
+5. Create a new Pull Request
+
+For bug reports, suggestions, or feature requests, please open an [issue](https://github.com/yourusername/openchat/issues).
+
+---
+
+## 🙏 Acknowledgements
+
+* [Supabase](https://supabase.com/)
+* [ShadCN UI](https://ui.shadcn.com/)
+* [date-fns](https://date-fns.org/)
+* [DOMPurify](https://github.com/cure53/DOMPurify)
+* [All Open Source Contributors](https://github.com/yourusername/openchat/graphs/contributors)
+
+---
+
+> OpenChat – Connect, share, and learn together.
+> Powered by open source.
+
+```
+
+---
+
+**Tip:**  
+- Replace the `banner.png` URL with your actual banner (GitHub or CDN).
+- Update `yourusername` everywhere with your GitHub username or org.
+- Update the live preview link if needed.
+- Add any extra contributors or project credits as you wish.
+
+Let me know if you want the **About/Educational Purpose** section or anything else included!
+```
