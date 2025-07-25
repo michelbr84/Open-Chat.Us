@@ -109,20 +109,34 @@ const Index = () => {
 
     loadMessages();
 
-    // Subscribe to new and updated messages
+    // Subscribe to new and updated messages with enhanced debugging
     const messagesChannel = supabase
-      .channel('public-messages')
+      .channel('public-messages', {
+        config: {
+          broadcast: { self: true }
+        }
+      })
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
-          setMessages((prev) => [...prev, payload.new as Message]);
+          console.log('✅ New message received via realtime:', payload.new);
+          setMessages((prev) => {
+            // Check if message already exists to prevent duplicates
+            const messageExists = prev.some(msg => msg.id === payload.new.id);
+            if (messageExists) {
+              console.log('📝 Message already exists, skipping duplicate');
+              return prev;
+            }
+            return [...prev, payload.new as Message];
+          });
         }
       )
       .on(
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'messages' },
         (payload) => {
+          console.log('✏️ Message updated via realtime:', payload.new);
           setMessages((prev) => 
             prev.map((msg) => 
               msg.id === payload.new.id ? payload.new as Message : msg
@@ -130,7 +144,18 @@ const Index = () => {
           );
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📡 Messages subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          console.log('✅ Successfully subscribed to real-time messages');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ Channel subscription error');
+        } else if (status === 'TIMED_OUT') {
+          console.error('⏰ Channel subscription timed out');
+        } else if (status === 'CLOSED') {
+          console.log('📴 Channel subscription closed');
+        }
+      });
 
     return () => {
       supabase.removeChannel(messagesChannel);
@@ -251,11 +276,18 @@ const Index = () => {
       : guestName;
 
     try {
-      const { error } = await supabase.from('messages').insert({
+      console.log('📤 Sending message:', { content, senderName, sender_id: user?.id || null });
+      const { data, error } = await supabase.from('messages').insert({
         content,
         sender_name: senderName,
         sender_id: user?.id || null,
-      });
+      }).select().single();
+
+      if (error) {
+        console.error('❌ Error sending message:', error);
+      } else {
+        console.log('✅ Message sent successfully:', data);
+      }
 
       if (error) {
         // Handle specific error types
