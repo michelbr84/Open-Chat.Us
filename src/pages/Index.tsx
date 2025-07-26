@@ -11,6 +11,7 @@ import { getOrCreateGuestId, getOrCreateGuestName, updateGuestName, clearGuestDa
 import { sanitizeGuestName } from '@/utils/sanitization';
 import { AgeGate } from '@/components/AgeGate';
 import { ChatHeader } from '@/components/ChatHeader';
+import { HelpButton } from '@/components/HelpButton';
 import { UserList } from '@/components/UserList';
 import { ChatMessage } from '@/components/ChatMessage';
 import { MessageInput } from '@/components/MessageInput';

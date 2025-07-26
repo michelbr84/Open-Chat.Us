@@ -6,8 +6,10 @@ import { useToast } from '@/hooks/use-toast';
 import { sanitizeMessageContent, containsInappropriateContent, isContentValidationRateLimited } from '@/utils/sanitization';
 import { getOrCreateGuestId } from '@/utils/secureGuestId';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
+import { EmojiPickerAutocomplete } from '@/components/EmojiPickerAutocomplete';
 import { useMentionSearch } from '@/hooks/useMentionSearch';
 import { parseMentions, createMentionString } from '@/utils/mentionParser';
+import { parseEmojiShortcodes, extractEmojiShortcodes } from '@/utils/emojiSystem';
 
 interface MessageInputProps {
   onSendMessage: (message: string, mentions?: any[]) => void;
@@ -31,6 +33,12 @@ export const MessageInput = ({
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const [cursorPosition, setCursorPosition] = useState(0);
+  
+  // Emoji autocomplete state
+  const [showEmojiSuggestions, setShowEmojiSuggestions] = useState(false);
+  const [emojiQuery, setEmojiQuery] = useState('');
+  const [emojiStartIndex, setEmojiStartIndex] = useState(-1);
+  const [selectedEmojiIndex, setSelectedEmojiIndex] = useState(0);
   
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -154,11 +162,13 @@ export const MessageInput = ({
     }
     
     if (!disabled) {
-      // Parse mentions from the message
-      const { content, mentions } = parseMentions(sanitizedMessage);
+      // Parse emoji shortcodes and mentions from the message
+      const { content: emojiProcessed } = parseEmojiShortcodes(sanitizedMessage);
+      const { content, mentions } = parseMentions(emojiProcessed);
       onSendMessage(content, mentions);
       setMessage('');
       setShowMentionSuggestions(false);
+      setShowEmojiSuggestions(false);
       clearSuggestions();
     }
   };

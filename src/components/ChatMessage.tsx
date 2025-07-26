@@ -4,8 +4,7 @@ import { Heart, Flag } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { EmojiReactions } from './EmojiReactions';
 import { MessageActions } from './MessageActions';
-import { renderLinksInText } from '@/utils/sanitization';
-import { formatMessageWithMentions, isUserMentioned } from '@/utils/mentionParser';
+import { MessageRenderer } from './MessageRenderer';
 
 interface Message {
   id: string;
@@ -85,65 +84,9 @@ export const ChatMessage = ({
   };
 
   // Check if current user is mentioned in this message
-  const isMentioned = user && message.mentions && isUserMentioned(message.mentions, user.id);
-  
-  // Format message content with mentions and links
-  const renderMessageContent = () => {
-    if (message.is_deleted) {
-      return (
-        <span className="italic text-muted-foreground text-sm">
-          This message was deleted
-        </span>
-      );
-    }
-
-    const { segments } = formatMessageWithMentions(message.content, message.mentions || []);
-    
-    return (
-      <div>
-        {segments.map((segment, index) => {
-          if (segment.type === 'mention') {
-            const isCurrentUser = user && (
-              segment.mention?.user_id === user.id || 
-              segment.mention?.username === user.user_metadata?.name ||
-              segment.mention?.username === user.email
-            );
-            
-            return (
-              <span
-                key={index}
-                className={`
-                  inline-block px-1.5 py-0.5 mx-0.5 rounded text-sm font-medium
-                  ${isCurrentUser 
-                    ? 'bg-primary/20 text-primary border border-primary/30' 
-                    : 'bg-accent text-accent-foreground border border-border'
-                  }
-                  hover:bg-opacity-80 transition-colors cursor-pointer
-                `}
-                title={`Mentioned user: ${segment.mention?.display_name || segment.content}`}
-                onClick={() => {
-                  // Could implement profile viewing here
-                  console.log('Clicked mention:', segment.mention);
-                }}
-              >
-                {segment.content}
-              </span>
-            );
-          } else {
-            // Regular text with link rendering - using dangerouslySetInnerHTML for links
-            return (
-              <span 
-                key={index}
-                dangerouslySetInnerHTML={{ 
-                  __html: renderLinksInText(segment.content) 
-                }}
-              />
-            );
-          }
-        })}
-      </div>
-    );
-  };
+  const isMentioned = user && message.mentions && message.mentions.some((mention: any) => 
+    mention.user_id === user.id || mention.username === user.user_metadata?.name || mention.username === user.email
+  );
 
   const hasReactions = Object.values(reactions).some(r => r.count > 0);
 
@@ -177,9 +120,16 @@ export const ChatMessage = ({
           </div>
           
           {/* Message content */}
-          <div className="text-sm md:text-sm leading-relaxed break-words">
-            {renderMessageContent()}
-          </div>
+          {message.is_deleted ? (
+            <div className="text-sm italic text-muted-foreground">
+              This message was deleted
+            </div>
+          ) : (
+            <MessageRenderer 
+              content={message.content} 
+              mentions={message.mentions || []} 
+            />
+          )}
           {message.edited_at && (
             <span className="text-xs text-muted-foreground ml-2 italic">
               (edited)
