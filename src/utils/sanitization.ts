@@ -142,8 +142,15 @@ export const renderLinksInText = (text: string): string => {
     return '';
   }
 
-  // First sanitize the text
-  const sanitized = sanitizeMessageContent(text);
+  // Sanitize without trimming to preserve whitespace
+  const sanitized = DOMPurify.sanitize(text, {
+    ...PURIFY_CONFIG,
+    KEEP_CONTENT: true
+  })
+    .replace(/javascript:/gi, '') // Remove javascript: URLs
+    .replace(/data:(?!image\/[a-z]+;base64,)/gi, '') // Only allow data: for images
+    .replace(/vbscript:/gi, '') // Remove vbscript: URLs
+    .replace(/<script[\s\S]*?<\/script>/gi, ''); // Extra script tag removal
   
   // URL detection regex - matches http/https URLs
   const urlRegex = /(https?:\/\/[^\s<>"']+[^\s<>"'.,;!?])/gi;
