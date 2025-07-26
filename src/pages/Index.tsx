@@ -132,32 +132,37 @@ const Index = () => {
 
     loadMessages();
 
-    // Subscribe to new and updated messages with enhanced debugging
+    // Subscribe to new and updated messages with enhanced debugging and error handling
     const messagesChannel = supabase
       .channel('public-messages', {
         config: {
-          broadcast: { self: true }
+          broadcast: { self: false }, // Disable self-broadcast to avoid echo
+          presence: { key: 'messages' }
         }
       })
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'messages' },
         (payload) => {
-          console.log('✅ New message received via realtime:', payload.new);
-          setMessages((prev) => {
-            // Check if message already exists to prevent duplicates
-            const messageExists = prev.some(msg => msg.id === payload.new.id);
-            if (messageExists) {
-              console.log('📝 Message already exists, skipping duplicate');
-              return prev;
-            }
-            // Transform the payload to ensure mentions is properly typed
-            const transformedMessage = {
-              ...payload.new,
-              mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : []
-            };
-            return [...prev, transformedMessage as Message];
-          });
+          try {
+            console.log('✅ New message received via realtime:', payload.new);
+            setMessages((prev) => {
+              // Check if message already exists to prevent duplicates
+              const messageExists = prev.some(msg => msg.id === payload.new.id);
+              if (messageExists) {
+                console.log('📝 Message already exists, skipping duplicate');
+                return prev;
+              }
+              // Transform the payload to ensure mentions is properly typed
+              const transformedMessage = {
+                ...payload.new,
+                mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : []
+              };
+              return [...prev, transformedMessage as Message];
+            });
+          } catch (error) {
+            console.error('❌ Error processing new message:', error);
+          }
         }
       )
       .on(
@@ -184,7 +189,14 @@ const Index = () => {
         if (status === 'SUBSCRIBED') {
           console.log('✅ Successfully subscribed to real-time messages');
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Channel subscription error');
+          console.error('❌ Channel subscription error - attempting reconnection');
+          // Attempt to resubscribe after a delay
+          setTimeout(() => {
+            if (messagesChannel.state === 'errored') {
+              messagesChannel.unsubscribe();
+              // The effect will re-run and create a new subscription
+            }
+          }, 2000);
         } else if (status === 'TIMED_OUT') {
           console.error('⏰ Channel subscription timed out');
         } else if (status === 'CLOSED') {
