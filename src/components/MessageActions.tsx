@@ -20,8 +20,9 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { MoreHorizontal, Flag, Copy, Reply, Edit, Trash, MessageCircle } from 'lucide-react';
+import { MoreHorizontal, Flag, Copy, Reply, Edit, Trash, MessageCircle, Bookmark } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { BookmarkButton } from '@/components/BookmarkButton';
 
 interface MessageActionsProps {
   messageId: string;
@@ -121,6 +122,16 @@ export const MessageActions = ({
             <Copy className="w-4 h-4 mr-2" />
             Copy message
           </DropdownMenuItem>
+          
+          <div className="px-2 py-1">
+            <BookmarkButton 
+              messageId={messageId}
+              variant="ghost"
+              size="sm"
+              showLabel
+              className="w-full justify-start h-8"
+            />
+          </div>
           
           {isOwn && onEdit && (
             <DropdownMenuItem onClick={() => onEdit(content)}>

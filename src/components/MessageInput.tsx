@@ -87,6 +87,31 @@ export const MessageInput = ({
     searchUsers(textAfterAt);
   };
 
+  // Handle emoji detection and suggestions
+  const detectEmoji = (text: string, cursorPos: number) => {
+    const textBeforeCursor = text.slice(0, cursorPos);
+    const lastColonIndex = textBeforeCursor.lastIndexOf(':');
+    
+    if (lastColonIndex === -1) {
+      setShowEmojiSuggestions(false);
+      setEmojiQuery('');
+      return;
+    }
+    
+    // Check if there's a space between : and cursor (invalid emoji)
+    const textAfterColon = textBeforeCursor.slice(lastColonIndex + 1);
+    if (textAfterColon.includes(' ') || textAfterColon.includes(':')) {
+      setShowEmojiSuggestions(false);
+      setEmojiQuery('');
+      return;
+    }
+    
+    // Valid emoji shortcode in progress
+    setEmojiStartIndex(lastColonIndex);
+    setEmojiQuery(textAfterColon);
+    setShowEmojiSuggestions(true);
+  };
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newMessage = e.target.value;
     const newCursorPosition = e.target.selectionStart || 0;
@@ -99,10 +124,13 @@ export const MessageInput = ({
       const slashSuggestions = getSlashSuggestions(newMessage);
       setShowSlashSuggestions(slashSuggestions.length > 0);
       setShowMentionSuggestions(false);
+      setShowEmojiSuggestions(false);
     } else {
       setShowSlashSuggestions(false);
       // Check for mentions
       detectMention(newMessage, newCursorPosition);
+      // Check for emoji shortcodes
+      detectEmoji(newMessage, newCursorPosition);
     }
   };
 
@@ -196,7 +224,64 @@ export const MessageInput = ({
     }
   };
 
+  // Handle emoji selection
+  const handleEmojiSelect = (emoji: { emoji: string; name: string }) => {
+    if (emojiStartIndex === -1) return;
+    
+    const beforeEmoji = message.slice(0, emojiStartIndex);
+    const afterCursor = message.slice(cursorPosition);
+    
+    const newMessage = beforeEmoji + emoji.emoji + ' ' + afterCursor;
+    const newCursorPosition = beforeEmoji.length + emoji.emoji.length + 1;
+    
+    setMessage(newMessage);
+    setShowEmojiSuggestions(false);
+    setEmojiQuery('');
+    setEmojiStartIndex(-1);
+    
+    // Focus back to input and set cursor position
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.setSelectionRange(newCursorPosition, newCursorPosition);
+      }
+    }, 0);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Handle emoji suggestions
+    if (showEmojiSuggestions) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSelectedEmojiIndex(prev => 
+          prev < 7 ? prev + 1 : 0 // Max 8 emoji suggestions
+        );
+        return;
+      }
+      
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSelectedEmojiIndex(prev => 
+          prev > 0 ? prev - 1 : 7
+        );
+        return;
+      }
+      
+      if (e.key === 'Enter' && selectedEmojiIndex >= 0) {
+        e.preventDefault();
+        // We'll need to get the emoji from the autocomplete component
+        return;
+      }
+      
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setShowEmojiSuggestions(false);
+        setEmojiQuery('');
+        return;
+      }
+    }
+    
+    // Handle mention suggestions
     if (showMentionSuggestions && suggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
@@ -285,6 +370,25 @@ export const MessageInput = ({
     };
   };
 
+  // Calculate emoji suggestion position
+  const getEmojiSuggestionPosition = () => {
+    if (!inputRef.current || emojiStartIndex === -1) {
+      return { top: 0, left: 0 };
+    }
+    
+    const input = inputRef.current;
+    const rect = input.getBoundingClientRect();
+    
+    // Approximate character width
+    const charWidth = 8;
+    const emojiOffset = emojiStartIndex * charWidth;
+    
+    return {
+      top: rect.top - 10, // Position above input
+      left: rect.left + emojiOffset + 12 // Add padding offset
+    };
+  };
+
   const remainingChars = MAX_MESSAGE_LENGTH - message.length;
   const isNearLimit = remainingChars <= 100;
   
@@ -368,6 +472,20 @@ export const MessageInput = ({
         onHover={setSelectedSuggestionIndex}
         position={getSuggestionPosition()}
         visible={showMentionSuggestions && suggestions.length > 0}
+      />
+      
+      {/* Emoji Autocomplete */}
+      <EmojiPickerAutocomplete
+        visible={showEmojiSuggestions}
+        query={emojiQuery}
+        position={getEmojiSuggestionPosition()}
+        onSelect={handleEmojiSelect}
+        onClose={() => {
+          setShowEmojiSuggestions(false);
+          setEmojiQuery('');
+        }}
+        selectedIndex={selectedEmojiIndex}
+        onHover={setSelectedEmojiIndex}
       />
       
       {/* Slash Command Suggestions */}

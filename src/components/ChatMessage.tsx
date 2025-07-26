@@ -94,6 +94,7 @@ export const ChatMessage = ({
 
   return (
     <div 
+      data-message-id={message.id}
       className={`group flex gap-2 md:gap-3 mb-3 md:mb-4 animate-fade-in transition-all duration-200 ${
         isOwn ? 'flex-row-reverse' : 'flex-row'
       }`}

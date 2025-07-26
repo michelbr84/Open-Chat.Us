@@ -21,6 +21,7 @@ import { ThreadReplyInput } from '@/components/ThreadReplyInput';
 import { PrivateChat } from '@/components/PrivateChat';
 import { LoginModal } from '@/components/LoginModal';
 import { DonateModal } from '@/components/DonateModal';
+import { BookmarksPanel } from '@/components/BookmarksPanel';
 import { Users } from 'lucide-react';
 import { sendMentionNotifications } from '@/utils/mentionNotifications';
 
@@ -58,6 +59,7 @@ const Index = () => {
   const [showLogin, setShowLogin] = useState(false);
   const [showDonate, setShowDonate] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
+  const [showBookmarks, setShowBookmarks] = useState(false);
   
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
@@ -490,6 +492,7 @@ const Index = () => {
         onLoginClick={() => setShowLogin(true)}
         onDonateClick={() => setShowDonate(true)}
         onOpenPrivateChat={handleOpenPrivateChat}
+        onShowBookmarks={() => setShowBookmarks(true)}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -638,6 +641,28 @@ const Index = () => {
           partner={activePrivateChat}
           onClose={() => setActivePrivateChat(null)}
         />
+      )}
+      
+      {/* Bookmarks Modal */}
+      {showBookmarks && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <BookmarksPanel
+            onClose={() => setShowBookmarks(false)}
+            onMessageClick={(messageId) => {
+              // Scroll to message if it's visible
+              const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
+              if (messageElement) {
+                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                // Highlight the message briefly
+                messageElement.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
+                setTimeout(() => {
+                  messageElement.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
+                }, 2000);
+              }
+              setShowBookmarks(false);
+            }}
+          />
+        </div>
       )}
     </div>
   );

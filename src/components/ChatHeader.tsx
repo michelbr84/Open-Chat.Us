@@ -6,7 +6,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Palette, LogIn, LogOut, Heart, X, Circle } from 'lucide-react';
+import { Search, Palette, LogIn, LogOut, Heart, X, Circle, Bookmark } from 'lucide-react';
 import { UnreadMessageIndicator } from '@/components/UnreadMessageIndicator';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { StatusUpdateModal } from '@/components/StatusUpdateModal';
@@ -18,6 +18,7 @@ interface ChatHeaderProps {
   onLoginClick: () => void;
   onDonateClick: () => void;
   onOpenPrivateChat: (senderId: string, senderName: string) => void;
+  onShowBookmarks?: () => void;
 }
 
 export const ChatHeader = ({ 
@@ -25,7 +26,8 @@ export const ChatHeader = ({
   onSearchChange, 
   onLoginClick, 
   onDonateClick,
-  onOpenPrivateChat
+  onOpenPrivateChat,
+  onShowBookmarks
 }: ChatHeaderProps) => {
   const { cycleTheme, theme } = useTheme();
   const { user } = useAuth();
@@ -100,6 +102,18 @@ export const ChatHeader = ({
         {user && (
           <>
             <NotificationCenter />
+            {onShowBookmarks && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onShowBookmarks}
+                className="min-h-[40px] px-3"
+                title="View bookmarked messages"
+              >
+                <Bookmark className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Bookmarks</span>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
