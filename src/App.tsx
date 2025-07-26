@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import Contact from "./pages/Contact";
 import Documentation from "./pages/Documentation";
 import NotFound from "./pages/NotFound";
+import { AdminDashboard } from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -24,6 +25,7 @@ const App = () => (
               <Route path="/" element={<Index />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/docs" element={<Documentation />} />
+              <Route path="/admin" element={<AdminDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
