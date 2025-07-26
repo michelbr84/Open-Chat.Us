@@ -40,7 +40,6 @@
 
     <!-- Security & Performance Headers -->
     <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="X-Frame-Options" content="DENY" />
     <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
     <meta name="theme-color" content="#00ff88" />
 
@@ -59,36 +58,10 @@
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/lovable-uploads/871b955e-efd1-4849-b508-b08541527fbe.png" type="image/png" />
 
-    <!-- Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "WebApplication",
-      "name": "OpenChat",
-      "description": "Modern, real-time, open community chat platform with private messaging, multi-theme UI, and crypto donation support.",
-      "url": "https://open-chat.us",
-      "applicationCategory": "CommunicationApplication",
-      "operatingSystem": "Any",
-      "offers": {
-        "@type": "Offer",
-        "price": "0",
-        "priceCurrency": "USD"
-      },
-      "author": {
-        "@type": "Organization",
-        "name": "OpenChat"
-      }
-    }
-    </script>
-
-    <!-- Google Analytics (Placeholder - Replace with your GA4 ID) -->
+    <!-- External Scripts -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=GA_TRACKING_ID"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'GA_TRACKING_ID');
-    </script>
+    <script src="/js/analytics.js"></script>
+    <script src="/js/structured-data.js"></script>
 
     <!-- Google Search Console Verification (Placeholder) -->
     <meta name="google-site-verification" content="YOUR_VERIFICATION_TOKEN" />

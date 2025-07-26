@@ -9,10 +9,10 @@ const corsHeaders = {
 const securityHeaders = {
   'Content-Security-Policy': `
     default-src 'self';
-    script-src 'self' https://lbadeqrxsvhfuygxvyqf.supabase.co https://cdn.gpteng.co;
+    script-src 'self' https://lbadeqrxsvhfuygxvyqf.supabase.co https://cdn.gpteng.co https://www.googletagmanager.com;
     style-src 'self' https://fonts.googleapis.com;
     img-src 'self' data: https: blob:;
-    connect-src 'self' https://lbadeqrxsvhfuygxvyqf.supabase.co wss://lbadeqrxsvhfuygxvyqf.supabase.co https://cdn.gpteng.co;
+    connect-src 'self' https://lbadeqrxsvhfuygxvyqf.supabase.co wss://lbadeqrxsvhfuygxvyqf.supabase.co https://cdn.gpteng.co https://www.google-analytics.com;
     font-src 'self' data: https://fonts.gstatic.com;
     object-src 'none';
     base-uri 'self';
@@ -21,7 +21,7 @@ const securityHeaders = {
     upgrade-insecure-requests;
     report-uri /csp-report;
   `.replace(/\s+/g, ' ').trim(),
-  'X-Frame-Options': 'DENY',
+  'X-Frame-Options': 'SAMEORIGIN',
   'X-Content-Type-Options': 'nosniff',
   'X-XSS-Protection': '1; mode=block',
   'Referrer-Policy': 'strict-origin-when-cross-origin',
