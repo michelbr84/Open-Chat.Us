@@ -74,7 +74,7 @@ export const DateRangePicker = ({
             id="date"
             variant="outline"
             className={cn(
-              'w-[280px] justify-start text-left font-normal',
+              'w-full sm:w-[280px] justify-start text-left font-normal',
               !dateRange && 'text-muted-foreground'
             )}
           >
@@ -82,9 +82,9 @@ export const DateRangePicker = ({
             {formatDateRange(dateRange)}
           </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <div className="flex">
-            <div className="border-r">
+        <PopoverContent className="w-auto p-0 max-w-[90vw]" align="start">
+          <div className="flex flex-col sm:flex-row">
+            <div className="border-r-0 sm:border-r border-b sm:border-b-0">
               <div className="p-3">
                 <div className="text-sm font-medium mb-2">Quick ranges</div>
                 <div className="space-y-1">
@@ -93,7 +93,7 @@ export const DateRangePicker = ({
                       key={preset.label}
                       variant="ghost"
                       size="sm"
-                      className="w-full justify-start"
+                      className="w-full justify-start text-xs sm:text-sm"
                       onClick={() => handlePresetSelect(preset)}
                     >
                       {preset.label}
@@ -116,7 +116,7 @@ export const DateRangePicker = ({
                     }
                   }
                 }}
-                numberOfMonths={2}
+                numberOfMonths={window.innerWidth > 768 ? 2 : 1}
               />
             </div>
           </div>

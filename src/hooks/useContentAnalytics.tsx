@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useOptimizedAnalytics, trackQueryPerformance } from '@/utils/analyticsOptimization';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ContentAnalyticsData {
@@ -36,194 +36,167 @@ export interface ContentAnalyticsData {
 }
 
 export const useContentAnalytics = (dateRange: { from: Date; to: Date }) => {
-  const [data, setData] = useState<ContentAnalyticsData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const fetchContentAnalytics = async (): Promise<ContentAnalyticsData> => {
+    return trackQueryPerformance('content-analytics', async () => {
+      const fromDate = dateRange.from.toISOString();
+      const toDate = dateRange.to.toISOString();
+      const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-  useEffect(() => {
-    const fetchContentAnalytics = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+      // Get total messages (using audit logs as proxy)
+      const { count: totalMessages } = await supabase
+        .from('audit_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('action_type', 'MESSAGE_POST');
 
-        const fromDate = dateRange.from.toISOString();
-        const toDate = dateRange.to.toISOString();
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+      // Get messages this week
+      const { count: messagesThisWeek } = await supabase
+        .from('audit_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('action_type', 'MESSAGE_POST')
+        .gte('created_at', weekAgo);
 
-        // Get total messages (using audit logs as proxy)
-        const { count: totalMessages } = await supabase
-          .from('audit_logs')
-          .select('*', { count: 'exact', head: true })
-          .eq('action_type', 'MESSAGE_POST');
+      // Get messages previous week for growth calculation
+      const previousWeekStart = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
+      const { count: messagesPreviousWeek } = await supabase
+        .from('audit_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('action_type', 'MESSAGE_POST')
+        .gte('created_at', previousWeekStart)
+        .lt('created_at', weekAgo);
 
-        // Get messages this week
-        const { count: messagesThisWeek } = await supabase
-          .from('audit_logs')
-          .select('*', { count: 'exact', head: true })
-          .eq('action_type', 'MESSAGE_POST')
-          .gte('created_at', weekAgo);
+      // Calculate growth rate
+      const messagesGrowth = messagesPreviousWeek 
+        ? ((messagesThisWeek || 0) - messagesPreviousWeek) / messagesPreviousWeek * 100 
+        : 0;
 
-        // Get messages previous week for growth calculation
-        const previousWeekStart = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
-        const { count: messagesPreviousWeek } = await supabase
-          .from('audit_logs')
-          .select('*', { count: 'exact', head: true })
-          .eq('action_type', 'MESSAGE_POST')
-          .gte('created_at', previousWeekStart)
-          .lt('created_at', weekAgo);
+      // Get total reactions
+      const { count: totalReactions } = await supabase
+        .from('message_reactions')
+        .select('*', { count: 'exact', head: true });
 
-        // Calculate growth rate
-        const messagesGrowth = messagesPreviousWeek 
-          ? ((messagesThisWeek || 0) - messagesPreviousWeek) / messagesPreviousWeek * 100 
-          : 0;
+      // Get reactions this week
+      const { count: reactionsThisWeek } = await supabase
+        .from('message_reactions')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', weekAgo);
 
-        // Get total reactions
-        const { count: totalReactions } = await supabase
-          .from('message_reactions')
-          .select('*', { count: 'exact', head: true });
+      // Get total flags
+      const { count: totalFlags } = await supabase
+        .from('flagged_content')
+        .select('*', { count: 'exact', head: true });
 
-        // Get reactions this week
-        const { count: reactionsThisWeek } = await supabase
-          .from('message_reactions')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', weekAgo);
+      // Get flags this week
+      const { count: flagsThisWeek } = await supabase
+        .from('flagged_content')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', weekAgo);
 
-        // Get total flags
-        const { count: totalFlags } = await supabase
-          .from('flagged_content')
-          .select('*', { count: 'exact', head: true });
+      // Get resolved flags for resolution rate
+      const { count: resolvedFlags } = await supabase
+        .from('flagged_content')
+        .select('*', { count: 'exact', head: true })
+        .neq('review_status', 'pending');
 
-        // Get flags this week
-        const { count: flagsThisWeek } = await supabase
-          .from('flagged_content')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', weekAgo);
+      const flagResolutionRate = totalFlags ? (resolvedFlags || 0) / totalFlags * 100 : 0;
 
-        // Get resolved flags for resolution rate
-        const { count: resolvedFlags } = await supabase
-          .from('flagged_content')
-          .select('*', { count: 'exact', head: true })
-          .neq('review_status', 'pending');
+      // Get auto-flagged content for auto-moderation rate
+      const { count: autoFlags } = await supabase
+        .from('flagged_content')
+        .select('*', { count: 'exact', head: true })
+        .eq('auto_flagged', true);
 
-        const flagResolutionRate = totalFlags ? (resolvedFlags || 0) / totalFlags * 100 : 0;
+      const autoModerationRate = totalFlags ? (autoFlags || 0) / totalFlags * 100 : 0;
 
-        // Get auto-flagged content for auto-moderation rate
-        const { count: autoFlags } = await supabase
-          .from('flagged_content')
-          .select('*', { count: 'exact', head: true })
-          .eq('auto_flagged', true);
+      // Get message volume trend
+      const { data: messageVolumeData } = await supabase
+        .from('audit_logs')
+        .select('created_at')
+        .eq('action_type', 'MESSAGE_POST')
+        .gte('created_at', fromDate)
+        .lte('created_at', toDate)
+        .order('created_at');
 
-        const autoModerationRate = totalFlags ? (autoFlags || 0) / totalFlags * 100 : 0;
+      // Get reaction trend
+      const { data: reactionData } = await supabase
+        .from('message_reactions')
+        .select('created_at')
+        .gte('created_at', fromDate)
+        .lte('created_at', toDate)
+        .order('created_at');
 
-        // Get message volume trend
-        const { data: messageVolumeData } = await supabase
-          .from('audit_logs')
-          .select('created_at')
-          .eq('action_type', 'MESSAGE_POST')
-          .gte('created_at', fromDate)
-          .lte('created_at', toDate)
-          .order('created_at');
+      const messageVolumeTrend = processMessageVolumeTrend(
+        messageVolumeData || [], 
+        reactionData || [], 
+        dateRange.from.toISOString().split('T')[0], 
+        dateRange.to.toISOString().split('T')[0]
+      );
 
-        // Get reaction trend
-        const { data: reactionData } = await supabase
-          .from('message_reactions')
-          .select('created_at')
-          .gte('created_at', fromDate)
-          .lte('created_at', toDate)
-          .order('created_at');
+      // Get flagging trend
+      const { data: flagData } = await supabase
+        .from('flagged_content')
+        .select('created_at, review_status')
+        .gte('created_at', fromDate)
+        .lte('created_at', toDate)
+        .order('created_at');
 
-        const messageVolumeTrend = processMessageVolumeTrend(
-          messageVolumeData || [], 
-          reactionData || [], 
-          dateRange.from.toISOString().split('T')[0], 
-          dateRange.to.toISOString().split('T')[0]
-        );
+      const flaggingTrend = processFlaggingTrend(
+        flagData || [], 
+        dateRange.from.toISOString().split('T')[0], 
+        dateRange.to.toISOString().split('T')[0]
+      );
 
-        // Get flagging trend
-        const { data: flagData } = await supabase
-          .from('flagged_content')
-          .select('created_at, review_status')
-          .gte('created_at', fromDate)
-          .lte('created_at', toDate)
-          .order('created_at');
+      // Get moderation action types
+      const { data: moderationData } = await supabase
+        .from('moderation_actions')
+        .select('action');
 
-        const flaggingTrend = processFlaggingTrend(
-          flagData || [], 
-          dateRange.from.toISOString().split('T')[0], 
-          dateRange.to.toISOString().split('T')[0]
-        );
+      const moderationActionTypes = processModerationActions(moderationData || []);
 
-        // Get moderation action types
-        const { data: moderationData } = await supabase
-          .from('moderation_actions')
-          .select('action');
+      // Get content type distribution (simplified)
+      const contentTypeDistribution = [
+        { type: 'Text Messages', count: totalMessages || 0 },
+        { type: 'Media', count: Math.floor((totalMessages || 0) * 0.15) },
+        { type: 'Links', count: Math.floor((totalMessages || 0) * 0.08) },
+        { type: 'Reactions', count: totalReactions || 0 }
+      ];
 
-        const moderationActionTypes = processModerationActions(moderationData || []);
+      // Get top flag reasons
+      const { data: flagReasonData } = await supabase
+        .from('flagged_content')
+        .select('flag_reason');
 
-        // Get content type distribution (simplified)
-        const contentTypeDistribution = [
-          { type: 'Text Messages', count: totalMessages || 0 },
-          { type: 'Media', count: Math.floor((totalMessages || 0) * 0.15) },
-          { type: 'Links', count: Math.floor((totalMessages || 0) * 0.08) },
-          { type: 'Reactions', count: totalReactions || 0 }
-        ];
+      const topFlagReasons = processFlagReasons(flagReasonData || []);
 
-        // Get top flag reasons
-        const { data: flagReasonData } = await supabase
-          .from('flagged_content')
-          .select('flag_reason');
+      return {
+        totalMessages: totalMessages || 0,
+        messagesThisWeek: messagesThisWeek || 0,
+        messagesGrowth,
+        totalReactions: totalReactions || 0,
+        reactionsThisWeek: reactionsThisWeek || 0,
+        totalFlags: totalFlags || 0,
+        flagsThisWeek: flagsThisWeek || 0,
+        flagResolutionRate,
+        autoModerationRate,
+        messageVolumeTrend,
+        flaggingTrend,
+        moderationActionTypes,
+        contentTypeDistribution,
+        topFlagReasons
+      };
+    });
+  };
 
-        const topFlagReasons = processFlagReasons(flagReasonData || []);
-
-        setData({
-          totalMessages: totalMessages || 0,
-          messagesThisWeek: messagesThisWeek || 0,
-          messagesGrowth,
-          totalReactions: totalReactions || 0,
-          reactionsThisWeek: reactionsThisWeek || 0,
-          totalFlags: totalFlags || 0,
-          flagsThisWeek: flagsThisWeek || 0,
-          flagResolutionRate,
-          autoModerationRate,
-          messageVolumeTrend,
-          flaggingTrend,
-          moderationActionTypes,
-          contentTypeDistribution,
-          topFlagReasons
-        });
-      } catch (err) {
-        console.error('Error fetching content analytics:', err);
-        setError('Failed to fetch content analytics');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchContentAnalytics();
-
-    // Set up real-time updates
-    const channel = supabase
-      .channel('content-analytics')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'flagged_content'
-      }, () => {
-        fetchContentAnalytics();
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'message_reactions'
-      }, () => {
-        fetchContentAnalytics();
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [dateRange]);
+  const { data, loading, error } = useOptimizedAnalytics(
+    'content-analytics',
+    fetchContentAnalytics,
+    [dateRange.from?.toISOString(), dateRange.to?.toISOString()],
+    {
+      cacheable: true,
+      realtime: true,
+      realtimeTable: 'flagged_content',
+      realtimeEvent: '*'
+    }
+  );
 
   return { data, loading, error };
 };

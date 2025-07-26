@@ -14,7 +14,8 @@ import {
   MessageSquare,
   Clock,
   TrendingUp,
-  Settings
+  Settings,
+  Server
 } from 'lucide-react';
 import { ModerationOverview } from '@/components/admin/ModerationOverview';
 import { UserManagement } from '@/components/admin/UserManagement';
@@ -26,6 +27,7 @@ import { ContentFilterManager } from '@/components/admin/ContentFilterManager';
 import { EnhancedUserManagement } from '@/components/admin/EnhancedUserManagement';
 import { UserAnalyticsDashboard } from '@/components/analytics/UserAnalyticsDashboard';
 import { ContentAnalyticsDashboard } from '@/components/analytics/ContentAnalyticsDashboard';
+import { SystemAnalyticsDashboard } from '@/components/analytics/SystemAnalyticsDashboard';
 
 export const AdminDashboard = () => {
   const { isAdmin, loading } = useAdminAuth();
@@ -66,7 +68,7 @@ export const AdminDashboard = () => {
       {/* Dashboard Content */}
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-6">
+          <TabsList className="grid w-full grid-cols-10 mb-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Overview
@@ -102,6 +104,10 @@ export const AdminDashboard = () => {
             <TabsTrigger value="content-analytics" className="flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
               Content Analytics
+            </TabsTrigger>
+            <TabsTrigger value="system-analytics" className="flex items-center gap-2">
+              <Server className="h-4 w-4" />
+              System Health
             </TabsTrigger>
           </TabsList>
 
@@ -139,6 +145,10 @@ export const AdminDashboard = () => {
 
           <TabsContent value="content-analytics" className="space-y-6">
             <ContentAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="system-analytics" className="space-y-6">
+            <SystemAnalyticsDashboard />
           </TabsContent>
         </Tabs>
       </div>
