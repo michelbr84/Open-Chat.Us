@@ -218,6 +218,42 @@ export type Database = {
         }
         Relationships: []
       }
+      content_filters: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          filter_type: string
+          id: string
+          is_active: boolean
+          is_regex: boolean
+          pattern: string
+          severity: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          filter_type: string
+          id?: string
+          is_active?: boolean
+          is_regex?: boolean
+          pattern: string
+          severity?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          filter_type?: string
+          id?: string
+          is_active?: boolean
+          is_regex?: boolean
+          pattern?: string
+          severity?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       delivery_requests: {
         Row: {
           created_at: string
@@ -384,6 +420,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      flagged_content: {
+        Row: {
+          auto_flagged: boolean
+          confidence_score: number | null
+          content_id: string
+          content_type: string
+          created_at: string
+          flag_reason: string
+          flagged_by: string | null
+          id: string
+          review_notes: string | null
+          review_status: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+        }
+        Insert: {
+          auto_flagged?: boolean
+          confidence_score?: number | null
+          content_id: string
+          content_type: string
+          created_at?: string
+          flag_reason: string
+          flagged_by?: string | null
+          id?: string
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Update: {
+          auto_flagged?: boolean
+          confidence_score?: number | null
+          content_id?: string
+          content_type?: string
+          created_at?: string
+          flag_reason?: string
+          flagged_by?: string | null
+          id?: string
+          review_notes?: string | null
+          review_status?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+        }
+        Relationships: []
       }
       game_credits: {
         Row: {
@@ -992,6 +1073,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      moderation_actions: {
+        Row: {
+          action: Database["public"]["Enums"]["moderation_action"]
+          created_at: string
+          details: string | null
+          duration_minutes: number | null
+          expires_at: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          moderator_id: string | null
+          reason: string
+          target_user_id: string
+        }
+        Insert: {
+          action: Database["public"]["Enums"]["moderation_action"]
+          created_at?: string
+          details?: string | null
+          duration_minutes?: number | null
+          expires_at?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          moderator_id?: string | null
+          reason: string
+          target_user_id: string
+        }
+        Update: {
+          action?: Database["public"]["Enums"]["moderation_action"]
+          created_at?: string
+          details?: string | null
+          duration_minutes?: number | null
+          expires_at?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          moderator_id?: string | null
+          reason?: string
+          target_user_id?: string
+        }
+        Relationships: []
       }
       multiplayer_players: {
         Row: {
@@ -2815,6 +2938,48 @@ export type Database = {
           },
         ]
       }
+      user_moderation_status: {
+        Row: {
+          banned_until: string | null
+          created_at: string
+          id: string
+          is_shadow_banned: boolean
+          last_infraction_at: string | null
+          muted_until: string | null
+          reputation_score: number
+          status: Database["public"]["Enums"]["moderation_status"]
+          total_warnings: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          banned_until?: string | null
+          created_at?: string
+          id?: string
+          is_shadow_banned?: boolean
+          last_infraction_at?: string | null
+          muted_until?: string | null
+          reputation_score?: number
+          status?: Database["public"]["Enums"]["moderation_status"]
+          total_warnings?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          banned_until?: string | null
+          created_at?: string
+          id?: string
+          is_shadow_banned?: boolean
+          last_infraction_at?: string | null
+          muted_until?: string | null
+          reputation_score?: number
+          status?: Database["public"]["Enums"]["moderation_status"]
+          total_warnings?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           alpaca_key_id: string | null
@@ -2872,6 +3037,39 @@ export type Database = {
           theme_preference?: string | null
           timezone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      user_warnings: {
+        Row: {
+          acknowledged_at: string | null
+          created_at: string
+          id: string
+          is_acknowledged: boolean
+          issued_by: string
+          reason: string
+          severity: number
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          created_at?: string
+          id?: string
+          is_acknowledged?: boolean
+          issued_by: string
+          reason: string
+          severity?: number
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          created_at?: string
+          id?: string
+          is_acknowledged?: boolean
+          issued_by?: string
+          reason?: string
+          severity?: number
+          user_id?: string
         }
         Relationships: []
       }
@@ -2940,6 +3138,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_moderation_action: {
+        Args: {
+          target_user_id: string
+          action_type: Database["public"]["Enums"]["moderation_action"]
+          reason_text: string
+          duration_minutes?: number
+        }
+        Returns: string
+      }
       check_rate_limit: {
         Args: {
           user_identifier: string
@@ -2977,12 +3184,24 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: number
       }
+      get_user_reputation: {
+        Args: { user_id_param: string }
+        Returns: number
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      is_user_banned: {
+        Args: { user_id_param: string }
+        Returns: boolean
+      }
       is_user_mentioned: {
         Args: { mentions_json: Json; user_id_param: string }
+        Returns: boolean
+      }
+      is_user_muted: {
+        Args: { user_id_param: string }
         Returns: boolean
       }
       mark_private_messages_as_read: {
@@ -2995,6 +3214,18 @@ export type Database = {
       }
     }
     Enums: {
+      moderation_action:
+        | "warn"
+        | "mute"
+        | "unmute"
+        | "ban"
+        | "unban"
+        | "suspend"
+        | "unsuspend"
+        | "flag_message"
+        | "unflag_message"
+        | "delete_message"
+      moderation_status: "active" | "warned" | "muted" | "banned" | "suspended"
       reservation_status:
         | "pending"
         | "confirmed"
@@ -3129,6 +3360,19 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      moderation_action: [
+        "warn",
+        "mute",
+        "unmute",
+        "ban",
+        "unban",
+        "suspend",
+        "unsuspend",
+        "flag_message",
+        "unflag_message",
+        "delete_message",
+      ],
+      moderation_status: ["active", "warned", "muted", "banned", "suspended"],
       reservation_status: [
         "pending",
         "confirmed",
