@@ -53,6 +53,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          notification_type: string
+          priority_level: number
+          read_by: string[] | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          notification_type: string
+          priority_level?: number
+          read_by?: string[] | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          priority_level?: number
+          read_by?: string[] | null
+          title?: string
+        }
+        Relationships: []
+      }
       audit_logs: {
         Row: {
           action_description: string
@@ -220,6 +259,7 @@ export type Database = {
       }
       content_filters: {
         Row: {
+          action_type: string
           created_at: string
           created_by: string | null
           filter_type: string
@@ -228,9 +268,11 @@ export type Database = {
           is_regex: boolean
           pattern: string
           severity: number
+          severity_level: number
           updated_at: string
         }
         Insert: {
+          action_type?: string
           created_at?: string
           created_by?: string | null
           filter_type: string
@@ -239,9 +281,11 @@ export type Database = {
           is_regex?: boolean
           pattern: string
           severity?: number
+          severity_level?: number
           updated_at?: string
         }
         Update: {
+          action_type?: string
           created_at?: string
           created_by?: string | null
           filter_type?: string
@@ -250,6 +294,7 @@ export type Database = {
           is_regex?: boolean
           pattern?: string
           severity?: number
+          severity_level?: number
           updated_at?: string
         }
         Relationships: []
@@ -1116,6 +1161,69 @@ export type Database = {
         }
         Relationships: []
       }
+      moderation_queue: {
+        Row: {
+          action_taken: string | null
+          author_id: string | null
+          author_name: string | null
+          auto_flagged: boolean
+          confidence_score: number | null
+          content_id: string
+          content_text: string
+          content_type: string
+          created_at: string
+          flagged_by_filter_id: string | null
+          flagged_by_user_id: string | null
+          id: string
+          priority_level: number
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          action_taken?: string | null
+          author_id?: string | null
+          author_name?: string | null
+          auto_flagged?: boolean
+          confidence_score?: number | null
+          content_id: string
+          content_text: string
+          content_type: string
+          created_at?: string
+          flagged_by_filter_id?: string | null
+          flagged_by_user_id?: string | null
+          id?: string
+          priority_level?: number
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          action_taken?: string | null
+          author_id?: string | null
+          author_name?: string | null
+          auto_flagged?: boolean
+          confidence_score?: number | null
+          content_id?: string
+          content_text?: string
+          content_type?: string
+          created_at?: string
+          flagged_by_filter_id?: string | null
+          flagged_by_user_id?: string | null
+          id?: string
+          priority_level?: number
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       multiplayer_players: {
         Row: {
           id: string
@@ -1952,6 +2060,42 @@ export type Database = {
           id?: string
           template_data?: Json | null
           title?: string
+        }
+        Relationships: []
+      }
+      rate_limit_violations: {
+        Row: {
+          channel_context: string | null
+          created_at: string
+          id: string
+          is_resolved: boolean
+          last_violation_at: string
+          time_window_start: string
+          user_identifier: string
+          violation_count: number
+          violation_type: string
+        }
+        Insert: {
+          channel_context?: string | null
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          last_violation_at?: string
+          time_window_start: string
+          user_identifier: string
+          violation_count?: number
+          violation_type: string
+        }
+        Update: {
+          channel_context?: string | null
+          created_at?: string
+          id?: string
+          is_resolved?: boolean
+          last_violation_at?: string
+          time_window_start?: string
+          user_identifier?: string
+          violation_count?: number
+          violation_type?: string
         }
         Relationships: []
       }
@@ -3156,6 +3300,29 @@ export type Database = {
         }
         Returns: boolean
       }
+      create_moderation_queue_entry: {
+        Args: {
+          p_content_id: string
+          p_content_type: string
+          p_content_text: string
+          p_author_id?: string
+          p_author_name?: string
+          p_filter_id?: string
+          p_flagged_by_user?: string
+          p_auto_flagged?: boolean
+          p_confidence_score?: number
+          p_priority_level?: number
+        }
+        Returns: string
+      }
+      enhanced_content_validation: {
+        Args: {
+          content_text: string
+          user_id_param?: string
+          context_type?: string
+        }
+        Returns: Json
+      }
       enhanced_rate_limit_check: {
         Args: {
           user_identifier: string
@@ -3207,6 +3374,15 @@ export type Database = {
       mark_private_messages_as_read: {
         Args: { p_sender_id: string; p_receiver_id: string }
         Returns: number
+      }
+      process_moderation_action: {
+        Args: {
+          p_queue_id: string
+          p_action: string
+          p_review_notes?: string
+          p_duration_minutes?: number
+        }
+        Returns: boolean
       }
       validate_message_content: {
         Args: { content: string }

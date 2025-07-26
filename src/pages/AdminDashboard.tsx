@@ -21,6 +21,8 @@ import { UserManagement } from '@/components/admin/UserManagement';
 import { ModerationQueue } from '@/components/admin/ModerationQueue';
 import { AdminSettings } from '@/components/admin/AdminSettings';
 import { ActionHistory } from '@/components/admin/ActionHistory';
+import { EnhancedModerationQueue } from '@/components/admin/EnhancedModerationQueue';
+import { ContentFilterManager } from '@/components/admin/ContentFilterManager';
 
 export const AdminDashboard = () => {
   const { isAdmin, loading } = useAdminAuth();
@@ -61,14 +63,22 @@ export const AdminDashboard = () => {
       {/* Dashboard Content */}
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
+          <TabsList className="grid w-full grid-cols-7 mb-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Overview
             </TabsTrigger>
-            <TabsTrigger value="queue" className="flex items-center gap-2">
+            <TabsTrigger value="enhanced-queue" className="flex items-center gap-2">
               <Flag className="h-4 w-4" />
-              Moderation Queue
+              Enhanced Queue
+            </TabsTrigger>
+            <TabsTrigger value="queue" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Legacy Queue
+            </TabsTrigger>
+            <TabsTrigger value="filters" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Content Filters
             </TabsTrigger>
             <TabsTrigger value="users" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -88,8 +98,16 @@ export const AdminDashboard = () => {
             <ModerationOverview />
           </TabsContent>
 
+          <TabsContent value="enhanced-queue" className="space-y-6">
+            <EnhancedModerationQueue />
+          </TabsContent>
+
           <TabsContent value="queue" className="space-y-6">
             <ModerationQueue />
+          </TabsContent>
+
+          <TabsContent value="filters" className="space-y-6">
+            <ContentFilterManager />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
