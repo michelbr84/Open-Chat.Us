@@ -1,12 +1,16 @@
 import { useToast } from '@/hooks/use-toast';
 import { sanitizeMessageContent, containsInappropriateContent, isContentValidationRateLimited } from '@/utils/sanitization';
 import { getOrCreateGuestId } from '@/utils/secureGuestId';
+import { useAutoModeration } from '@/hooks/useAutoModeration';
+import { useAuth } from '@/hooks/useAuth';
 
-// Enhanced message validation hook
+// Enhanced message validation hook with auto-moderation
 export const useSecureMessageHandling = () => {
   const { toast } = useToast();
+  const { moderateContent } = useAutoModeration();
+  const { user } = useAuth();
 
-  const validateAndSanitizeMessage = (content: string): { isValid: boolean; sanitized: string } => {
+  const validateAndSanitizeMessage = async (content: string, messageId?: string): Promise<{ isValid: boolean; sanitized: string }> => {
     if (!content || typeof content !== 'string') {
       toast({
         title: "Invalid message",
@@ -67,6 +71,38 @@ export const useSecureMessageHandling = () => {
         variant: "destructive",
       });
       return { isValid: false, sanitized: '' };
+    }
+
+    // Run auto-moderation checks
+    try {
+      const moderationResult = await moderateContent(sanitized, user?.id || null, messageId);
+      
+      if (!moderationResult.allowed) {
+        const violationMessage = moderationResult.violations.length > 0 
+          ? moderationResult.violations[0] 
+          : 'Content not allowed';
+          
+        toast({
+          title: "Message blocked",
+          description: moderationResult.autoBlocked 
+            ? `Message automatically blocked: ${violationMessage}`
+            : "Message contains inappropriate content.",
+          variant: "destructive",
+        });
+        return { isValid: false, sanitized: '' };
+      }
+
+      // Show warning for flagged content that was allowed
+      if (moderationResult.flagged && moderationResult.allowed) {
+        toast({
+          title: "Content flagged",
+          description: "Your message has been sent but flagged for review.",
+          variant: "default",
+        });
+      }
+    } catch (moderationError) {
+      console.error('Moderation check failed:', moderationError);
+      // Continue with basic validation if moderation fails
     }
 
     return { isValid: true, sanitized };

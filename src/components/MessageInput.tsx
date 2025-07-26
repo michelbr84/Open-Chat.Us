@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { sanitizeMessageContent, containsInappropriateContent, isContentValidationRateLimited } from '@/utils/sanitization';
+import { useSecureMessageHandling } from '@/hooks/useSecureMessageHandling';
 import { getOrCreateGuestId } from '@/utils/secureGuestId';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { EmojiPickerAutocomplete } from '@/components/EmojiPickerAutocomplete';
@@ -54,6 +54,7 @@ export const MessageInput = ({
   
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { validateAndSanitizeMessage } = useSecureMessageHandling();
   
   const { suggestions, searchUsers, clearSuggestions, isLoading } = useMentionSearch(onlineUsers);
   const { executeSlashCommand, getSuggestions: getSlashSuggestions, isSlashCommand } = useSlashCommands();
@@ -161,49 +162,37 @@ export const MessageInput = ({
       return;
     }
 
-    // Rate limiting check
-    const guestId = getOrCreateGuestId();
-    if (isContentValidationRateLimited(guestId)) {
-      toast({
-        title: "Too many messages",
-        description: "Please wait before sending another message.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Content sanitization and validation
-    const sanitizedMessage = sanitizeMessageContent(trimmedMessage);
-    
-    if (trimmedMessage && !sanitizedMessage) {
-      toast({
-        title: "Invalid message",
-        description: "Message contains prohibited content.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (trimmedMessage && containsInappropriateContent(sanitizedMessage)) {
-      toast({
-        title: "Inappropriate content",
-        description: "Message contains content that is not allowed.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!disabled) {
-      // Parse emoji shortcodes and mentions from the message
-      const { content: emojiProcessed } = parseEmojiShortcodes(sanitizedMessage || '');
+    // Enhanced content validation with auto-moderation
+    if (trimmedMessage) {
+      const validation = await validateAndSanitizeMessage(trimmedMessage);
+      if (!validation.isValid) {
+        return;
+      }
+      
+      // Use the sanitized message for further processing  
+      const { content: emojiProcessed } = parseEmojiShortcodes(validation.sanitized);
       const { content, mentions } = parseMentions(emojiProcessed);
-      onSendMessage(content, mentions, attachments);
-      setMessage('');
-      setAttachments([]);
-      setShowMentionSuggestions(false);
-      setShowEmojiSuggestions(false);
-      setShowSlashSuggestions(false);
-      clearSuggestions();
+      
+      if (!disabled) {
+        onSendMessage(content, mentions, attachments);
+        setMessage('');
+        setAttachments([]);
+        setShowMentionSuggestions(false);
+        setShowEmojiSuggestions(false);
+        setShowSlashSuggestions(false);
+        clearSuggestions();
+      }
+    } else if (attachments.length > 0) {
+      // Send just attachments
+      if (!disabled) {
+        onSendMessage('', [], attachments);
+        setMessage('');
+        setAttachments([]);
+        setShowMentionSuggestions(false);
+        setShowEmojiSuggestions(false);
+        setShowSlashSuggestions(false);
+        clearSuggestions();
+      }
     }
   };
 
