@@ -23,6 +23,7 @@ import { AdminSettings } from '@/components/admin/AdminSettings';
 import { ActionHistory } from '@/components/admin/ActionHistory';
 import { EnhancedModerationQueue } from '@/components/admin/EnhancedModerationQueue';
 import { ContentFilterManager } from '@/components/admin/ContentFilterManager';
+import { EnhancedUserManagement } from '@/components/admin/EnhancedUserManagement';
 
 export const AdminDashboard = () => {
   const { isAdmin, loading } = useAdminAuth();
@@ -111,7 +112,7 @@ export const AdminDashboard = () => {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-            <UserManagement />
+            <EnhancedUserManagement />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-6">
