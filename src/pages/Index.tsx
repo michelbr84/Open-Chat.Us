@@ -366,25 +366,11 @@ const Index = () => {
     }
   };
 
-  // Handle user click for adding mention
+  // Handle user click for adding mention (removed private chat functionality)
   const handleUserClick = (name: string, isMember: boolean, key: string) => {
-    if (!isMember) {
-      toast({
-        title: "Cannot message guest",
-        description: "This user is not available for private chat.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!user) {
-      setShowLogin(true);
-      return;
-    }
-
-    // Open private chat
-    setActivePrivateChat({ id: key, name });
-    setShowMobileSidebar(false); // Close mobile sidebar
+    // This function is no longer used since UserList now calls onMentionUser directly
+    // Keeping for backward compatibility but redirecting to mention
+    handleMentionUser(name);
   };
   
   // Handle user mention
@@ -402,8 +388,19 @@ const Index = () => {
     }
   };
 
-  // Handle opening private chat from header notification
+  // Handle opening private chat from message actions or header notification
   const handleOpenPrivateChat = (senderId: string, senderName: string) => {
+    // Check if user is logged in for private messaging
+    if (!user) {
+      toast({
+        title: "Login required",
+        description: "Please log in to send private messages.",
+        variant: "destructive",
+      });
+      setShowLogin(true);
+      return;
+    }
+
     setActivePrivateChat({ id: senderId, name: senderName });
   };
 
