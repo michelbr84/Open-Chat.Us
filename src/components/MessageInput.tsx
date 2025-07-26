@@ -7,17 +7,21 @@ import { sanitizeMessageContent, containsInappropriateContent, isContentValidati
 import { getOrCreateGuestId } from '@/utils/secureGuestId';
 import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { EmojiPickerAutocomplete } from '@/components/EmojiPickerAutocomplete';
+import { SlashCommandSuggestions } from '@/components/SlashCommandSuggestions';
+import { FileUploadButton } from '@/components/FileUploadButton';
 import { useMentionSearch } from '@/hooks/useMentionSearch';
+import { useSlashCommands } from '@/hooks/useSlashCommands';
 import { parseMentions, createMentionString } from '@/utils/mentionParser';
 import { parseEmojiShortcodes, extractEmojiShortcodes } from '@/utils/emojiSystem';
 
 interface MessageInputProps {
-  onSendMessage: (message: string, mentions?: any[]) => void;
+  onSendMessage: (message: string, mentions?: any[], attachments?: any[]) => void;
   disabled?: boolean;
   placeholder?: string;
   onlineUsers?: Array<{ name: string; isMember: boolean; key: string }>;
   mentionToAdd?: string;
   onMentionAdded?: () => void;
+  onSlashCommand?: (command: string) => void;
 }
 
 export const MessageInput = ({ 
@@ -26,7 +30,8 @@ export const MessageInput = ({
   placeholder = "Type a message...",
   onlineUsers = [],
   mentionToAdd,
-  onMentionAdded
+  onMentionAdded,
+  onSlashCommand
 }: MessageInputProps) => {
   const [message, setMessage] = useState('');
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
@@ -40,10 +45,18 @@ export const MessageInput = ({
   const [emojiStartIndex, setEmojiStartIndex] = useState(-1);
   const [selectedEmojiIndex, setSelectedEmojiIndex] = useState(0);
   
+  // Slash command state
+  const [showSlashSuggestions, setShowSlashSuggestions] = useState(false);
+  const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
+  
+  // File attachments
+  const [attachments, setAttachments] = useState<any[]>([]);
+  
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   
   const { suggestions, searchUsers, clearSuggestions, isLoading } = useMentionSearch(onlineUsers);
+  const { executeSlashCommand, getSuggestions: getSlashSuggestions, isSlashCommand } = useSlashCommands();
   
   const MAX_MESSAGE_LENGTH = 1000;
 
@@ -80,8 +93,16 @@ export const MessageInput = ({
     setMessage(newMessage);
     setCursorPosition(newCursorPosition);
     
-    // Check for mentions
-    detectMention(newMessage, newCursorPosition);
+    // Check for slash commands
+    if (newMessage.startsWith('/')) {
+      const slashSuggestions = getSlashSuggestions(newMessage);
+      setShowSlashSuggestions(slashSuggestions.length > 0);
+      setShowMentionSuggestions(false);
+    } else {
+      setShowSlashSuggestions(false);
+      // Check for mentions
+      detectMention(newMessage, newCursorPosition);
+    }
   };
 
   const handleMentionSelect = (user: { name: string; id: string }) => {
@@ -108,16 +129,27 @@ export const MessageInput = ({
     }, 0);
   };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     const trimmedMessage = message.trim();
     
-    if (!trimmedMessage) {
+    if (!trimmedMessage && attachments.length === 0) {
       toast({
         title: "Empty message",
-        description: "Please enter a message to send.",
+        description: "Please enter a message or attach a file to send.",
         variant: "destructive",
       });
       return;
+    }
+    
+    // Check if it's a slash command
+    if (isSlashCommand(trimmedMessage)) {
+      const result = await executeSlashCommand(trimmedMessage);
+      if (result) {
+        onSendMessage(result);
+        setMessage('');
+        setAttachments([]);
+        return;
+      }
     }
     
     if (trimmedMessage.length > MAX_MESSAGE_LENGTH) {
@@ -143,7 +175,7 @@ export const MessageInput = ({
     // Content sanitization and validation
     const sanitizedMessage = sanitizeMessageContent(trimmedMessage);
     
-    if (!sanitizedMessage) {
+    if (trimmedMessage && !sanitizedMessage) {
       toast({
         title: "Invalid message",
         description: "Message contains prohibited content.",
@@ -152,7 +184,7 @@ export const MessageInput = ({
       return;
     }
 
-    if (containsInappropriateContent(sanitizedMessage)) {
+    if (trimmedMessage && containsInappropriateContent(sanitizedMessage)) {
       toast({
         title: "Inappropriate content",
         description: "Message contains content that is not allowed.",
@@ -163,12 +195,14 @@ export const MessageInput = ({
     
     if (!disabled) {
       // Parse emoji shortcodes and mentions from the message
-      const { content: emojiProcessed } = parseEmojiShortcodes(sanitizedMessage);
+      const { content: emojiProcessed } = parseEmojiShortcodes(sanitizedMessage || '');
       const { content, mentions } = parseMentions(emojiProcessed);
-      onSendMessage(content, mentions);
+      onSendMessage(content, mentions, attachments);
       setMessage('');
+      setAttachments([]);
       setShowMentionSuggestions(false);
       setShowEmojiSuggestions(false);
+      setShowSlashSuggestions(false);
       clearSuggestions();
     }
   };
@@ -296,15 +330,46 @@ export const MessageInput = ({
             </div>
           )}
         </div>
-        <Button
-          onClick={handleSend}
-          disabled={!message.trim() || disabled || message.length > MAX_MESSAGE_LENGTH}
-          className="h-12 md:h-10 px-4 md:px-3 min-w-[48px]"
-          aria-label="Send message"
-        >
-          <Send className="w-5 h-5 md:w-4 md:h-4" aria-hidden="true" />
-        </Button>
+        <div className="flex items-center gap-2">
+          <FileUploadButton
+            onFileUploaded={(file) => {
+              setAttachments(prev => [...prev, file]);
+              toast({
+                title: "File attached",
+                description: `${file.name} has been attached to your message.`,
+              });
+            }}
+            disabled={disabled}
+          />
+          <Button
+            onClick={handleSend}
+            disabled={(!message.trim() && attachments.length === 0) || disabled || message.length > MAX_MESSAGE_LENGTH}
+            className="h-12 md:h-10 px-4 md:px-3 min-w-[48px]"
+            aria-label="Send message"
+          >
+            <Send className="w-5 h-5 md:w-4 md:h-4" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
+      
+      {/* File attachments preview */}
+      {attachments.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {attachments.map((file, index) => (
+            <div key={index} className="flex items-center gap-2 px-2 py-1 bg-muted rounded text-sm">
+              <span className="truncate max-w-[200px]">{file.name}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))}
+                className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive"
+              >
+                ×
+              </Button>
+            </div>
+          ))}
+        </div>
+      )}
       
       {/* Mention Suggestions */}
       <MentionSuggestions
@@ -314,6 +379,23 @@ export const MessageInput = ({
         onHover={setSelectedSuggestionIndex}
         position={getSuggestionPosition()}
         visible={showMentionSuggestions && suggestions.length > 0}
+      />
+      
+      {/* Slash Command Suggestions */}
+      <SlashCommandSuggestions
+        suggestions={getSlashSuggestions(message)}
+        onSelect={(command) => {
+          setMessage(command + ' ');
+          setShowSlashSuggestions(false);
+          if (inputRef.current) {
+            inputRef.current.focus();
+            setTimeout(() => {
+              const newPos = command.length + 1;
+              inputRef.current?.setSelectionRange(newPos, newPos);
+            }, 0);
+          }
+        }}
+        isVisible={showSlashSuggestions}
       />
     </div>
   );

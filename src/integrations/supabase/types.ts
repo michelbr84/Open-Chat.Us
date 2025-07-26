@@ -269,6 +269,42 @@ export type Database = {
         }
         Relationships: []
       }
+      file_attachments: {
+        Row: {
+          created_at: string
+          file_path: string
+          file_size: number
+          file_type: string
+          filename: string
+          id: string
+          updated_at: string
+          uploaded_by_guest_id: string | null
+          uploaded_by_user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          file_size: number
+          file_type: string
+          filename: string
+          id?: string
+          updated_at?: string
+          uploaded_by_guest_id?: string | null
+          uploaded_by_user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          filename?: string
+          id?: string
+          updated_at?: string
+          uploaded_by_guest_id?: string | null
+          uploaded_by_user_id?: string | null
+        }
+        Relationships: []
+      }
       fixtures: {
         Row: {
           away_team_id: string
@@ -916,6 +952,8 @@ export type Database = {
           id: string
           is_deleted: boolean
           mentions: Json | null
+          parent_message_id: string | null
+          reply_count: number | null
           sender_id: string | null
           sender_name: string
         }
@@ -927,6 +965,8 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           mentions?: Json | null
+          parent_message_id?: string | null
+          reply_count?: number | null
           sender_id?: string | null
           sender_name: string
         }
@@ -938,10 +978,20 @@ export type Database = {
           id?: string
           is_deleted?: boolean
           mentions?: Json | null
+          parent_message_id?: string | null
+          reply_count?: number | null
           sender_id?: string | null
           sender_name?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       multiplayer_players: {
         Row: {

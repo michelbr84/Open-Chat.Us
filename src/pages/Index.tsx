@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useMessageReactions } from '@/hooks/useMessageReactions';
 import { useMessageReports } from '@/hooks/useMessageReports';
 import { useMessageEditing } from '@/hooks/useMessageEditing';
+import { useThreadedReplies } from '@/hooks/useThreadedReplies';
 import { useSecureMessageHandling } from '@/hooks/useSecureMessageHandling';
 import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
 import { getOrCreateGuestId, getOrCreateGuestName, updateGuestName, clearGuestData, validateGuestSession } from '@/utils/secureGuestId';
@@ -15,6 +16,8 @@ import { HelpButton } from '@/components/HelpButton';
 import { UserList } from '@/components/UserList';
 import { ChatMessage } from '@/components/ChatMessage';
 import { MessageInput } from '@/components/MessageInput';
+import { ThreadedReplyButton } from '@/components/ThreadedReplyButton';
+import { ThreadReplyInput } from '@/components/ThreadReplyInput';
 import { PrivateChat } from '@/components/PrivateChat';
 import { LoginModal } from '@/components/LoginModal';
 import { DonateModal } from '@/components/DonateModal';
@@ -30,6 +33,8 @@ interface Message {
   edited_at?: string | null;
   is_deleted?: boolean;
   mentions?: any[] | null;
+  reply_count?: number;
+  parent_message_id?: string | null;
 }
 
 interface OnlineUser {
@@ -44,6 +49,7 @@ const Index = () => {
   const { reactions, toggleReaction } = useMessageReactions();
   const { submitReport } = useMessageReports();
   const { editMessage, deleteMessage } = useMessageEditing();
+  const { replyingTo, startReply, cancelReply, sendReply, loadThreadReplies, getThreadReplies } = useThreadedReplies();
   const { validateAndSanitizeMessage, logSecurityEvent } = useSecureMessageHandling();
   const { logSecurityEvent: logSecurity } = useSecurityMonitoring();
   
@@ -68,6 +74,9 @@ const Index = () => {
   // Mention state
   const [mentionToAdd, setMentionToAdd] = useState<string>('');
   const [shouldClearMention, setShouldClearMention] = useState(false);
+  
+  // Thread state
+  const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
   
   // Refs and throttling
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -533,6 +542,9 @@ const Index = () => {
                 ? message.sender_id === user.id
                 : message.sender_name === guestName;
 
+              const threadReplies = getThreadReplies(message.id);
+              const isThreadOpen = openThreads.has(message.id);
+
               return (
                 <div key={message.id} className="group">
                   <ChatMessage 
@@ -544,8 +556,61 @@ const Index = () => {
                     onReport={handleReport}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onReply={startReply}
                     onPrivateMessage={handleOpenPrivateChat}
                   />
+                  
+                  {/* Thread Reply Button */}
+                  <div className="ml-10 mb-2">
+                    <ThreadedReplyButton
+                      messageId={message.id}
+                      replyCount={message.reply_count || 0}
+                      onStartReply={startReply}
+                      onToggleThread={(messageId) => {
+                        if (isThreadOpen) {
+                          setOpenThreads(prev => {
+                            const newSet = new Set(prev);
+                            newSet.delete(messageId);
+                            return newSet;
+                          });
+                        } else {
+                          setOpenThreads(prev => new Set(prev).add(messageId));
+                          loadThreadReplies(messageId);
+                        }
+                      }}
+                      isThreadOpen={isThreadOpen}
+                    />
+                  </div>
+                  
+                  {/* Thread Replies */}
+                  {isThreadOpen && threadReplies.length > 0 && (
+                    <div className="ml-10 space-y-2 mb-4">
+                      {threadReplies.map((reply) => (
+                        <div key={reply.id} className="text-sm">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="font-medium">{reply.username}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {new Date(reply.created_at).toLocaleTimeString()}
+                            </span>
+                          </div>
+                          <div className="pl-4 border-l-2 border-muted">
+                            {reply.content}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Reply Input */}
+                  {replyingTo === message.id && (
+                    <div className="ml-10 mb-4">
+                      <ThreadReplyInput
+                        parentMessageId={message.id}
+                        onSendReply={sendReply}
+                        onCancel={cancelReply}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}

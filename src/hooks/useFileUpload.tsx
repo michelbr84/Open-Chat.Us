@@ -25,10 +25,13 @@ const ALLOWED_TYPES = [
 ];
 
 export const useFileUpload = () => {
-  const { user, guestId } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Generate a simple guest ID if no user
+  const guestId = user ? null : `guest-${Date.now()}-${Math.random().toString(36).substring(2)}`;
 
   const validateFile = useCallback((file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {

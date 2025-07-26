@@ -16,11 +16,14 @@ export interface ThreadedMessage {
 }
 
 export const useThreadedReplies = () => {
-  const { user, guestId } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [threadMessages, setThreadMessages] = useState<{ [key: string]: ThreadedMessage[] }>({});
   const [loadingThreads, setLoadingThreads] = useState<Set<string>>(new Set());
+
+  // Generate a simple guest ID if no user
+  const guestId = user ? null : `guest-${Date.now()}-${Math.random().toString(36).substring(2)}`;
 
   const startReply = useCallback((messageId: string) => {
     setReplyingTo(messageId);
@@ -44,9 +47,22 @@ export const useThreadedReplies = () => {
 
       if (error) throw error;
 
+      // Map database messages to ThreadedMessage format
+      const mappedMessages: ThreadedMessage[] = (data || []).map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        created_at: msg.created_at,
+        user_id: msg.sender_id,
+        guest_id: null,
+        username: msg.sender_name,
+        parent_message_id: msg.parent_message_id,
+        reply_count: msg.reply_count || 0,
+        mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+      }));
+
       setThreadMessages(prev => ({
         ...prev,
-        [parentMessageId]: data || []
+        [parentMessageId]: mappedMessages
       }));
     } catch (error) {
       console.error('Error loading thread replies:', error);
@@ -71,9 +87,8 @@ export const useThreadedReplies = () => {
       const messageData = {
         content: content.trim(),
         parent_message_id: parentMessageId,
-        user_id: user?.id || null,
-        guest_id: !user ? guestId : null,
-        username: user?.user_metadata?.name || user?.email || `Guest ${guestId?.slice(-4)}`,
+        sender_id: user?.id || null,
+        sender_name: user?.user_metadata?.name || user?.email || `Guest ${guestId?.slice(-4)}`,
       };
 
       const { data, error } = await supabase
@@ -84,10 +99,23 @@ export const useThreadedReplies = () => {
 
       if (error) throw error;
 
+      // Map the returned message to ThreadedMessage format
+      const mappedMessage: ThreadedMessage = {
+        id: data.id,
+        content: data.content,
+        created_at: data.created_at,
+        user_id: data.sender_id,
+        guest_id: null,
+        username: data.sender_name,
+        parent_message_id: data.parent_message_id,
+        reply_count: 0,
+        mentions: Array.isArray(data.mentions) ? data.mentions : []
+      };
+
       // Update thread messages
       setThreadMessages(prev => ({
         ...prev,
-        [parentMessageId]: [...(prev[parentMessageId] || []), data]
+        [parentMessageId]: [...(prev[parentMessageId] || []), mappedMessage]
       }));
 
       // Update reply count for parent message

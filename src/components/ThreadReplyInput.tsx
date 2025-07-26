@@ -54,13 +54,6 @@ export const ThreadReplyInput: React.FC<ThreadReplyInputProps> = ({
             className="min-h-[60px] pr-12 resize-none"
             autoFocus
           />
-          <div className="absolute bottom-2 right-2">
-            <EmojiPickerAutocomplete 
-              onEmojiSelect={(emoji) => {
-                setContent(prev => prev + emoji);
-              }}
-            />
-          </div>
         </div>
         
         <div className="flex items-center justify-between">

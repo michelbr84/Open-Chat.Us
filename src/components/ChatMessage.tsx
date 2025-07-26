@@ -26,6 +26,7 @@ interface ChatMessageProps {
   onReport?: (messageId: string, reason: string, details?: string) => void;
   onEdit?: (messageId: string, newContent: string) => void;
   onDelete?: (messageId: string) => void;
+  onReply?: (messageId: string) => void;
   onPrivateMessage?: (senderId: string, senderName: string) => void;
 }
 
@@ -38,6 +39,7 @@ export const ChatMessage = ({
   onReport,
   onEdit,
   onDelete,
+  onReply,
   onPrivateMessage
 }: ChatMessageProps) => {
   const { user } = useAuth();
@@ -157,7 +159,7 @@ export const ChatMessage = ({
               onReport={!isOwn ? handleReport : undefined}
               onEdit={isOwn && onEdit ? (newContent) => onEdit(message.id, newContent) : undefined}
               onDelete={isOwn && onDelete ? () => onDelete(message.id) : undefined}
-              onReply={undefined} // TODO: Implement reply functionality later
+              onReply={onReply ? () => onReply(message.id) : undefined}
               onPrivateMessage={!isOwn && onPrivateMessage ? onPrivateMessage : undefined}
             />
           </div>
