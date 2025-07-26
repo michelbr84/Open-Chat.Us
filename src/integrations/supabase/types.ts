@@ -915,6 +915,7 @@ export type Database = {
           edited_at: string | null
           id: string
           is_deleted: boolean
+          mentions: Json | null
           sender_id: string | null
           sender_name: string
         }
@@ -925,6 +926,7 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_deleted?: boolean
+          mentions?: Json | null
           sender_id?: string | null
           sender_name: string
         }
@@ -935,6 +937,7 @@ export type Database = {
           edited_at?: string | null
           id?: string
           is_deleted?: boolean
+          mentions?: Json | null
           sender_id?: string | null
           sender_name?: string
         }
@@ -2926,6 +2929,10 @@ export type Database = {
       }
       is_admin: {
         Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_user_mentioned: {
+        Args: { mentions_json: Json; user_id_param: string }
         Returns: boolean
       }
       mark_private_messages_as_read: {

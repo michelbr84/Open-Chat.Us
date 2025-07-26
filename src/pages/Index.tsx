@@ -18,6 +18,7 @@ import { PrivateChat } from '@/components/PrivateChat';
 import { LoginModal } from '@/components/LoginModal';
 import { DonateModal } from '@/components/DonateModal';
 import { Users } from 'lucide-react';
+import { sendMentionNotifications } from '@/utils/mentionNotifications';
 
 interface Message {
   id: string;
@@ -27,6 +28,7 @@ interface Message {
   created_at: string;
   edited_at?: string | null;
   is_deleted?: boolean;
+  mentions?: any[] | null;
 }
 
 interface OnlineUser {
@@ -103,7 +105,12 @@ const Index = () => {
         .limit(100);
 
       if (!error && data) {
-        setMessages(data.reverse());
+        // Transform the data to ensure mentions is properly typed
+        const transformedMessages = data.map(msg => ({
+          ...msg,
+          mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+        }));
+        setMessages(transformedMessages.reverse());
       }
     };
 
@@ -128,7 +135,12 @@ const Index = () => {
               console.log('📝 Message already exists, skipping duplicate');
               return prev;
             }
-            return [...prev, payload.new as Message];
+            // Transform the payload to ensure mentions is properly typed
+            const transformedMessage = {
+              ...payload.new,
+              mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : []
+            };
+            return [...prev, transformedMessage as Message];
           });
         }
       )
@@ -138,9 +150,16 @@ const Index = () => {
         (payload) => {
           console.log('✏️ Message updated via realtime:', payload.new);
           setMessages((prev) => 
-            prev.map((msg) => 
-              msg.id === payload.new.id ? payload.new as Message : msg
-            )
+            prev.map((msg) => {
+              if (msg.id === payload.new.id) {
+                // Transform the payload to ensure mentions is properly typed
+                return {
+                  ...payload.new,
+                  mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : []
+                } as Message;
+              }
+              return msg;
+            })
           );
         }
       )
@@ -249,7 +268,12 @@ const Index = () => {
         .order('created_at', { ascending: true });
 
       if (!error) {
-        setSearchResults(data || []);
+        // Transform the data to ensure mentions is properly typed
+        const transformedResults = (data || []).map(msg => ({
+          ...msg,
+          mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+        }));
+        setSearchResults(transformedResults);
       }
     };
 
@@ -257,8 +281,8 @@ const Index = () => {
     return () => clearTimeout(debounceTimer);
   }, [searchQuery, ageVerified]);
 
-  // Send public message with enhanced security validation
-  const sendPublicMessage = async (content: string) => {
+  // Send public message with enhanced security validation and mentions support
+  const sendPublicMessage = async (content: string, mentions: any[] = []) => {
     // Client-side rate limiting (backup to server-side)
     const now = Date.now();
     if (now - lastMessageTimeRef.current < 1000) {
@@ -276,17 +300,29 @@ const Index = () => {
       : guestName;
 
     try {
-      console.log('📤 Sending message:', { content, senderName, sender_id: user?.id || null });
+      console.log('📤 Sending message:', { content, senderName, sender_id: user?.id || null, mentions });
       const { data, error } = await supabase.from('messages').insert({
         content,
         sender_name: senderName,
         sender_id: user?.id || null,
+        mentions: mentions || [],
       }).select().single();
 
       if (error) {
         console.error('❌ Error sending message:', error);
       } else {
         console.log('✅ Message sent successfully:', data);
+        
+        // Send mention notifications if there are mentions
+        if (mentions && mentions.length > 0) {
+          sendMentionNotifications(
+            data.id,
+            content,
+            senderName,
+            user?.id || null,
+            mentions
+          ).catch(err => console.error('Failed to send mention notifications:', err));
+        }
       }
 
       if (error) {
@@ -502,6 +538,7 @@ const Index = () => {
             <MessageInput
               onSendMessage={sendPublicMessage}
               placeholder="Type a message..."
+              onlineUsers={userList}
             />
           )}
         </main>
