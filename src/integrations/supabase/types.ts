@@ -53,6 +53,47 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_announcements: {
+        Row: {
+          content: string
+          created_at: string | null
+          created_by: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          title: string
+          type: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          title: string
+          type?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          title?: string
+          type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_announcements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       admin_notifications: {
         Row: {
           created_at: string
@@ -151,6 +192,92 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      channel_members: {
+        Row: {
+          channel_id: string
+          id: string
+          joined_at: string | null
+          last_read_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          joined_at?: string | null
+          last_read_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          joined_at?: string | null
+          last_read_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "channel_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "channel_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_channels: {
+        Row: {
+          created_at: string | null
+          creator_id: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          member_limit: number | null
+          name: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          member_limit?: number | null
+          name: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          member_limit?: number | null
+          name?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_channels_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       chat_messages: {
         Row: {
@@ -982,6 +1109,42 @@ export type Database = {
           },
         ]
       }
+      message_bookmarks: {
+        Row: {
+          created_at: string | null
+          id: string
+          message_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          message_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          message_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_bookmarks_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_bookmarks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       message_edit_history: {
         Row: {
           edited_at: string
@@ -1069,8 +1232,51 @@ export type Database = {
         }
         Relationships: []
       }
+      message_threads: {
+        Row: {
+          channel_id: string | null
+          created_at: string | null
+          id: string
+          last_reply_at: string | null
+          parent_message_id: string
+          reply_count: number | null
+        }
+        Insert: {
+          channel_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_reply_at?: string | null
+          parent_message_id: string
+          reply_count?: number | null
+        }
+        Update: {
+          channel_id?: string | null
+          created_at?: string | null
+          id?: string
+          last_reply_at?: string | null
+          parent_message_id?: string
+          reply_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_threads_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "message_threads_parent_message_id_fkey"
+            columns: ["parent_message_id"]
+            isOneToOne: true
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
+          channel_id: string | null
           content: string
           created_at: string
           deleted_at: string | null
@@ -1080,10 +1286,13 @@ export type Database = {
           mentions: Json | null
           parent_message_id: string | null
           reply_count: number | null
+          reply_to_message_id: string | null
           sender_id: string | null
           sender_name: string
+          thread_id: string | null
         }
         Insert: {
+          channel_id?: string | null
           content: string
           created_at?: string
           deleted_at?: string | null
@@ -1093,10 +1302,13 @@ export type Database = {
           mentions?: Json | null
           parent_message_id?: string | null
           reply_count?: number | null
+          reply_to_message_id?: string | null
           sender_id?: string | null
           sender_name: string
+          thread_id?: string | null
         }
         Update: {
+          channel_id?: string | null
           content?: string
           created_at?: string
           deleted_at?: string | null
@@ -1106,15 +1318,38 @@ export type Database = {
           mentions?: Json | null
           parent_message_id?: string | null
           reply_count?: number | null
+          reply_to_message_id?: string | null
           sender_id?: string | null
           sender_name?: string
+          thread_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "messages_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "messages_parent_message_id_fkey"
             columns: ["parent_message_id"]
             isOneToOne: false
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_reply_to_message_id_fkey"
+            columns: ["reply_to_message_id"]
+            isOneToOne: false
+            referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "messages_thread_id_fkey"
+            columns: ["thread_id"]
+            isOneToOne: false
+            referencedRelation: "message_threads"
             referencedColumns: ["id"]
           },
         ]
@@ -1282,6 +1517,47 @@ export type Database = {
           status?: string | null
         }
         Relationships: []
+      }
+      notifications: {
+        Row: {
+          created_at: string | null
+          data: Json | null
+          id: string
+          is_read: boolean | null
+          message: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          data?: Json | null
+          id?: string
+          is_read?: boolean | null
+          message?: string | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pages: {
         Row: {
@@ -1645,6 +1921,102 @@ export type Database = {
             columns: ["team_id"]
             isOneToOne: false
             referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      poll_votes: {
+        Row: {
+          created_at: string | null
+          id: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          option_id: string
+          poll_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          option_id?: string
+          poll_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "poll_votes_poll_id_fkey"
+            columns: ["poll_id"]
+            isOneToOne: false
+            referencedRelation: "polls"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "poll_votes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      polls: {
+        Row: {
+          channel_id: string | null
+          created_at: string | null
+          creator_id: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          multiple_choice: boolean | null
+          options: Json
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          channel_id?: string | null
+          created_at?: string | null
+          creator_id: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          multiple_choice?: boolean | null
+          options: Json
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          channel_id?: string | null
+          created_at?: string | null
+          creator_id?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          multiple_choice?: boolean | null
+          options?: Json
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "polls_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "chat_channels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "polls_creator_id_fkey"
+            columns: ["creator_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3082,6 +3454,44 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_code: string
+          achievement_description: string | null
+          achievement_name: string
+          id: string
+          points_awarded: number | null
+          unlocked_at: string | null
+          user_id: string
+        }
+        Insert: {
+          achievement_code: string
+          achievement_description?: string | null
+          achievement_name: string
+          id?: string
+          points_awarded?: number | null
+          unlocked_at?: string | null
+          user_id: string
+        }
+        Update: {
+          achievement_code?: string
+          achievement_description?: string | null
+          achievement_name?: string
+          id?: string
+          points_awarded?: number | null
+          unlocked_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_moderation_status: {
         Row: {
           banned_until: string | null
@@ -3128,18 +3538,26 @@ export type Database = {
         Row: {
           alpaca_key_id: string | null
           alpaca_secret_key: string | null
+          avatar_url: string | null
+          bio: string | null
           created_at: string
           crypto_trading_enabled: boolean | null
+          custom_status: string | null
           default_currency: string | null
           email: string
           email_notifications: boolean | null
           full_name: string | null
           id: string
+          is_online: boolean | null
           is_paper_trading: boolean
+          last_seen_at: string | null
+          notification_preferences: Json | null
           options_trading_enabled: boolean | null
           order_notifications: boolean | null
           price_alerts: boolean | null
+          reputation_score: number | null
           role: Database["public"]["Enums"]["user_role"]
+          status_emoji: string | null
           theme_preference: string | null
           timezone: string | null
           updated_at: string
@@ -3147,18 +3565,26 @@ export type Database = {
         Insert: {
           alpaca_key_id?: string | null
           alpaca_secret_key?: string | null
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           crypto_trading_enabled?: boolean | null
+          custom_status?: string | null
           default_currency?: string | null
           email: string
           email_notifications?: boolean | null
           full_name?: string | null
           id: string
+          is_online?: boolean | null
           is_paper_trading?: boolean
+          last_seen_at?: string | null
+          notification_preferences?: Json | null
           options_trading_enabled?: boolean | null
           order_notifications?: boolean | null
           price_alerts?: boolean | null
+          reputation_score?: number | null
           role?: Database["public"]["Enums"]["user_role"]
+          status_emoji?: string | null
           theme_preference?: string | null
           timezone?: string | null
           updated_at?: string
@@ -3166,23 +3592,69 @@ export type Database = {
         Update: {
           alpaca_key_id?: string | null
           alpaca_secret_key?: string | null
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           crypto_trading_enabled?: boolean | null
+          custom_status?: string | null
           default_currency?: string | null
           email?: string
           email_notifications?: boolean | null
           full_name?: string | null
           id?: string
+          is_online?: boolean | null
           is_paper_trading?: boolean
+          last_seen_at?: string | null
+          notification_preferences?: Json | null
           options_trading_enabled?: boolean | null
           order_notifications?: boolean | null
           price_alerts?: boolean | null
+          reputation_score?: number | null
           role?: Database["public"]["Enums"]["user_role"]
+          status_emoji?: string | null
           theme_preference?: string | null
           timezone?: string | null
           updated_at?: string
         }
         Relationships: []
+      }
+      user_status: {
+        Row: {
+          created_at: string | null
+          custom_message: string | null
+          id: string
+          last_activity: string | null
+          status: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          custom_message?: string | null
+          id?: string
+          last_activity?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          custom_message?: string | null
+          id?: string
+          last_activity?: string | null
+          status?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_status_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_warnings: {
         Row: {
@@ -3291,6 +3763,16 @@ export type Database = {
         }
         Returns: string
       }
+      award_achievement: {
+        Args: {
+          user_id_param: string
+          achievement_code_param: string
+          achievement_name_param: string
+          achievement_description_param?: string
+          points_param?: number
+        }
+        Returns: boolean
+      }
       check_rate_limit: {
         Args: {
           user_identifier: string
@@ -3299,6 +3781,10 @@ export type Database = {
           time_window_minutes?: number
         }
         Returns: boolean
+      }
+      create_default_channel: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       create_moderation_queue_entry: {
         Args: {
@@ -3383,6 +3869,10 @@ export type Database = {
           p_duration_minutes?: number
         }
         Returns: boolean
+      }
+      update_user_reputation: {
+        Args: { user_id_param: string; points: number }
+        Returns: undefined
       }
       validate_message_content: {
         Args: { content: string }
