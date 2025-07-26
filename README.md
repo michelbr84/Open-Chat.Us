@@ -13,13 +13,16 @@ It’s designed for seamless public and private conversations with a beautiful, 
 
 - **Open public chat** with instant messaging for everyone
 - **Private messaging** with unread notifications and real-time updates (for authenticated users)
+- **File attachments** with drag-and-drop support for images, documents, and media
+- **Threaded replies** to organize conversations and maintain context
+- **Slash commands** for quick actions (/help, /clear, /theme, etc.)
 - **Live user list:** See who is online
 - **Guest and member support:** Chat as a guest or log in for advanced features
 - **Multi-theme UI:** Neon (default), Dark, and Light modes
 - **Mobile-first responsive design**
 - **Crypto donations:** Bitcoin and Ethereum QR codes, easy copy/paste
 - **Message search/filter**
-- **Emoji reactions**
+- **Emoji reactions** with autocomplete and custom picker
 - **Content reporting and moderation tools**
 - **Advanced security:** CSP, XSS protection, RLS, rate limiting, and more
 - **No ads, no tracking—privacy first**
