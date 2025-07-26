@@ -72,7 +72,7 @@ export function parseMarkdown(text: string): MarkdownSegment[] {
     // Add text before this match
     if (start > currentIndex) {
       const textContent = text.slice(currentIndex, start);
-      if (textContent.trim()) {
+      if (textContent) {
         segments.push({ type: 'text', content: textContent });
       }
     }
@@ -118,7 +118,7 @@ export function parseMarkdown(text: string): MarkdownSegment[] {
   // Add remaining text
   if (currentIndex < text.length) {
     const remainingText = text.slice(currentIndex);
-    if (remainingText.trim()) {
+    if (remainingText) {
       segments.push({ type: 'text', content: remainingText });
     }
   }
