@@ -20,17 +20,20 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { MoreHorizontal, Flag, Copy, Reply, Edit, Trash } from 'lucide-react';
+import { MoreHorizontal, Flag, Copy, Reply, Edit, Trash, MessageCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface MessageActionsProps {
   messageId: string;
   isOwn: boolean;
   content: string;
+  senderName?: string;
+  senderId?: string;
   onReport?: (reason: string, details?: string) => void;
   onEdit?: (newContent: string) => void;
   onDelete?: () => void;
   onReply?: () => void;
+  onPrivateMessage?: (senderId: string, senderName: string) => void;
 }
 
 const REPORT_REASONS = [
@@ -46,10 +49,13 @@ export const MessageActions = ({
   messageId,
   isOwn,
   content,
+  senderName,
+  senderId,
   onReport,
   onEdit,
   onDelete,
   onReply,
+  onPrivateMessage,
 }: MessageActionsProps) => {
   const { toast } = useToast();
   const [showReportDialog, setShowReportDialog] = useState(false);
@@ -132,6 +138,18 @@ export const MessageActions = ({
               >
                 <Trash className="w-4 h-4 mr-2" />
                 Delete message
+              </DropdownMenuItem>
+            </>
+          )}
+          
+          {!isOwn && onPrivateMessage && senderId && senderName && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={() => onPrivateMessage(senderId, senderName)}
+              >
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Send private message
               </DropdownMenuItem>
             </>
           )}

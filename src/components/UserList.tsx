@@ -18,9 +18,10 @@ interface UserListProps {
   guestName: string;
   onUserClick: (name: string, isMember: boolean, key: string) => void;
   onGuestNameChange: (newName: string) => void;
+  onMentionUser: (username: string) => void;
 }
 
-export const UserList = ({ users, guestName, onUserClick, onGuestNameChange }: UserListProps) => {
+export const UserList = ({ users, guestName, onUserClick, onGuestNameChange, onMentionUser }: UserListProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [editingName, setEditingName] = useState(false);
@@ -156,7 +157,7 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange }: U
                   }
                   ${!isCurrentUser ? 'hover:bg-accent' : ''}
                 `}
-                onClick={() => !isCurrentUser && onUserClick(name, isMember, key)}
+                onClick={() => !isCurrentUser && onMentionUser(name)}
               >
                 <div className="flex items-center gap-1.5 flex-1 min-w-0">
                   {getUserIcon(name, isMember, isCurrentUser)}

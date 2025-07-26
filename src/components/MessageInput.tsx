@@ -14,13 +14,17 @@ interface MessageInputProps {
   disabled?: boolean;
   placeholder?: string;
   onlineUsers?: Array<{ name: string; isMember: boolean; key: string }>;
+  mentionToAdd?: string;
+  onMentionAdded?: () => void;
 }
 
 export const MessageInput = ({ 
   onSendMessage, 
   disabled = false, 
   placeholder = "Type a message...",
-  onlineUsers = []
+  onlineUsers = [],
+  mentionToAdd,
+  onMentionAdded
 }: MessageInputProps) => {
   const [message, setMessage] = useState('');
   const [showMentionSuggestions, setShowMentionSuggestions] = useState(false);
@@ -210,6 +214,24 @@ export const MessageInput = ({
   useEffect(() => {
     setSelectedSuggestionIndex(0);
   }, [suggestions]);
+  
+  // Handle external mention addition
+  useEffect(() => {
+    if (mentionToAdd) {
+      const mentionText = createMentionString(mentionToAdd);
+      const newMessage = message ? `${message} ${mentionText} ` : `${mentionText} `;
+      setMessage(newMessage);
+      onMentionAdded?.();
+      
+      // Focus the input
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+          inputRef.current.setSelectionRange(newMessage.length, newMessage.length);
+        }
+      }, 0);
+    }
+  }, [mentionToAdd, message, onMentionAdded]);
   
   // Calculate suggestion position
   const getSuggestionPosition = () => {

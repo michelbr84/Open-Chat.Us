@@ -64,6 +64,10 @@ const Index = () => {
   // Private chat state
   const [activePrivateChat, setActivePrivateChat] = useState<{id: string; name: string} | null>(null);
   
+  // Mention state
+  const [mentionToAdd, setMentionToAdd] = useState<string>('');
+  const [shouldClearMention, setShouldClearMention] = useState(false);
+  
   // Refs and throttling
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const presenceChannelRef = useRef<any>(null);
@@ -362,7 +366,7 @@ const Index = () => {
     }
   };
 
-  // Handle user click for private messaging
+  // Handle user click for adding mention
   const handleUserClick = (name: string, isMember: boolean, key: string) => {
     if (!isMember) {
       toast({
@@ -381,6 +385,21 @@ const Index = () => {
     // Open private chat
     setActivePrivateChat({ id: key, name });
     setShowMobileSidebar(false); // Close mobile sidebar
+  };
+  
+  // Handle user mention
+  const handleMentionUser = (username: string) => {
+    setMentionToAdd(username);
+    setShouldClearMention(true);
+    setShowMobileSidebar(false); // Close mobile sidebar
+  };
+  
+  // Handle mention added
+  const handleMentionAdded = () => {
+    if (shouldClearMention) {
+      setMentionToAdd('');
+      setShouldClearMention(false);
+    }
   };
 
   // Handle opening private chat from header notification
@@ -483,6 +502,7 @@ const Index = () => {
             guestName={guestName}
             onUserClick={handleUserClick}
             onGuestNameChange={handleGuestNameChange}
+            onMentionUser={handleMentionUser}
           />
         </div>
 
@@ -526,6 +546,7 @@ const Index = () => {
                     onReport={handleReport}
                     onEdit={handleEdit}
                     onDelete={handleDelete}
+                    onPrivateMessage={handleOpenPrivateChat}
                   />
                 </div>
               );
@@ -539,6 +560,8 @@ const Index = () => {
               onSendMessage={sendPublicMessage}
               placeholder="Type a message..."
               onlineUsers={userList}
+              mentionToAdd={mentionToAdd}
+              onMentionAdded={handleMentionAdded}
             />
           )}
         </main>
