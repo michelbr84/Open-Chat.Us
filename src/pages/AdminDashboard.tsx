@@ -24,6 +24,8 @@ import { ActionHistory } from '@/components/admin/ActionHistory';
 import { EnhancedModerationQueue } from '@/components/admin/EnhancedModerationQueue';
 import { ContentFilterManager } from '@/components/admin/ContentFilterManager';
 import { EnhancedUserManagement } from '@/components/admin/EnhancedUserManagement';
+import { UserAnalyticsDashboard } from '@/components/analytics/UserAnalyticsDashboard';
+import { ContentAnalyticsDashboard } from '@/components/analytics/ContentAnalyticsDashboard';
 
 export const AdminDashboard = () => {
   const { isAdmin, loading } = useAdminAuth();
@@ -64,7 +66,7 @@ export const AdminDashboard = () => {
       {/* Dashboard Content */}
       <div className="container mx-auto px-4 py-6">
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6">
+          <TabsList className="grid w-full grid-cols-9 mb-6">
             <TabsTrigger value="overview" className="flex items-center gap-2">
               <Activity className="h-4 w-4" />
               Overview
@@ -92,6 +94,14 @@ export const AdminDashboard = () => {
             <TabsTrigger value="settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
               Settings
+            </TabsTrigger>
+            <TabsTrigger value="user-analytics" className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4" />
+              User Analytics
+            </TabsTrigger>
+            <TabsTrigger value="content-analytics" className="flex items-center gap-2">
+              <MessageSquare className="h-4 w-4" />
+              Content Analytics
             </TabsTrigger>
           </TabsList>
 
@@ -121,6 +131,14 @@ export const AdminDashboard = () => {
 
           <TabsContent value="settings" className="space-y-6">
             <AdminSettings />
+          </TabsContent>
+
+          <TabsContent value="user-analytics" className="space-y-6">
+            <UserAnalyticsDashboard />
+          </TabsContent>
+
+          <TabsContent value="content-analytics" className="space-y-6">
+            <ContentAnalyticsDashboard />
           </TabsContent>
         </Tabs>
       </div>
