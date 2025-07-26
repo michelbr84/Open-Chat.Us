@@ -10,6 +10,8 @@ import Contact from "./pages/Contact";
 import Documentation from "./pages/Documentation";
 import NotFound from "./pages/NotFound";
 import { AdminDashboard } from "./pages/AdminDashboard";
+import { Achievements } from "./pages/Achievements";
+import { Leaderboard } from "./pages/Leaderboard";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +28,8 @@ const App = () => (
               <Route path="/contact" element={<Contact />} />
               <Route path="/docs" element={<Documentation />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/achievements" element={<Achievements />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
