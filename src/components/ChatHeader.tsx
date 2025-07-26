@@ -4,9 +4,13 @@ import { Input } from '@/components/ui/input';
 import { HelpButton } from '@/components/HelpButton';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserPresence } from '@/hooks/useUserPresence';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Palette, LogIn, LogOut, Heart, X } from 'lucide-react';
+import { Search, Palette, LogIn, LogOut, Heart, X, Circle } from 'lucide-react';
 import { UnreadMessageIndicator } from '@/components/UnreadMessageIndicator';
+import { NotificationCenter } from '@/components/NotificationCenter';
+import { StatusUpdateModal } from '@/components/StatusUpdateModal';
+import { UserPresenceIndicator } from '@/components/UserPresenceIndicator';
 
 interface ChatHeaderProps {
   searchQuery: string;
@@ -25,6 +29,8 @@ export const ChatHeader = ({
 }: ChatHeaderProps) => {
   const { cycleTheme, theme } = useTheme();
   const { user } = useAuth();
+  const { getOnlineCount } = useUserPresence();
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -43,9 +49,15 @@ export const ChatHeader = ({
     <header className="chat-header border-b border-border p-3 md:p-4 flex flex-col md:flex-row items-center gap-3 md:gap-4">
       {/* Top row: Title and theme toggle */}
       <div className="flex items-center justify-between w-full md:w-auto">
-        <h1 className="text-lg md:text-xl font-bold neon-glow">
-          OpenChat
-        </h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-lg md:text-xl font-bold neon-glow">
+            OpenChat
+          </h1>
+          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+            <Circle className="h-2 w-2 fill-green-500 text-green-500" />
+            <span>{getOnlineCount()} online</span>
+          </div>
+        </div>
         
         {/* Mobile theme toggle */}
         <Button
@@ -86,7 +98,19 @@ export const ChatHeader = ({
       {/* Action buttons */}
       <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
         {user && (
-          <UnreadMessageIndicator onOpenPrivateChat={onOpenPrivateChat} />
+          <>
+            <NotificationCenter />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsStatusModalOpen(true)}
+              className="flex items-center gap-2 min-h-[40px]"
+            >
+              <UserPresenceIndicator userId={user.id} userName={user.email} />
+              <span className="hidden sm:inline">Status</span>
+            </Button>
+            <UnreadMessageIndicator onOpenPrivateChat={onOpenPrivateChat} />
+          </>
         )}
         
         {!user ? (
@@ -117,6 +141,11 @@ export const ChatHeader = ({
           <span className="hidden sm:inline">Donate</span>
         </Button>
       </div>
+      
+      <StatusUpdateModal
+        isOpen={isStatusModalOpen}
+        onClose={() => setIsStatusModalOpen(false)}
+      />
     </header>
   );
 };
