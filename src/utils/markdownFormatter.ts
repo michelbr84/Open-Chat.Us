@@ -14,36 +14,38 @@ export interface MarkdownSegment {
  * Parse markdown text into segments for rendering
  */
 export function parseMarkdown(text: string): MarkdownSegment[] {
+  if (!text) return [];
+  
   const segments: MarkdownSegment[] = [];
   let currentIndex = 0;
 
-  // Regular expressions for markdown patterns
-  const patterns = {
-    bold: /\*\*(.*?)\*\*/g,
-    italic: /\*(.*?)\*/g,
-    underline: /__(.*?)__/g,
-    strikethrough: /~~(.*?)~~/g,
-    inlineCode: /`(.*?)`/g,
-    codeBlock: /```(\w+)?\n?([\s\S]*?)```/g,
-    blockquote: /^> (.+)$/gm,
-    link: /\[([^\]]+)\]\(([^)]+)\)/g,
-    listItem: /^[-*+] (.+)$/gm,
-  };
+  // Regular expressions for markdown patterns (ordered by priority to avoid conflicts)
+  const patterns = [
+    { type: 'codeBlock', regex: /```(\w+)?\n?([\s\S]*?)```/g },
+    { type: 'inlineCode', regex: /`([^`]+)`/g },
+    { type: 'bold', regex: /\*\*([^*]+)\*\*/g },
+    { type: 'italic', regex: /\*([^*]+)\*/g },
+    { type: 'underline', regex: /__([^_]+)__/g },
+    { type: 'strikethrough', regex: /~~([^~]+)~~/g },
+    { type: 'link', regex: /\[([^\]]+)\]\(([^)]+)\)/g },
+    { type: 'blockquote', regex: /^> (.+)$/gm },
+    { type: 'listItem', regex: /^[-*+] (.+)$/gm },
+  ];
 
   // Find all matches and their positions
   const matches: Array<{
-    type: keyof typeof patterns;
+    type: string;
     match: RegExpMatchArray;
     start: number;
     end: number;
   }> = [];
 
-  for (const [type, pattern] of Object.entries(patterns)) {
+  for (const { type, regex } of patterns) {
+    regex.lastIndex = 0; // Reset regex state
     let match;
-    pattern.lastIndex = 0; // Reset regex state
-    while ((match = pattern.exec(text)) !== null) {
+    while ((match = regex.exec(text)) !== null) {
       matches.push({
-        type: type as keyof typeof patterns,
+        type,
         match,
         start: match.index!,
         end: match.index! + match[0].length,
@@ -51,15 +53,26 @@ export function parseMarkdown(text: string): MarkdownSegment[] {
     }
   }
 
-  // Sort matches by position
+  // Sort matches by position and filter out overlapping matches
   matches.sort((a, b) => a.start - b.start);
+  
+  // Remove overlapping matches (keep the first one)
+  const filteredMatches = [];
+  let lastEnd = 0;
+  
+  for (const match of matches) {
+    if (match.start >= lastEnd) {
+      filteredMatches.push(match);
+      lastEnd = match.end;
+    }
+  }
 
-  // Process matches and build segments
-  for (const { type, match, start, end } of matches) {
+  // Process filtered matches and build segments
+  for (const { type, match, start, end } of filteredMatches) {
     // Add text before this match
     if (start > currentIndex) {
       const textContent = text.slice(currentIndex, start);
-      if (textContent) {
+      if (textContent.trim()) {
         segments.push({ type: 'text', content: textContent });
       }
     }
@@ -105,7 +118,7 @@ export function parseMarkdown(text: string): MarkdownSegment[] {
   // Add remaining text
   if (currentIndex < text.length) {
     const remainingText = text.slice(currentIndex);
-    if (remainingText) {
+    if (remainingText.trim()) {
       segments.push({ type: 'text', content: remainingText });
     }
   }
