@@ -1,5 +1,5 @@
-// Google Analytics Configuration
-window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'GA_TRACKING_ID');
+// Google Ads Analytics Configuration
+// Note: gtag is already loaded in index.html
+if (typeof gtag !== 'undefined') {
+  gtag('config', 'AW-17395476760');
+}
