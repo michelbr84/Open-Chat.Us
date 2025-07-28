@@ -4,31 +4,79 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Mail, MessageCircle, Github, ExternalLink } from 'lucide-react';
+import { Mail, MessageCircle, Github, ExternalLink, CheckCircle, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    subject: '',
     message: ''
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitted, setIsSubmitted] = useState(false);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Create mailto link with form data
-    const mailtoLink = `mailto:support@open-chat.us?subject=${encodeURIComponent(formData.subject)}&body=${encodeURIComponent(
-      `Name: ${formData.name}\nEmail: ${formData.email}\n\nMessage:\n${formData.message}`
-    )}`;
-    
-    window.location.href = mailtoLink;
-    
-    toast({
-      title: "Contact form opened",
-      description: "Your default email client should open with the pre-filled message.",
-    });
+    setIsSubmitting(true);
+
+    try {
+      // Call the edge function
+      const { data, error } = await supabase.functions.invoke('contact-form', {
+        body: {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          message: formData.message.trim()
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      // Success - show confirmation
+      setIsSubmitted(true);
+      
+      // Google Ads conversion tracking
+      if (typeof gtag !== 'undefined') {
+        gtag('event', 'conversion', {
+          send_to: 'AW-17395476760/form_submission',
+          event_callback: () => {
+            console.log('Contact form conversion tracked');
+          }
+        });
+      }
+
+      // Google Tag Manager event
+      if (typeof dataLayer !== 'undefined') {
+        dataLayer.push({
+          event: 'form_submission',
+          form_type: 'contact',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      toast({
+        title: "Message sent successfully!",
+        description: "Thanks! Your message has been sent.",
+      });
+
+      // Optional redirect to thank you page after a delay
+      setTimeout(() => {
+        window.location.href = '/thank-you';
+      }, 2000);
+
+    } catch (error) {
+      console.error('Form submission error:', error);
+      toast({
+        title: "Error sending message",
+        description: "Please try again or contact us directly at hello@open-chat.us",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -62,51 +110,70 @@ const Contact = () => {
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <Input
-                    name="name"
-                    placeholder="Your Name"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    aria-label="Your Name"
-                  />
-                </div>
-                <div>
-                  <Input
-                    name="email"
-                    type="email"
-                    placeholder="Your Email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    aria-label="Your Email"
-                  />
-                </div>
-                <div>
-                  <Input
-                    name="subject"
-                    placeholder="Subject"
-                    value={formData.subject}
-                    onChange={handleChange}
-                    required
-                    aria-label="Subject"
-                  />
-                </div>
-                <div>
-                  <Textarea
-                    name="message"
-                    placeholder="Your message..."
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={5}
-                    aria-label="Your message"
-                  />
-                </div>
-                <Button type="submit" className="w-full">
-                  Send Message
-                </Button>
+                {isSubmitted ? (
+                  <div className="text-center py-8">
+                    <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">Thanks! Your message has been sent.</h3>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      We'll get back to you as soon as possible.
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Redirecting to thank you page...
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <div>
+                      <Input
+                        name="name"
+                        placeholder="Full Name *"
+                        value={formData.name}
+                        onChange={handleChange}
+                        required
+                        disabled={isSubmitting}
+                        aria-label="Full Name"
+                      />
+                    </div>
+                    <div>
+                      <Input
+                        name="email"
+                        type="email"
+                        placeholder="Email Address *"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                        disabled={isSubmitting}
+                        aria-label="Email Address"
+                      />
+                    </div>
+                    <div>
+                      <Textarea
+                        name="message"
+                        placeholder="Your message... *"
+                        value={formData.message}
+                        onChange={handleChange}
+                        required
+                        disabled={isSubmitting}
+                        rows={6}
+                        aria-label="Your message"
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      className="w-full" 
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Sending...
+                        </>
+                      ) : (
+                        'Send Message'
+                      )}
+                    </Button>
+                  </>
+                )}
               </form>
             </CardContent>
           </Card>
