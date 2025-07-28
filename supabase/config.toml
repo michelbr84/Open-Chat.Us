@@ -2,3 +2,6 @@ project_id = "lbadeqrxsvhfuygxvyqf"
 
 [functions.security-headers]
 verify_jwt = false
+
+[functions.contact-form]
+verify_jwt = false

@@ -384,6 +384,33 @@ export type Database = {
         }
         Relationships: []
       }
+      contact_submissions: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          message: string
+          name: string
+          submitted_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id?: string
+          message: string
+          name: string
+          submitted_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          message?: string
+          name?: string
+          submitted_at?: string | null
+        }
+        Relationships: []
+      }
       content_filters: {
         Row: {
           action_type: string
