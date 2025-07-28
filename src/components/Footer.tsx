@@ -1,5 +1,6 @@
 import { Heart, Github, Mail, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 export const Footer = () => {
   return (
@@ -17,14 +18,35 @@ export const Footer = () => {
           </div>
 
           {/* Navigation Links */}
-          <div className="flex items-center gap-4 text-sm">
-            <a 
-              href="/contact" 
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <Link 
+              to="/about" 
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="About OpenChat"
+            >
+              About
+            </Link>
+            <Link 
+              to="/privacy" 
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Privacy Policy"
+            >
+              Privacy
+            </Link>
+            <Link 
+              to="/terms" 
+              className="text-muted-foreground hover:text-primary transition-colors"
+              aria-label="Terms of Service"
+            >
+              Terms
+            </Link>
+            <Link 
+              to="/contact" 
               className="text-muted-foreground hover:text-primary transition-colors"
               aria-label="Contact and support"
             >
               Contact
-            </a>
+            </Link>
             <a 
               href="https://github.com/michelbr84/neon-chat-pulse" 
               target="_blank" 
@@ -36,7 +58,7 @@ export const Footer = () => {
               GitHub
             </a>
             <a 
-              href="mailto:support@open-chat.us" 
+              href="mailto:hello.openchat@gmail.com" 
               className="flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
               aria-label="Email support"
             >
