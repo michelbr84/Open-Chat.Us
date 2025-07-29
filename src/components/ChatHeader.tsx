@@ -11,6 +11,7 @@ import { UnreadMessageIndicator } from '@/components/UnreadMessageIndicator';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { StatusUpdateModal } from '@/components/StatusUpdateModal';
 import { UserPresenceIndicator } from '@/components/UserPresenceIndicator';
+import { BotTestButton } from '@/components/BotTestButton';
 
 interface ChatHeaderProps {
   searchQuery: string;
@@ -149,6 +150,8 @@ export const ChatHeader = ({
           <Palette className="w-4 h-4 mr-2" />
           {getThemeIcon()}
         </Button>
+        
+        <BotTestButton />
         
         <Button variant="outline" onClick={onDonateClick} className="min-h-[40px] px-4">
           <Heart className="w-4 h-4 mr-2" />

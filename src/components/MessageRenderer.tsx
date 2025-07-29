@@ -18,8 +18,27 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
 }) => {
   const { user } = useAuth();
 
+  // Step 0: Handle JSON content from bot responses
+  let processedContent = content;
+  try {
+    // Check if content is a JSON string (common with bot responses)
+    if (content.startsWith('{') && content.endsWith('}')) {
+      const parsed = JSON.parse(content);
+      if (parsed.content) {
+        processedContent = parsed.content;
+      } else if (parsed.message) {
+        processedContent = parsed.message;
+      } else if (parsed.text) {
+        processedContent = parsed.text;
+      }
+    }
+  } catch (e) {
+    // If it's not valid JSON, use the original content
+    processedContent = content;
+  }
+
   // Step 1: Parse emoji shortcodes first
-  const { content: emojiProcessedContent } = parseEmojiShortcodes(content);
+  const { content: emojiProcessedContent } = parseEmojiShortcodes(processedContent);
   
   // Step 2: Format mentions
   const { segments: mentionSegments } = formatMessageWithMentions(emojiProcessedContent, mentions);

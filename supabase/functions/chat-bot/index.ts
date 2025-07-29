@@ -21,14 +21,27 @@ serve(async (req) => {
       );
     }
 
-    // Check if this is a bot mention
+    // Check if this is a health check or bot mention
+    const isHealthCheck = username === 'status-check' && message === 'ping';
     const isBotMention = message.toLowerCase().startsWith('@bot') || 
                         mentions?.some((m: any) => m.username.toLowerCase() === 'bot');
 
-    if (!isBotMention) {
+    if (!isHealthCheck && !isBotMention) {
       return new Response(
         JSON.stringify({ error: 'Not a bot mention' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Handle health check
+    if (isHealthCheck) {
+      return new Response(
+        JSON.stringify({ 
+          success: true,
+          botResponse: "Bot is online and ready!",
+          messageId: null
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -37,8 +50,12 @@ serve(async (req) => {
 
     if (!cleanMessage) {
       return new Response(
-        JSON.stringify({ error: 'No message content provided' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: false,
+          error: 'No message content provided',
+          botResponse: "Hi! I'm here to help. What would you like to know?"
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -109,10 +126,27 @@ serve(async (req) => {
       botResponse = n8nData.text;
     } else if (n8nData.choices && n8nData.choices[0] && n8nData.choices[0].message) {
       botResponse = n8nData.choices[0].message.content;
+    } else if (n8nData.content) {
+      // Handle cases where the response is wrapped in a content field
+      botResponse = n8nData.content;
     } else {
       console.log('Unexpected n8n response format:', n8nData);
       botResponse = "I received your message but couldn't process it properly. Please try again.";
     }
+
+    // If botResponse is still an object (like JSON), try to extract content
+    if (typeof botResponse === 'object' && botResponse !== null) {
+      if (botResponse.content) {
+        botResponse = botResponse.content;
+      } else if (botResponse.message) {
+        botResponse = botResponse.message;
+      } else {
+        // If it's still an object, stringify it as fallback
+        botResponse = JSON.stringify(botResponse);
+      }
+    }
+
+    console.log('Final bot response to save:', botResponse);
 
     // Create Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;

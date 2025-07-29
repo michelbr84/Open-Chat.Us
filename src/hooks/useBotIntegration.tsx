@@ -17,29 +17,23 @@ export const useBotIntegration = () => {
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const { toast } = useToast();
 
-  // Check bot status with a simple test (don't create actual messages)
+  // Check bot status by testing the edge function instead of direct n8n call
   const checkBotStatus = async (): Promise<boolean> => {
     setIsCheckingStatus(true);
     try {
       const startTime = Date.now();
       
-      // Try to reach the n8n webhook directly for status check
-      const testResponse = await fetch('https://michelbr.app.n8n.cloud/webhook/8c9a5f1d-03df-46b1-89db-db79c4facba0/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'User-Agent': 'OpenChat-StatusCheck/1.0',
-        },
-        body: JSON.stringify({
-          user: 'status-check',
-          text: 'ping',
-          timestamp: new Date().toISOString(),
-          platform: 'open-chat-us'
-        }),
+      // Test the edge function with a health check message
+      const { data, error } = await supabase.functions.invoke('chat-bot', {
+        body: {
+          message: 'ping',
+          username: 'status-check',
+          mentions: []
+        }
       });
 
       const responseTime = Date.now() - startTime;
-      const isOnline = testResponse.ok || testResponse.status < 500;
+      const isOnline = !error && data && !data.error;
 
       setBotStatus(prev => ({
         ...prev,
@@ -66,17 +60,8 @@ export const useBotIntegration = () => {
 
   // Send message to bot and return response data
   const sendMessageToBot = async (message: string, username: string, mentions: any[] = []) => {
-    if (!botStatus.isOnline) {
-      toast({
-        title: "Bot unavailable",
-        description: "The AI bot is currently offline. Please try again later.",
-        variant: "destructive",
-      });
-      return { success: false, error: 'Bot offline' };
-    }
-
     try {
-      console.log('Sending message to bot:', { message, username, mentions });
+      console.log('🚀 Sending message to bot via edge function:', { message, username, mentions });
 
       const { data, error } = await supabase.functions.invoke('chat-bot', {
         body: {
@@ -87,30 +72,48 @@ export const useBotIntegration = () => {
       });
 
       if (error) {
-        console.error('Error sending message to bot:', error);
+        console.error('❌ Edge function error:', error);
         toast({
           title: "Bot error",
           description: "Failed to send message to the AI bot. Please try again.",
           variant: "destructive",
         });
         
-        // Check if bot is still online
-        checkBotStatus();
+        // Mark bot as offline and return error
+        setBotStatus(prev => ({
+          ...prev,
+          isOnline: false,
+          lastChecked: new Date()
+        }));
         return { success: false, error: 'Edge function error' };
       }
 
-      console.log('Bot response received:', data);
+      console.log('✅ Bot response received:', data);
       
       // Handle different response formats
       if (data?.success === false) {
         // Bot returned an error but with a friendly message
-        toast({
-          title: "Bot response",
-          description: data.error || "Bot is having issues right now.",
-          variant: "default",
-        });
-        return { success: true, botResponse: data.botResponse || data.error };
+        console.log('⚠️ Bot returned error with message:', data.error);
+        if (data.botResponse) {
+          // Bot gave us a friendly error response, treat as success
+          return { success: true, botResponse: data.botResponse };
+        } else {
+          // No friendly response, show error
+          toast({
+            title: "Bot unavailable",
+            description: data.error || "Bot is having issues right now.",
+            variant: "destructive",
+          });
+          return { success: false, error: data.error || 'Bot error' };
+        }
       }
+
+      // Mark bot as online since we got a response
+      setBotStatus(prev => ({
+        ...prev,
+        isOnline: true,
+        lastChecked: new Date()
+      }));
 
       // Successful response
       return { 
@@ -120,7 +123,7 @@ export const useBotIntegration = () => {
       };
 
     } catch (error) {
-      console.error('Failed to send message to bot:', error);
+      console.error('❌ Failed to send message to bot:', error);
       toast({
         title: "Connection error",
         description: "Could not connect to the AI bot. Please check your connection.",
@@ -147,15 +150,10 @@ export const useBotIntegration = () => {
     return startsWithBot || hasBotMention;
   };
 
-  // Check bot status periodically (less frequently to avoid spam)
+  // Check bot status only when needed (not on interval to avoid spam)
   useEffect(() => {
-    // Initial status check
+    // Initial status check on mount
     checkBotStatus();
-
-    // Check every 5 minutes (reduced frequency)
-    const interval = setInterval(checkBotStatus, 5 * 60 * 1000);
-
-    return () => clearInterval(interval);
   }, []);
 
   return {
