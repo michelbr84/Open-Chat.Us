@@ -334,15 +334,34 @@ const Index = () => {
     if (isBotMention(content, mentions)) {
       console.log('🤖 Bot mention detected, sending to bot...');
       
+      // Show loading toast
+      toast({
+        title: "Sending message to AI...",
+        description: "The bot is processing your request.",
+      });
+      
       // Send to bot and handle the response
       const botResponse = await sendMessageToBot(content, senderName, mentions);
       
       if (botResponse.success && botResponse.botResponse) {
         // Bot responded successfully - the bot response should already be saved to DB by the edge function
         console.log('✅ Bot responded successfully:', botResponse.botResponse);
+        toast({
+          title: "AI response received!",
+          description: "The bot has responded to your message.",
+          variant: "default",
+        });
+        // Don't send the user's @bot message to the database - only the bot response should appear
+        return;
       } else {
-        // If bot failed, still continue with user message
-        console.log('🔴 Bot failed, continuing with user message...');
+        // If bot failed, show error but don't send the user message either
+        console.log('🔴 Bot failed:', botResponse.error);
+        toast({
+          title: "Bot unavailable",
+          description: botResponse.error || "The AI bot is temporarily unavailable.",
+          variant: "destructive",
+        });
+        return;
       }
     }
 

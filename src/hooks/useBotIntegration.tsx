@@ -33,7 +33,9 @@ export const useBotIntegration = () => {
       });
 
       const responseTime = Date.now() - startTime;
-      const isOnline = !error && data && !data.error;
+      // For health checks, the edge function should return success even with "Not a bot mention" 
+      // since it's just checking if the service is running
+      const isOnline = !error && data !== null;
 
       setBotStatus(prev => ({
         ...prev,

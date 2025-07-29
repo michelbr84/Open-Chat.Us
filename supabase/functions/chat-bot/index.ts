@@ -24,7 +24,7 @@ serve(async (req) => {
     // Check if this is a health check or bot mention
     const isHealthCheck = username === 'status-check' && message === 'ping';
     const isBotMention = message.toLowerCase().startsWith('@bot') || 
-                        mentions?.some((m: any) => m.username.toLowerCase() === 'bot');
+                        mentions?.some((m: any) => m.username?.toLowerCase() === 'bot');
 
     if (!isHealthCheck && !isBotMention) {
       return new Response(
