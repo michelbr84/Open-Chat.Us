@@ -330,6 +330,7 @@ const Index = () => {
       ? (user.user_metadata?.name || user.email)
       : guestName;
 
+    // SEAMLESS BOT INTEGRATION: Bot responses are automatically saved to Supabase and appear in real-time to all users
     // Check if this message is intended for the bot
     if (isBotMention(content, mentions)) {
       console.log('🤖 Bot mention detected, sending to bot...');
@@ -344,13 +345,28 @@ const Index = () => {
       const botResponse = await sendMessageToBot(content, senderName, mentions);
       
       if (botResponse.success && botResponse.botResponse) {
-        // Bot responded successfully - the bot response should already be saved to DB by the edge function
-        console.log('✅ Bot responded successfully:', botResponse.botResponse);
-        toast({
-          title: "AI response received!",
-          description: "The bot has responded to your message.",
-          variant: "default",
+        // Bot responded successfully - verify if it was saved to database
+        console.log('✅ Bot responded successfully:', {
+          response: botResponse.botResponse,
+          messageId: botResponse.messageId,
+          savedToDatabase: botResponse.savedToDatabase
         });
+        
+        if (botResponse.savedToDatabase) {
+          toast({
+            title: "AI response received!",
+            description: "The bot has responded to your message.",
+            variant: "default",
+          });
+        } else {
+          // Bot responded but wasn't saved to database
+          toast({
+            title: "Partial bot response",
+            description: "Bot responded but the message may not be visible to all users.",
+            variant: "destructive",
+          });
+        }
+        
         // Don't send the user's @bot message to the database - only the bot response should appear
         return;
       } else {

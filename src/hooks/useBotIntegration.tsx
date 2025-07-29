@@ -99,7 +99,7 @@ export const useBotIntegration = () => {
         if (data.botResponse) {
           // Bot gave us a friendly error response, show it to user but treat as success for UI
           console.log('🔄 Displaying bot error message to user:', data.botResponse);
-          return { success: true, botResponse: data.botResponse };
+          return { success: true, botResponse: data.botResponse, savedToDatabase: false };
         } else {
           // No friendly response, show error toast
           console.log('❌ No bot response, showing error toast');
@@ -123,7 +123,8 @@ export const useBotIntegration = () => {
       return { 
         success: true, 
         botResponse: data?.botResponse || "I received your message!",
-        messageId: data?.messageId 
+        messageId: data?.messageId,
+        savedToDatabase: data?.savedToDatabase || false
       };
 
     } catch (error) {

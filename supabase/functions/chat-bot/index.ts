@@ -165,14 +165,14 @@ serve(async (req) => {
 
     console.log('Final bot response from n8n:', botResponse);
 
-    // NOTE: The n8n webhook should handle saving the bot message to the database
-    // If the n8n workflow doesn't save the message, we can enable this code:
-    /*
+    // CRITICAL: Save bot response to Supabase database for real-time display to all users
+    // This ensures bot messages appear in real-time for everyone, not just the sender
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabaseClient = createClient(supabaseUrl, supabaseKey);
 
-    const { data, error } = await supabase
+    console.log('Saving bot response to database...');
+    const { data: messageData, error: insertError } = await supabaseClient
       .from('messages')
       .insert({
         content: botResponse,
@@ -184,17 +184,29 @@ serve(async (req) => {
       .select()
       .single();
 
-    if (error) {
-      console.error('Error inserting bot message:', error);
-      throw new Error('Failed to save bot response');
+    if (insertError) {
+      console.error('Error inserting bot message to database:', insertError);
+      
+      // Return error but don't fail completely - user still gets the response
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Bot responded but failed to save to database',
+          botResponse: botResponse,
+          details: insertError.message
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
-    */
+
+    console.log('✅ Bot message saved to database successfully:', messageData.id);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         botResponse: botResponse,
-        messageId: webhookData?.messageId || null
+        messageId: messageData.id, // Use the actual database message ID
+        savedToDatabase: true
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
