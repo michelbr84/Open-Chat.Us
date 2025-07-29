@@ -72,17 +72,17 @@ serve(async (req) => {
 
     console.log('Processing bot request:', { cleanMessage, username });
 
-    // Send to LLM endpoint with proper error handling and timeout
-    let llmResponse;
-    let llmData;
+    // Send to n8n webhook (MAIN CHAT ENDPOINT) with proper error handling and timeout
+    let webhookResponse;
+    let webhookData;
     
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
     
     try {
-      console.log('Calling LLM endpoint with message:', cleanMessage);
+      console.log('Calling n8n webhook with bot message:', cleanMessage);
       
-      llmResponse = await fetch('https://salty-buses-repair.loca.lt/v1/chat/completions', {
+      webhookResponse = await fetch('https://michelbr.app.n8n.cloud/webhook/8c9a5f1d-03df-46b1-89db-db79c4facba0/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -90,31 +90,21 @@ serve(async (req) => {
           'Accept': 'application/json',
         },
         body: JSON.stringify({
-          model: "gpt-3.5-turbo",
-          messages: [
-            {
-              role: "system",
-              content: "You are a helpful AI assistant in a chat room. Be friendly, concise, and helpful."
-            },
-            {
-              role: "user", 
-              content: cleanMessage
-            }
-          ],
-          max_tokens: 500,
-          temperature: 0.7,
-          user: username
+          message: cleanMessage,
+          username: username,
+          mentions: mentions,
+          isBot: true // Flag to indicate this is a bot mention request
         }),
         signal: controller.signal
       });
       
       clearTimeout(timeoutId);
 
-      console.log('LLM response status:', llmResponse.status);
+      console.log('n8n webhook response status:', webhookResponse.status);
 
-      if (!llmResponse.ok) {
-        const errorText = await llmResponse.text();
-        console.error('LLM endpoint error:', llmResponse.status, llmResponse.statusText, errorText);
+      if (!webhookResponse.ok) {
+        const errorText = await webhookResponse.text();
+        console.error('n8n webhook error:', webhookResponse.status, webhookResponse.statusText, errorText);
         
         // Return a friendly error instead of throwing
         return new Response(
@@ -127,11 +117,11 @@ serve(async (req) => {
         );
       }
 
-      llmData = await llmResponse.json();
-      console.log('LLM response data:', llmData);
+      webhookData = await webhookResponse.json();
+      console.log('n8n webhook response data:', webhookData);
       
     } catch (fetchError) {
-      console.error('Network error calling LLM endpoint:', fetchError);
+      console.error('Network error calling n8n webhook:', fetchError);
       
       // Return a friendly error for network issues
       return new Response(
@@ -144,24 +134,20 @@ serve(async (req) => {
       );
     }
 
-    // Parse the AI response from LLM endpoint (OpenAI format)
+    // Parse the bot response from n8n webhook
     let botResponse = '';
-    if (typeof llmData === 'string') {
-      botResponse = llmData;
-    } else if (llmData.choices && llmData.choices[0] && llmData.choices[0].message) {
-      // Standard OpenAI format
-      botResponse = llmData.choices[0].message.content;
-    } else if (llmData.response) {
-      botResponse = llmData.response;
-    } else if (llmData.message) {
-      botResponse = llmData.message;
-    } else if (llmData.text) {
-      botResponse = llmData.text;
-    } else if (llmData.content) {
-      // Handle cases where the response is wrapped in a content field
-      botResponse = llmData.content;
+    if (typeof webhookData === 'string') {
+      botResponse = webhookData;
+    } else if (webhookData && webhookData.response) {
+      botResponse = webhookData.response;
+    } else if (webhookData && webhookData.message) {
+      botResponse = webhookData.message;
+    } else if (webhookData && webhookData.botResponse) {
+      botResponse = webhookData.botResponse;
+    } else if (webhookData && webhookData.content) {
+      botResponse = webhookData.content;
     } else {
-      console.log('Unexpected LLM response format:', llmData);
+      console.log('Unexpected n8n webhook response format:', webhookData);
       botResponse = "I received your message but couldn't process it properly. Please try again.";
     }
 
@@ -177,22 +163,23 @@ serve(async (req) => {
       }
     }
 
-    console.log('Final bot response to save:', botResponse);
+    console.log('Final bot response from n8n:', botResponse);
 
-    // Create Supabase client
+    // NOTE: The n8n webhook should handle saving the bot message to the database
+    // If the n8n workflow doesn't save the message, we can enable this code:
+    /*
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Insert bot response into messages table
     const { data, error } = await supabase
       .from('messages')
       .insert({
         content: botResponse,
         sender_name: 'bot',
-        sender_id: null, // Bot doesn't have a user ID
-        mentions: [], // Bot doesn't mention others in responses
-        is_bot_message: true // We'll add this field to identify bot messages
+        sender_id: null,
+        mentions: [],
+        is_bot_message: true
       })
       .select()
       .single();
@@ -201,14 +188,13 @@ serve(async (req) => {
       console.error('Error inserting bot message:', error);
       throw new Error('Failed to save bot response');
     }
-
-    console.log('Bot message saved:', data);
+    */
 
     return new Response(
       JSON.stringify({ 
         success: true, 
         botResponse: botResponse,
-        messageId: data.id
+        messageId: webhookData?.messageId || null
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
