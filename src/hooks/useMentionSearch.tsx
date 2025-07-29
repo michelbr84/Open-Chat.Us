@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useBotIntegration } from '@/hooks/useBotIntegration';
 
 interface MentionUser {
   id: string;
@@ -18,6 +19,7 @@ interface UseMentionSearchResult {
 
 export const useMentionSearch = (onlineUsers: Array<{ name: string; isMember: boolean; key: string }>): UseMentionSearchResult => {
   const { user } = useAuth();
+  const { botStatus } = useBotIntegration();
   const [searchQuery, setSearchQuery] = useState('');
   const [suggestions, setSuggestions] = useState<MentionUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -32,6 +34,19 @@ export const useMentionSearch = (onlineUsers: Array<{ name: string; isMember: bo
 
     setIsLoading(true);
     
+    const searchLower = query.toLowerCase();
+    let allSuggestions: MentionUser[] = [];
+    
+    // Always include bot as first suggestion if query matches
+    if ('bot'.includes(searchLower) && botStatus.isOnline) {
+      allSuggestions.push({
+        id: 'bot',
+        name: 'bot',
+        isMember: false,
+        displayName: '@bot (AI Assistant)'
+      });
+    }
+    
     // Filter online users based on query
     const filteredUsers = onlineUsers
       .filter(onlineUser => {
@@ -39,7 +54,6 @@ export const useMentionSearch = (onlineUsers: Array<{ name: string; isMember: bo
         // Exclude current user from suggestions
         if (onlineUser.name === currentUserName) return false;
         
-        const searchLower = query.toLowerCase();
         return onlineUser.name.toLowerCase().includes(searchLower);
       })
       .map(onlineUser => ({
@@ -47,10 +61,12 @@ export const useMentionSearch = (onlineUsers: Array<{ name: string; isMember: bo
         name: onlineUser.name,
         isMember: onlineUser.isMember,
         displayName: onlineUser.name
-      }))
-      .slice(0, 8); // Limit to 8 suggestions
+      }));
+    
+    // Combine bot and user suggestions, limit to 8 total
+    allSuggestions = [...allSuggestions, ...filteredUsers].slice(0, 8);
 
-    setSuggestions(filteredUsers);
+    setSuggestions(allSuggestions);
     setIsLoading(false);
   }, [onlineUsers, user]);
 

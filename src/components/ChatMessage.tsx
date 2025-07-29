@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Heart, Flag } from 'lucide-react';
+import { Heart, Flag, Bot } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { EmojiReactions } from './EmojiReactions';
 import { MessageActions } from './MessageActions';
@@ -15,6 +15,7 @@ interface Message {
   edited_at?: string | null;
   is_deleted?: boolean;
   mentions?: any[] | null;
+  is_bot_message?: boolean;
 }
 
 interface ChatMessageProps {
@@ -66,6 +67,9 @@ export const ChatMessage = ({
   };
 
   const getDisplayName = () => {
+    if (message.is_bot_message) {
+      return '@bot';
+    }
     if (message.sender_id && user?.id === message.sender_id) {
       return 'You';
     }
@@ -73,6 +77,9 @@ export const ChatMessage = ({
   };
 
   const getAvatar = () => {
+    if (message.is_bot_message) {
+      return <Bot className="w-4 h-4" />;
+    }
     const name = getDisplayName();
     return name.charAt(0).toUpperCase();
   };
@@ -104,7 +111,11 @@ export const ChatMessage = ({
       onTouchEnd={() => setTimeout(() => setIsHovered(false), 2000)}
     >
       {/* Avatar */}
-      <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-transform duration-200 group-hover:scale-105">
+      <div className={`w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 transition-transform duration-200 group-hover:scale-105 ${
+        message.is_bot_message 
+          ? 'bg-primary/30 text-primary border-2 border-primary/50' 
+          : 'bg-primary/20'
+      }`}>
         {getAvatar()}
       </div>
 
@@ -112,13 +123,25 @@ export const ChatMessage = ({
       <div className={`max-w-[80%] md:max-w-[70%] ${isOwn ? 'items-end' : 'items-start'} flex flex-col relative`}>
         <div className={`
           px-3 py-2 md:px-4 md:py-2 rounded-lg relative group/bubble
-          ${isOwn ? 'chat-bubble-own rounded-br-sm' : 'chat-bubble-other rounded-bl-sm'}
+          ${message.is_bot_message 
+            ? 'bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 chat-bubble-bot' 
+            : isOwn 
+              ? 'chat-bubble-own rounded-br-sm' 
+              : 'chat-bubble-other rounded-bl-sm'
+          }
           ${isMentioned ? 'ring-1 ring-primary/30 bg-primary/5' : ''}
           neon-border transition-all duration-200 hover:shadow-lg
         `}>
           {/* Message meta */}
           <div className="flex items-center gap-2 mb-1 text-xs opacity-75">
-            <span className="font-medium">{getDisplayName()}</span>
+            <span className={`font-medium ${message.is_bot_message ? 'text-primary' : ''}`}>
+              {getDisplayName()}
+            </span>
+            {message.is_bot_message && (
+              <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded text-xs font-medium">
+                AI
+              </span>
+            )}
             <span>{formatTime(message.created_at)}</span>
           </div>
           

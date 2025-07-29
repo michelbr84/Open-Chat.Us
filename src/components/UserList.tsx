@@ -3,9 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/useAuth';
-import { Pencil, Check, X, Users, Crown, Shield, User } from 'lucide-react';
+import { Pencil, Check, X, Users, Crown, Shield, User, Bot, Circle } from 'lucide-react';
 import { sanitizeGuestName } from '@/utils/sanitization';
 import { useToast } from '@/hooks/use-toast';
+import { useBotIntegration } from '@/hooks/useBotIntegration';
 
 interface OnlineUser {
   name: string;
@@ -24,6 +25,7 @@ interface UserListProps {
 export const UserList = ({ users, guestName, onUserClick, onGuestNameChange, onMentionUser }: UserListProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { botStatus } = useBotIntegration();
   const [editingName, setEditingName] = useState(false);
   const [tempName, setTempName] = useState(guestName);
 
@@ -52,7 +54,10 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange, onM
     setEditingName(false);
   };
 
-  const getUserIcon = (userName: string, isMember: boolean, isCurrentUser: boolean) => {
+  const getUserIcon = (userName: string, isMember: boolean, isCurrentUser: boolean, isBot: boolean = false) => {
+    if (isBot) {
+      return <Bot className="w-3 h-3 text-primary" />;
+    }
     if (isMember) {
       return <Crown className="w-3 h-3 text-warning" />;
     }
@@ -62,7 +67,20 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange, onM
     return <User className="w-3 h-3 text-muted-foreground" />;
   };
 
-  const getUserBadge = (userName: string, isMember: boolean, isCurrentUser: boolean) => {
+  const getUserBadge = (userName: string, isMember: boolean, isCurrentUser: boolean, isBot: boolean = false) => {
+    if (isBot) {
+      return (
+        <div className="flex items-center gap-1">
+          <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-primary/10 text-primary border-primary/20">
+            AI Bot
+          </Badge>
+          <div 
+            className={`w-2 h-2 rounded-full ${botStatus.isOnline ? 'bg-green-500' : 'bg-red-500'}`} 
+            title={botStatus.isOnline ? 'Bot is online' : 'Bot is offline'}
+          />
+        </div>
+      );
+    }
     if (isMember) {
       return <Badge variant="secondary" className="text-xs px-1.5 py-0.5 bg-warning/10 text-warning border-warning/20">Premium</Badge>;
     }
@@ -78,7 +96,7 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange, onM
         <div className="flex items-center gap-2 mb-3">
           <Shield className="w-4 h-4 text-primary" />
           <h3 className="font-semibold text-sm">Online Users</h3>
-          <Badge variant="outline" className="text-xs">{users.length}</Badge>
+          <Badge variant="outline" className="text-xs">{users.length + 1}</Badge>
         </div>
         
         {/* Guest name editor with enhanced security */}
@@ -143,6 +161,44 @@ export const UserList = ({ users, guestName, onUserClick, onGuestNameChange, onM
       {/* Enhanced user list with security indicators */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-2 space-y-1">
+          {/* AI Bot user - always shown first */}
+          <div
+            className={`
+              flex items-center gap-2 p-2 rounded-md transition-colors cursor-pointer group
+              ${botStatus.isOnline 
+                ? 'hover:bg-accent/50 border border-primary/10' 
+                : 'opacity-60 cursor-not-allowed bg-muted/30'
+              }
+            `}
+            onClick={() => {
+              if (botStatus.isOnline) {
+                onMentionUser('bot');
+              } else {
+                toast({
+                  title: "Bot unavailable",
+                  description: "The AI bot is currently offline. Please try again later.",
+                  variant: "destructive",
+                });
+              }
+            }}
+            title={botStatus.isOnline ? "Click to mention the AI bot" : "Bot is currently offline"}
+          >
+            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+              {getUserIcon('bot', false, false, true)}
+              <span className="text-sm font-medium text-primary">
+                @bot
+              </span>
+              {!botStatus.isOnline && (
+                <span className="text-xs text-muted-foreground">(offline)</span>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-1">
+              {getUserBadge('bot', false, false, true)}
+            </div>
+          </div>
+
+          {/* Regular users */}
           {users.map(({ name, isMember, key }) => {
             const isCurrentUser = !user ? name === guestName : user?.user_metadata?.name === name || user?.email === name;
             

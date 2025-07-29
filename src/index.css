@@ -175,6 +175,28 @@
   color: hsl(var(--chat-message-other-foreground));
 }
 
+.chat-bubble-bot {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.05));
+  border: 1px solid hsl(var(--primary) / 0.2);
+  color: hsl(var(--foreground));
+  position: relative;
+  border-radius: 0.75rem;
+}
+
+.chat-bubble-bot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.05), transparent);
+  border-radius: 0.75rem;
+  pointer-events: none;
+}
+
+.theme-neon .chat-bubble-bot {
+  box-shadow: 0 0 10px hsl(var(--primary) / 0.3);
+  border-color: hsl(var(--primary) / 0.4);
+}
+
 .chat-header {
   background-color: hsl(var(--chat-header));
 }

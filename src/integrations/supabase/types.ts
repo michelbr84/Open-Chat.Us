@@ -1309,6 +1309,7 @@ export type Database = {
           deleted_at: string | null
           edited_at: string | null
           id: string
+          is_bot_message: boolean | null
           is_deleted: boolean
           mentions: Json | null
           parent_message_id: string | null
@@ -1325,6 +1326,7 @@ export type Database = {
           deleted_at?: string | null
           edited_at?: string | null
           id?: string
+          is_bot_message?: boolean | null
           is_deleted?: boolean
           mentions?: Json | null
           parent_message_id?: string | null
@@ -1341,6 +1343,7 @@ export type Database = {
           deleted_at?: string | null
           edited_at?: string | null
           id?: string
+          is_bot_message?: boolean | null
           is_deleted?: boolean
           mentions?: Json | null
           parent_message_id?: string | null

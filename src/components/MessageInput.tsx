@@ -403,11 +403,11 @@ export const MessageInput = ({
             onKeyDown={handleKeyDown}
             onClick={handleCursorChange}
             onKeyUp={handleCursorChange}
-            placeholder={placeholder}
+            placeholder={disabled ? placeholder : "Type a message... (Use @bot for AI help)"}
             disabled={disabled}
             className="chat-input pr-16 h-12 md:h-10 text-base md:text-sm"
             maxLength={MAX_MESSAGE_LENGTH}
-            aria-label="Type your message. Use @ to mention users"
+            aria-label="Type your message. Use @bot to chat with AI, @ to mention users"
             aria-describedby={isNearLimit ? "char-count" : undefined}
             autoComplete="off"
           />

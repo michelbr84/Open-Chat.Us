@@ -24,6 +24,7 @@ import { DonateModal } from '@/components/DonateModal';
 import { BookmarksPanel } from '@/components/BookmarksPanel';
 import { Users } from 'lucide-react';
 import { sendMentionNotifications } from '@/utils/mentionNotifications';
+import { useBotIntegration } from '@/hooks/useBotIntegration';
 
 interface Message {
   id: string;
@@ -36,6 +37,7 @@ interface Message {
   mentions?: any[] | null;
   reply_count?: number;
   parent_message_id?: string | null;
+  is_bot_message?: boolean;
 }
 
 interface OnlineUser {
@@ -53,6 +55,7 @@ const Index = () => {
   const { replyingTo, startReply, cancelReply, sendReply, loadThreadReplies, getThreadReplies } = useThreadedReplies();
   const { validateAndSanitizeMessage, logSecurityEvent } = useSecureMessageHandling();
   const { logSecurityEvent: logSecurity } = useSecurityMonitoring();
+  const { botStatus, sendMessageToBot, isBotMention } = useBotIntegration();
   
   // App state
   const [ageVerified, setAgeVerified] = useState(false);
@@ -327,6 +330,19 @@ const Index = () => {
       ? (user.user_metadata?.name || user.email)
       : guestName;
 
+    // Check if this message is intended for the bot
+    if (isBotMention(content, mentions)) {
+      console.log('🤖 Bot mention detected, sending to bot...');
+      
+      // Send to bot first, then continue with regular message flow
+      const botSuccess = await sendMessageToBot(content, senderName, mentions);
+      
+      if (!botSuccess) {
+        // If bot failed, still send the user's message to chat
+        console.log('Bot failed, continuing with user message...');
+      }
+    }
+
     try {
       console.log('📤 Sending message:', { content, senderName, sender_id: user?.id || null, mentions });
       const { data, error } = await supabase.from('messages').insert({
@@ -341,15 +357,18 @@ const Index = () => {
       } else {
         console.log('✅ Message sent successfully:', data);
         
-        // Send mention notifications if there are mentions
+        // Send mention notifications if there are mentions (but not for bot mentions)
         if (mentions && mentions.length > 0) {
-          sendMentionNotifications(
-            data.id,
-            content,
-            senderName,
-            user?.id || null,
-            mentions
-          ).catch(err => console.error('Failed to send mention notifications:', err));
+          const nonBotMentions = mentions.filter(m => m.username?.toLowerCase() !== 'bot');
+          if (nonBotMentions.length > 0) {
+            sendMentionNotifications(
+              data.id,
+              content,
+              senderName,
+              user?.id || null,
+              nonBotMentions
+            ).catch(err => console.error('Failed to send mention notifications:', err));
+          }
         }
       }
 
