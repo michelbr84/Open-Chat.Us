@@ -25,6 +25,7 @@ import {
 import { Link as RouterLink } from 'react-router-dom';
 import { MessageRenderer } from '@/components/MessageRenderer';
 import { useToast } from '@/hooks/use-toast';
+import { SiteNavigation } from '@/components/SiteNavigation';
 
 export default function Documentation() {
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
@@ -89,22 +90,16 @@ export default function Documentation() {
 
   return (
     <div className="min-h-screen bg-background">
+      <SiteNavigation />
+      
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-6">
-          <div className="flex items-center gap-4">
-            <RouterLink to="/">
-              <Button variant="ghost" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Chat
-              </Button>
-            </RouterLink>
-            <div className="flex items-center gap-3">
-              <Book className="w-8 h-8 text-primary" />
-              <div>
-                <h1 className="text-3xl font-bold">Open-Chat.Us Documentation</h1>
-                <p className="text-muted-foreground">Learn how to use all the advanced chat features</p>
-              </div>
+          <div className="flex items-center gap-3">
+            <Book className="w-8 h-8 text-primary" />
+            <div>
+              <h1 className="text-3xl font-bold">Documentation</h1>
+              <p className="text-muted-foreground">Learn how to use all the advanced chat features</p>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowLeft, MessageCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SiteNavigation } from '@/components/SiteNavigation';
 
 const ThankYou = () => {
   useEffect(() => {
@@ -30,11 +31,12 @@ const ThankYou = () => {
   }, []);
 
   return (
-    <div className="min-h-screen bg-chat-background p-4">
-      <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8 mt-16">
+    <div className="min-h-screen bg-background">
+      <SiteNavigation />
+      <div className="max-w-2xl mx-auto p-4">
+        <div className="text-center mb-8 pt-16">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 neon-glow">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">
             Thank You!
           </h1>
           <p className="text-lg text-muted-foreground">
@@ -42,7 +44,7 @@ const ThankYou = () => {
           </p>
         </div>
 
-        <Card className="neon-border neon-bg">
+        <Card>
           <CardHeader>
             <CardTitle className="text-center">Message Received</CardTitle>
           </CardHeader>
@@ -59,7 +61,7 @@ const ThankYou = () => {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button asChild variant="default">
-                <Link to="/" className="flex items-center gap-2">
+                <Link to="/chat" className="flex items-center gap-2">
                   <MessageCircle className="w-4 h-4" />
                   Join the Chat
                 </Link>
@@ -79,7 +81,7 @@ const ThankYou = () => {
                 Join our community chat for real-time support and discussions
               </p>
               <Button asChild variant="link" className="p-0">
-                <Link to="/">
+                <Link to="/chat">
                   Go to OpenChat →
                 </Link>
               </Button>

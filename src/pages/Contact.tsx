@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Mail, MessageCircle, Github, ExternalLink, CheckCircle, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { SiteNavigation } from '@/components/SiteNavigation';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -87,10 +88,11 @@ const Contact = () => {
   };
 
   return (
-    <div className="min-h-screen bg-chat-background p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4 neon-glow">Contact & Support</h1>
+    <div className="min-h-screen bg-background">
+      <SiteNavigation />
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="text-center mb-8 pt-8">
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">Contact & Support</h1>
           <p className="text-lg text-muted-foreground">
             Get in touch with the OpenChat team for support, feedback, or collaboration
           </p>
@@ -98,7 +100,7 @@ const Contact = () => {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Contact Form */}
-          <Card className="neon-border neon-bg">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="w-5 h-5" />
@@ -180,7 +182,7 @@ const Contact = () => {
 
           {/* Contact Information */}
           <div className="space-y-6">
-            <Card className="neon-border neon-bg">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <MessageCircle className="w-5 h-5" />
@@ -206,18 +208,18 @@ const Contact = () => {
                   <p className="text-sm text-muted-foreground mb-2">
                     Join the conversation and get help from the community
                   </p>
-                  <a 
-                    href="/" 
-                    className="text-primary hover:underline"
-                    aria-label="Join community chat"
-                  >
-                    Join the chat →
-                  </a>
+                   <a 
+                     href="/chat" 
+                     className="text-primary hover:underline"
+                     aria-label="Join community chat"
+                   >
+                     Join the chat →
+                   </a>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="neon-border neon-bg">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Github className="w-5 h-5" />
@@ -258,7 +260,7 @@ const Contact = () => {
               </CardContent>
             </Card>
 
-            <Card className="neon-border neon-bg">
+            <Card>
               <CardHeader>
                 <CardTitle>Response Time</CardTitle>
               </CardHeader>
@@ -280,7 +282,7 @@ const Contact = () => {
             </div>
             <div className="flex gap-4 text-sm">
               <a href="/" className="text-primary hover:underline">
-                Back to Chat
+                Back to Home
               </a>
               <a 
                 href="https://github.com/michelbr84/neon-chat-pulse/blob/main/LICENSE" 

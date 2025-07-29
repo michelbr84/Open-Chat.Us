@@ -4,19 +4,15 @@ import { Badge } from "@/components/ui/badge";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Github, Heart, Users, Shield, Code, Zap } from "lucide-react";
 import { Footer } from "@/components/Footer";
+import { SiteNavigation } from "@/components/SiteNavigation";
 
 const About = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SiteNavigation />
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           <div className="mb-8">
-            <Button asChild variant="ghost" className="mb-4">
-              <Link to="/">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Home
-              </Link>
-            </Button>
             <div className="text-center">
               <Badge variant="secondary" className="mb-4">
                 Open Source & Community Driven

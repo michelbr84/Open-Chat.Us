@@ -4,10 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Users, Shield, Zap, Heart, Github } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Footer } from "@/components/Footer";
+import { SiteNavigation } from "@/components/SiteNavigation";
 
 const Home = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SiteNavigation />
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto">
