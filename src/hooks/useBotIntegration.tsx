@@ -97,10 +97,12 @@ export const useBotIntegration = () => {
         // Bot returned an error but with a friendly message
         console.log('⚠️ Bot returned error with message:', data.error);
         if (data.botResponse) {
-          // Bot gave us a friendly error response, treat as success
+          // Bot gave us a friendly error response, show it to user but treat as success for UI
+          console.log('🔄 Displaying bot error message to user:', data.botResponse);
           return { success: true, botResponse: data.botResponse };
         } else {
-          // No friendly response, show error
+          // No friendly response, show error toast
+          console.log('❌ No bot response, showing error toast');
           toast({
             title: "Bot unavailable",
             description: data.error || "Bot is having issues right now.",

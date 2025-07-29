@@ -3,7 +3,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, user-agent, accept',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 serve(async (req) => {
@@ -12,9 +14,18 @@ serve(async (req) => {
   }
 
   try {
-    const { message, username, mentions } = await req.json();
+    const requestBody = await req.json();
+    console.log('Received request:', { 
+      url: req.url, 
+      origin: req.headers.get('origin'),
+      userAgent: req.headers.get('user-agent'),
+      body: requestBody 
+    });
+    
+    const { message, username, mentions } = requestBody;
 
     if (!message || !username) {
+      console.error('Missing required fields:', { message: !!message, username: !!username });
       return new Response(
         JSON.stringify({ error: 'Message and username are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -61,30 +72,49 @@ serve(async (req) => {
 
     console.log('Processing bot request:', { cleanMessage, username });
 
-    // Send to n8n webhook with better error handling
-    let n8nResponse;
-    let n8nData;
+    // Send to LLM endpoint with proper error handling and timeout
+    let llmResponse;
+    let llmData;
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
     
     try {
-      n8nResponse = await fetch('https://michelbr.app.n8n.cloud/webhook/8c9a5f1d-03df-46b1-89db-db79c4facba0/chat', {
+      console.log('Calling LLM endpoint with message:', cleanMessage);
+      
+      llmResponse = await fetch('https://salty-buses-repair.loca.lt/v1/chat/completions', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'User-Agent': 'OpenChat-Bot/1.0',
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
-          user: username,
-          text: cleanMessage,
-          timestamp: new Date().toISOString(),
-          platform: 'open-chat-us'
+          model: "gpt-3.5-turbo",
+          messages: [
+            {
+              role: "system",
+              content: "You are a helpful AI assistant in a chat room. Be friendly, concise, and helpful."
+            },
+            {
+              role: "user", 
+              content: cleanMessage
+            }
+          ],
+          max_tokens: 500,
+          temperature: 0.7,
+          user: username
         }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
-      console.log('n8n response status:', n8nResponse.status);
+      console.log('LLM response status:', llmResponse.status);
 
-      if (!n8nResponse.ok) {
-        const errorText = await n8nResponse.text();
-        console.error('n8n webhook error:', n8nResponse.status, n8nResponse.statusText, errorText);
+      if (!llmResponse.ok) {
+        const errorText = await llmResponse.text();
+        console.error('LLM endpoint error:', llmResponse.status, llmResponse.statusText, errorText);
         
         // Return a friendly error instead of throwing
         return new Response(
@@ -97,11 +127,11 @@ serve(async (req) => {
         );
       }
 
-      n8nData = await n8nResponse.json();
-      console.log('n8n response data:', n8nData);
+      llmData = await llmResponse.json();
+      console.log('LLM response data:', llmData);
       
     } catch (fetchError) {
-      console.error('Network error calling n8n:', fetchError);
+      console.error('Network error calling LLM endpoint:', fetchError);
       
       // Return a friendly error for network issues
       return new Response(
@@ -114,23 +144,24 @@ serve(async (req) => {
       );
     }
 
-    // Parse the AI response from n8n
+    // Parse the AI response from LLM endpoint (OpenAI format)
     let botResponse = '';
-    if (typeof n8nData === 'string') {
-      botResponse = n8nData;
-    } else if (n8nData.response) {
-      botResponse = n8nData.response;
-    } else if (n8nData.message) {
-      botResponse = n8nData.message;
-    } else if (n8nData.text) {
-      botResponse = n8nData.text;
-    } else if (n8nData.choices && n8nData.choices[0] && n8nData.choices[0].message) {
-      botResponse = n8nData.choices[0].message.content;
-    } else if (n8nData.content) {
+    if (typeof llmData === 'string') {
+      botResponse = llmData;
+    } else if (llmData.choices && llmData.choices[0] && llmData.choices[0].message) {
+      // Standard OpenAI format
+      botResponse = llmData.choices[0].message.content;
+    } else if (llmData.response) {
+      botResponse = llmData.response;
+    } else if (llmData.message) {
+      botResponse = llmData.message;
+    } else if (llmData.text) {
+      botResponse = llmData.text;
+    } else if (llmData.content) {
       // Handle cases where the response is wrapped in a content field
-      botResponse = n8nData.content;
+      botResponse = llmData.content;
     } else {
-      console.log('Unexpected n8n response format:', n8nData);
+      console.log('Unexpected LLM response format:', llmData);
       botResponse = "I received your message but couldn't process it properly. Please try again.";
     }
 
