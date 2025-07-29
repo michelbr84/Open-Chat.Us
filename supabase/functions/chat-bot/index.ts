@@ -44,29 +44,60 @@ serve(async (req) => {
 
     console.log('Processing bot request:', { cleanMessage, username });
 
-    // Send to n8n webhook
-    const n8nResponse = await fetch('https://michelbr.app.n8n.cloud/webhook/8c9a5f1d-03df-46b1-89db-db79c4facba0/chat', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        message: cleanMessage,
-        username: username,
-        timestamp: new Date().toISOString(),
-        platform: 'open-chat-us'
-      }),
-    });
+    // Send to n8n webhook with better error handling
+    let n8nResponse;
+    let n8nData;
+    
+    try {
+      n8nResponse = await fetch('https://michelbr.app.n8n.cloud/webhook/8c9a5f1d-03df-46b1-89db-db79c4facba0/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'OpenChat-Bot/1.0',
+        },
+        body: JSON.stringify({
+          user: username,
+          text: cleanMessage,
+          timestamp: new Date().toISOString(),
+          platform: 'open-chat-us'
+        }),
+      });
 
-    if (!n8nResponse.ok) {
-      console.error('n8n webhook error:', n8nResponse.status, n8nResponse.statusText);
-      throw new Error(`n8n webhook returned ${n8nResponse.status}`);
+      console.log('n8n response status:', n8nResponse.status);
+
+      if (!n8nResponse.ok) {
+        const errorText = await n8nResponse.text();
+        console.error('n8n webhook error:', n8nResponse.status, n8nResponse.statusText, errorText);
+        
+        // Return a friendly error instead of throwing
+        return new Response(
+          JSON.stringify({ 
+            success: false,
+            error: 'Bot is temporarily busy. Please try again in a moment.',
+            botResponse: "I'm having trouble processing your request right now. Please try again in a few moments!"
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      n8nData = await n8nResponse.json();
+      console.log('n8n response data:', n8nData);
+      
+    } catch (fetchError) {
+      console.error('Network error calling n8n:', fetchError);
+      
+      // Return a friendly error for network issues
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Bot is temporarily unavailable. Please try again later.',
+          botResponse: "I'm currently offline. Please try again later!"
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const n8nData = await n8nResponse.json();
-    console.log('n8n response:', n8nData);
-
-    // Get the AI response from n8n
+    // Parse the AI response from n8n
     let botResponse = '';
     if (typeof n8nData === 'string') {
       botResponse = n8nData;
@@ -76,8 +107,11 @@ serve(async (req) => {
       botResponse = n8nData.message;
     } else if (n8nData.text) {
       botResponse = n8nData.text;
+    } else if (n8nData.choices && n8nData.choices[0] && n8nData.choices[0].message) {
+      botResponse = n8nData.choices[0].message.content;
     } else {
-      botResponse = "I'm processing your request, but I didn't get a clear response. Please try again.";
+      console.log('Unexpected n8n response format:', n8nData);
+      botResponse = "I received your message but couldn't process it properly. Please try again.";
     }
 
     // Create Supabase client
@@ -117,13 +151,16 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in chat-bot function:', error);
     
+    // Return a friendly error with 200 status to prevent frontend errors
     return new Response(
       JSON.stringify({ 
-        error: 'Bot is temporarily unavailable',
+        success: false,
+        error: 'Bot is temporarily unavailable. Please try again later.',
+        botResponse: "I'm sorry, I'm having technical difficulties right now. Please try again later!",
         details: error.message
       }),
       { 
-        status: 500, 
+        status: 200, // Use 200 so frontend can handle the error gracefully
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );

@@ -334,12 +334,15 @@ const Index = () => {
     if (isBotMention(content, mentions)) {
       console.log('🤖 Bot mention detected, sending to bot...');
       
-      // Send to bot first, then continue with regular message flow
-      const botSuccess = await sendMessageToBot(content, senderName, mentions);
+      // Send to bot and handle the response
+      const botResponse = await sendMessageToBot(content, senderName, mentions);
       
-      if (!botSuccess) {
-        // If bot failed, still send the user's message to chat
-        console.log('Bot failed, continuing with user message...');
+      if (botResponse.success && botResponse.botResponse) {
+        // Bot responded successfully - the bot response should already be saved to DB by the edge function
+        console.log('✅ Bot responded successfully:', botResponse.botResponse);
+      } else {
+        // If bot failed, still continue with user message
+        console.log('🔴 Bot failed, continuing with user message...');
       }
     }
 

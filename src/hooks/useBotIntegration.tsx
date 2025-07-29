@@ -10,48 +10,45 @@ interface BotStatus {
 
 export const useBotIntegration = () => {
   const [botStatus, setBotStatus] = useState<BotStatus>({
-    isOnline: false,
+    isOnline: true, // Start optimistically online
     lastChecked: new Date(),
     responseTime: undefined
   });
   const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const { toast } = useToast();
 
-  // Check bot status by testing the edge function
+  // Check bot status with a simple test (don't create actual messages)
   const checkBotStatus = async (): Promise<boolean> => {
     setIsCheckingStatus(true);
     try {
       const startTime = Date.now();
       
-      // Make a simple health check to our edge function
-      const { data, error } = await supabase.functions.invoke('chat-bot', {
-        body: {
-          message: '@bot health check',
-          username: 'system',
-          mentions: [{ username: 'bot' }]
-        }
+      // Try to reach the n8n webhook directly for status check
+      const testResponse = await fetch('https://michelbr.app.n8n.cloud/webhook/8c9a5f1d-03df-46b1-89db-db79c4facba0/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'OpenChat-StatusCheck/1.0',
+        },
+        body: JSON.stringify({
+          user: 'status-check',
+          text: 'ping',
+          timestamp: new Date().toISOString(),
+          platform: 'open-chat-us'
+        }),
       });
 
       const responseTime = Date.now() - startTime;
-
-      if (error) {
-        console.error('Bot status check failed:', error);
-        setBotStatus(prev => ({
-          ...prev,
-          isOnline: false,
-          lastChecked: new Date(),
-          responseTime: undefined
-        }));
-        return false;
-      }
+      const isOnline = testResponse.ok || testResponse.status < 500;
 
       setBotStatus(prev => ({
         ...prev,
-        isOnline: true,
+        isOnline,
         lastChecked: new Date(),
-        responseTime
+        responseTime: isOnline ? responseTime : undefined
       }));
-      return true;
+      
+      return isOnline;
 
     } catch (error) {
       console.error('Bot status check error:', error);
@@ -67,7 +64,7 @@ export const useBotIntegration = () => {
     }
   };
 
-  // Send message to bot
+  // Send message to bot and return response data
   const sendMessageToBot = async (message: string, username: string, mentions: any[] = []) => {
     if (!botStatus.isOnline) {
       toast({
@@ -75,7 +72,7 @@ export const useBotIntegration = () => {
         description: "The AI bot is currently offline. Please try again later.",
         variant: "destructive",
       });
-      return false;
+      return { success: false, error: 'Bot offline' };
     }
 
     try {
@@ -99,11 +96,28 @@ export const useBotIntegration = () => {
         
         // Check if bot is still online
         checkBotStatus();
-        return false;
+        return { success: false, error: 'Edge function error' };
       }
 
       console.log('Bot response received:', data);
-      return true;
+      
+      // Handle different response formats
+      if (data?.success === false) {
+        // Bot returned an error but with a friendly message
+        toast({
+          title: "Bot response",
+          description: data.error || "Bot is having issues right now.",
+          variant: "default",
+        });
+        return { success: true, botResponse: data.botResponse || data.error };
+      }
+
+      // Successful response
+      return { 
+        success: true, 
+        botResponse: data?.botResponse || "I received your message!",
+        messageId: data?.messageId 
+      };
 
     } catch (error) {
       console.error('Failed to send message to bot:', error);
@@ -119,7 +133,7 @@ export const useBotIntegration = () => {
         isOnline: false,
         lastChecked: new Date()
       }));
-      return false;
+      return { success: false, error: 'Connection failed' };
     }
   };
 
@@ -133,13 +147,13 @@ export const useBotIntegration = () => {
     return startsWithBot || hasBotMention;
   };
 
-  // Check bot status periodically
+  // Check bot status periodically (less frequently to avoid spam)
   useEffect(() => {
     // Initial status check
     checkBotStatus();
 
-    // Check every 2 minutes
-    const interval = setInterval(checkBotStatus, 2 * 60 * 1000);
+    // Check every 5 minutes (reduced frequency)
+    const interval = setInterval(checkBotStatus, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
