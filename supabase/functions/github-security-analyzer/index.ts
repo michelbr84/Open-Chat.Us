@@ -55,7 +55,7 @@ serve(async (req) => {
     console.log(`Analyzing repository: ${owner}/${repo}`);
 
     // Get GitHub API token from secrets
-    const githubToken = Deno.env.get('GITHUB_CLIENT_SECRET'); // Using client secret as token for now
+    const githubToken = Deno.env.get('GITHUB_API_TOKEN');
     
     const headers: Record<string, string> = {
       'Accept': 'application/vnd.github.v3+json',
@@ -156,11 +156,14 @@ function checkSensitiveFiles(files: GitHubFile[]): SecurityCheck[] {
   const sensitivePatterns = [
     { pattern: /\.env$/, name: 'Environment Files', severity: 'critical' as const },
     { pattern: /\.env\./i, name: 'Environment Configuration', severity: 'critical' as const },
+    { pattern: /supabase\/\.env/i, name: 'Supabase Environment', severity: 'critical' as const },
     { pattern: /config\/secrets/i, name: 'Secret Configuration', severity: 'critical' as const },
     { pattern: /\.(key|pem|crt|p12|pfx)$/, name: 'Certificate/Key Files', severity: 'critical' as const },
     { pattern: /\.(sql|dump|bak)$/, name: 'Database Files', severity: 'high' as const },
     { pattern: /(password|secret|token|api_key)/i, name: 'Credential Files', severity: 'high' as const },
     { pattern: /id_rsa|id_dsa/, name: 'SSH Keys', severity: 'critical' as const },
+    { pattern: /firebase-adminsdk/i, name: 'Firebase Admin SDK', severity: 'critical' as const },
+    { pattern: /aws-credentials|\.aws/i, name: 'AWS Credentials', severity: 'critical' as const },
   ];
 
   const foundSensitive = files.filter(file => 

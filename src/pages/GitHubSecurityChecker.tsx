@@ -37,20 +37,16 @@ export const GitHubSecurityChecker = () => {
     setReport(null);
 
     try {
-      const response = await fetch('https://lbadeqrxsvhfuygxvyqf.supabase.co/functions/v1/github-security-analyzer', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxiYWRlcXJ4c3ZoZnV5Z3h2eXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5MzA2MjAsImV4cCI6MjA2MTUwNjYyMH0.ShQ5USLX9Bl3OFtiOVboTpCcDMaP_dXLI8y53Z3Pnks`
-        },
-        body: JSON.stringify({ repoUrl }),
+      const { supabase } = await import("@/integrations/supabase/client");
+      
+      const { data, error } = await supabase.functions.invoke('github-security-analyzer', {
+        body: { repoUrl }
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to analyze repository');
+      if (error) {
+        throw new Error(error.message || 'Failed to analyze repository');
       }
 
-      const data = await response.json();
       setReport(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
