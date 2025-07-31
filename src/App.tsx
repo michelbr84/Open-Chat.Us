@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import { AdminDashboard } from "./pages/AdminDashboard";
 import { Achievements } from "./pages/Achievements";
 import { Leaderboard } from "./pages/Leaderboard";
+import { GitHubSecurityChecker } from "./pages/GitHubSecurityChecker";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="/achievements" element={<Achievements />} />
               <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/security-checker" element={<GitHubSecurityChecker />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>

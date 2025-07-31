@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Home, FileText, Mail, MessageCircle } from 'lucide-react';
+import { Home, FileText, Mail, MessageCircle, Shield } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
@@ -15,6 +15,7 @@ export const SiteNavigation: React.FC<SiteNavigationProps> = ({ variant = 'heade
   const navItems = [
     { path: '/', label: 'Home', icon: Home },
     { path: '/chat', label: 'Chat', icon: MessageCircle },
+    { path: '/security-checker', label: 'Security Checker', icon: Shield },
     { path: '/docs', label: 'Documentation', icon: FileText },
     { path: '/contact', label: 'Contact', icon: Mail },
   ];
