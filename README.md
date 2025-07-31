@@ -1,7 +1,7 @@
 # OpenChat
 
 <p align="center">
-  <img src="https://github.com/michelbr84/neon-chat-pulse/blob/main/openchat.png" alt="OpenChat Banner" width="600"/>
+  <img src="https://github.com/michelbr84/Open-Chat.Us/blob/main/openchat.png" alt="OpenChat Banner" width="600"/>
 </p>
 
 **OpenChat** is a modern, open-source real-time community chat platform designed for seamless public and private conversations. Built with security, privacy, and user experience in mind, it features advanced moderation tools, AI bot integration, and full crypto donation support.
@@ -69,7 +69,7 @@
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/michelbr84/neon-chat-pulse.git
+git clone https://github.com/michelbr84/Open-Chat.Us.git
 cd openchat
 ```
 
@@ -341,7 +341,7 @@ This project is [MIT Licensed](LICENSE) - feel free to use it for personal or co
 - [DOMPurify](https://github.com/cure53/DOMPurify) - XSS sanitization
 - [Lucide React](https://lucide.dev/) - Beautiful icons
 - [date-fns](https://date-fns.org/) - Date utility library
-- [All Open Source Contributors](https://github.com/michelbr84/neon-chat-pulse/graphs/contributors)
+- [All Open Source Contributors](https://github.com/michelbr84/Open-Chat.Us/graphs/contributors)
 
 ---
 
@@ -364,7 +364,7 @@ This project is [MIT Licensed](LICENSE) - feel free to use it for personal or co
 
 ## 📞 Support & Contact
 
-- **GitHub Issues:** [Report bugs or request features](https://github.com/michelbr84/neon-chat-pulse/issues)
+- **GitHub Issues:** [Report bugs or request features](https://github.com/michelbr84/Open-Chat.Us/issues)
 - **Security Reports:** security@open-chat.us
 - **General Contact:** contact@open-chat.us
 - **Live Demo:** [https://open-chat.us](https://open-chat.us)
