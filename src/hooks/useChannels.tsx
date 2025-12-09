@@ -7,21 +7,18 @@ interface Channel {
   id: string;
   name: string;
   description?: string;
-  type: 'public' | 'private' | 'dm';
-  creator_id?: string;
-  member_limit?: number;
-  is_active: boolean;
+  type: string;
+  created_by?: string;
+  status?: string;
   created_at: string;
-  updated_at: string;
 }
 
 interface ChannelMember {
   id: string;
   channel_id: string;
   user_id: string;
-  role: 'admin' | 'moderator' | 'member';
+  role: string;
   joined_at: string;
-  last_read_at: string;
 }
 
 export const useChannels = () => {
@@ -33,43 +30,23 @@ export const useChannels = () => {
 
   // Fetch user's channels
   useEffect(() => {
-    if (!user) return;
-
     const fetchChannels = async () => {
       try {
-        // First, get channels the user is a member of
-        const { data: membershipData, error: membershipError } = await supabase
-          .from('channel_members')
-          .select(`
-            channel_id,
-            role,
-            chat_channels (*)
-          `)
-          .eq('user_id', user.id);
-
-        if (membershipError) throw membershipError;
-
-        // Also get public channels
+        // Get public channels
         const { data: publicChannels, error: publicError } = await supabase
-          .from('chat_channels')
+          .from('channels')
           .select('*')
           .eq('type', 'public')
-          .eq('is_active', true);
+          .eq('status', 'active');
 
         if (publicError) throw publicError;
 
-        // Combine and deduplicate channels
-        const memberChannels = membershipData?.map(m => m.chat_channels).filter(Boolean) || [];
-        const allChannels = [...memberChannels, ...publicChannels];
-        const uniqueChannels = allChannels.filter((channel, index, self) => 
-          index === self.findIndex(c => c.id === channel.id)
-        ) as Channel[];
-
-        setChannels(uniqueChannels);
+        const allChannels = (publicChannels || []) as Channel[];
+        setChannels(allChannels);
 
         // Set default channel (General) if no current channel
-        if (!currentChannel && uniqueChannels.length > 0) {
-          const generalChannel = uniqueChannels.find(c => c.name === 'General') || uniqueChannels[0];
+        if (!currentChannel && allChannels.length > 0) {
+          const generalChannel = allChannels.find(c => c.name === 'General') || allChannels[0];
           setCurrentChannel(generalChannel);
         }
 
@@ -81,7 +58,7 @@ export const useChannels = () => {
     };
 
     fetchChannels();
-  }, [user]);
+  }, []);
 
   // Fetch channel members when current channel changes
   useEffect(() => {
@@ -114,12 +91,12 @@ export const useChannels = () => {
 
     try {
       const { data: channel, error: channelError } = await supabase
-        .from('chat_channels')
+        .from('channels')
         .insert({
           name: name.trim(),
           description: description?.trim(),
           type,
-          creator_id: user.id,
+          created_by: user.id,
         })
         .select()
         .single();
@@ -246,7 +223,7 @@ export const useChannels = () => {
     currentChannel,
     channelMembers,
     isLoading,
-    setCurrentChannel,
+    setCurrentChannel: (channel: Channel | null) => setCurrentChannel(channel),
     createChannel,
     joinChannel,
     leaveChannel,

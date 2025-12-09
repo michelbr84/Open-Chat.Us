@@ -14,7 +14,7 @@ interface BookmarkedMessage {
     sender_id: string;
     created_at: string;
     mentions?: any[];
-  };
+  } | null;
 }
 
 export const useMessageBookmarks = () => {
@@ -24,171 +24,91 @@ export const useMessageBookmarks = () => {
   const [bookmarkedMessageIds, setBookmarkedMessageIds] = useState<Set<string>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
 
-  // Load user's bookmarks
   useEffect(() => {
     if (!user) {
       setBookmarks([]);
       setBookmarkedMessageIds(new Set());
       return;
     }
-
     loadBookmarks();
   }, [user]);
 
   const loadBookmarks = async () => {
     if (!user) return;
-
     setIsLoading(true);
     try {
       const { data, error } = await supabase
-        .from('message_bookmarks')
-        .select(`
-          id,
-          message_id,
-          created_at,
-          message:messages!message_bookmarks_message_id_fkey (
-            id,
-            content,
-            sender_name,
-            sender_id,
-            created_at,
-            mentions
-          )
-        `)
+        .from('bookmarks')
+        .select('id, message_id, created_at')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const bookmarksData = data as BookmarkedMessage[];
+      // Get message details separately
+      const messageIds = (data || []).map((b: any) => b.message_id);
+      let messages: any[] = [];
+      if (messageIds.length > 0) {
+        const { data: msgData } = await supabase
+          .from('messages')
+          .select('*')
+          .in('id', messageIds);
+        messages = msgData || [];
+      }
+
+      const bookmarksData = (data || []).map((b: any) => ({
+        ...b,
+        message: messages.find((m: any) => m.id === b.message_id) || null
+      }));
+
       setBookmarks(bookmarksData);
-      
-      // Create a set of bookmarked message IDs for quick lookup
-      const messageIds = new Set(bookmarksData.map(b => b.message_id));
-      setBookmarkedMessageIds(messageIds);
+      setBookmarkedMessageIds(new Set(bookmarksData.map((b: any) => b.message_id)));
     } catch (error: any) {
       console.error('Error loading bookmarks:', error);
-      toast({
-        title: "Failed to load bookmarks",
-        description: error.message,
-        variant: "destructive",
-      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Add bookmark
   const addBookmark = async (messageId: string) => {
     if (!user) {
-      toast({
-        title: "Login required",
-        description: "Please log in to bookmark messages.",
-        variant: "destructive",
-      });
+      toast({ title: "Login required", description: "Please log in to bookmark messages.", variant: "destructive" });
       return false;
     }
-
-    if (bookmarkedMessageIds.has(messageId)) {
-      return true; // Already bookmarked
-    }
+    if (bookmarkedMessageIds.has(messageId)) return true;
 
     try {
-      const { error } = await supabase
-        .from('message_bookmarks')
-        .insert({
-          user_id: user.id,
-          message_id: messageId,
-        });
-
+      const { error } = await supabase.from('bookmarks').insert({ user_id: user.id, message_id: messageId });
       if (error) throw error;
-
-      // Update local state
       setBookmarkedMessageIds(prev => new Set(prev).add(messageId));
-      
-      toast({
-        title: "Message bookmarked",
-        description: "Message saved to your bookmarks.",
-      });
-
-      // Reload bookmarks to get the full message data
+      toast({ title: "Message bookmarked" });
       loadBookmarks();
       return true;
     } catch (error: any) {
       console.error('Error adding bookmark:', error);
-      toast({
-        title: "Failed to bookmark message",
-        description: error.message,
-        variant: "destructive",
-      });
       return false;
     }
   };
 
-  // Remove bookmark
   const removeBookmark = async (messageId: string) => {
     if (!user) return false;
-
     try {
-      const { error } = await supabase
-        .from('message_bookmarks')
-        .delete()
-        .eq('user_id', user.id)
-        .eq('message_id', messageId);
-
+      const { error } = await supabase.from('bookmarks').delete().eq('user_id', user.id).eq('message_id', messageId);
       if (error) throw error;
-
-      // Update local state
-      setBookmarkedMessageIds(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(messageId);
-        return newSet;
-      });
-
+      setBookmarkedMessageIds(prev => { const s = new Set(prev); s.delete(messageId); return s; });
       setBookmarks(prev => prev.filter(b => b.message_id !== messageId));
-
-      toast({
-        title: "Bookmark removed",
-        description: "Message removed from your bookmarks.",
-      });
-
+      toast({ title: "Bookmark removed" });
       return true;
     } catch (error: any) {
-      console.error('Error removing bookmark:', error);
-      toast({
-        title: "Failed to remove bookmark",
-        description: error.message,
-        variant: "destructive",
-      });
       return false;
     }
   };
 
-  // Toggle bookmark
   const toggleBookmark = async (messageId: string) => {
-    if (bookmarkedMessageIds.has(messageId)) {
-      return await removeBookmark(messageId);
-    } else {
-      return await addBookmark(messageId);
-    }
+    return bookmarkedMessageIds.has(messageId) ? await removeBookmark(messageId) : await addBookmark(messageId);
   };
 
-  // Check if message is bookmarked
-  const isBookmarked = (messageId: string) => {
-    return bookmarkedMessageIds.has(messageId);
-  };
+  const isBookmarked = (messageId: string) => bookmarkedMessageIds.has(messageId);
 
-  // Get bookmark count for statistics
-  const bookmarkCount = bookmarks.length;
-
-  return {
-    bookmarks,
-    isLoading,
-    addBookmark,
-    removeBookmark,
-    toggleBookmark,
-    isBookmarked,
-    bookmarkCount,
-    loadBookmarks,
-  };
+  return { bookmarks, isLoading, addBookmark, removeBookmark, toggleBookmark, isBookmarked, bookmarkCount: bookmarks.length, loadBookmarks };
 };

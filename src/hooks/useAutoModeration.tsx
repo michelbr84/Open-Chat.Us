@@ -7,7 +7,7 @@ interface ContentFilter {
   filter_type: string;
   pattern: string;
   is_regex: boolean;
-  severity: number;
+  severity: string;
   is_active: boolean;
 }
 
@@ -67,7 +67,8 @@ export const useAutoModeration = () => {
 
       if (match) {
         violations.push(`Profanity: ${filter.pattern}`);
-        score += filter.severity * 20; // Severity 1=20, 2=40, 3=60
+        const severityNum = parseInt(filter.severity) || 1;
+        score += severityNum * 20; // Severity 1=20, 2=40, 3=60
       }
     }
 
@@ -126,7 +127,8 @@ export const useAutoModeration = () => {
 
       if (match) {
         violations.push(`Spam pattern: ${filter.pattern}`);
-        score += filter.severity * 15;
+        const severityNum = parseInt(filter.severity) || 1;
+        score += severityNum * 15;
       }
     }
 
@@ -156,7 +158,8 @@ export const useAutoModeration = () => {
 
       if (match) {
         violations.push(`Keyword: ${filter.pattern}`);
-        score += filter.severity * 10;
+        const severityNum = parseInt(filter.severity) || 1;
+        score += severityNum * 10;
       }
     }
 
@@ -166,31 +169,22 @@ export const useAutoModeration = () => {
   // Enhanced rate limiting check
   const checkRateLimit = useCallback(async (userId: string | null, messageLength: number): Promise<boolean> => {
     try {
-      const userIdentifier = userId || 'anonymous';
-      const timePeriod = 60; // 1 minute
+      if (!userId) return true; // Allow anonymous users (simple check)
       
-      // Different limits for different user types
-      const baseLimit = userId ? 20 : 10; // Authenticated users get higher limits
-      const lengthMultiplier = messageLength > 200 ? 0.5 : 1; // Longer messages get stricter limits
-      const adjustedLimit = Math.floor(baseLimit * lengthMultiplier);
-
       const { data, error } = await supabase.rpc('enhanced_rate_limit_check', {
-        user_identifier: userIdentifier,
-        action_type: 'message_post',
-        max_actions: adjustedLimit,
-        time_window_minutes: 1,
-        strict_mode: !userId // Stricter for anonymous users
+        p_user_id: userId,
+        p_action_type: 'message'
       });
 
       if (error) {
         console.error('Rate limit check failed:', error);
-        return false; // Fail safe - deny if we can't check
+        return true; // Fail open - allow if we can't check
       }
 
-      return data;
+      return data as boolean;
     } catch (error) {
       console.error('Rate limit error:', error);
-      return false;
+      return true;
     }
   }, []);
 
@@ -253,11 +247,10 @@ export const useAutoModeration = () => {
       // Auto-flag content if needed
       if (flagged && messageId) {
         await supabase.from('flagged_content').insert({
-          content_type: 'message',
-          content_id: messageId,
-          flag_reason: allViolations.join('; '),
+          message_id: messageId,
+          reason: allViolations.join('; '),
           auto_flagged: true,
-          confidence_score: Math.min(totalScore / 100, 1.0)
+          review_status: 'pending'
         });
       }
 
@@ -289,7 +282,7 @@ export const useAutoModeration = () => {
     filterType: string,
     pattern: string,
     isRegex: boolean = false,
-    severity: number = 1
+    severity: string = 'warning'
   ) => {
     try {
       const { error } = await supabase.from('content_filters').insert({
