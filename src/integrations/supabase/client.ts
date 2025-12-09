@@ -2,8 +2,8 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://lbadeqrxsvhfuygxvyqf.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxiYWRlcXJ4c3ZoZnV5Z3h2eXFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU5MzA2MjAsImV4cCI6MjA2MTUwNjYyMH0.ShQ5USLX9Bl3OFtiOVboTpCcDMaP_dXLI8y53Z3Pnks";
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 // NOTE: These are public-safe credentials for Supabase
 // The anon key is safe to expose as it only allows authorized operations through RLS policies
