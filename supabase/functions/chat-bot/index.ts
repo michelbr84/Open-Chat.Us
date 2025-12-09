@@ -8,17 +8,49 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
+// Rate limiting: Track requests per user/IP
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 20; // Max requests per window
+const RATE_WINDOW = 60 * 1000; // 1 minute in milliseconds
+
+function isRateLimited(identifier: string): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(identifier);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(identifier, { count: 1, resetTime: now + RATE_WINDOW });
+    return false;
+  }
+  
+  if (record.count >= RATE_LIMIT) {
+    return true;
+  }
+  
+  record.count++;
+  return false;
+}
+
+// Sanitize input to prevent injection
+function sanitizeInput(input: string, maxLength: number): string {
+  if (typeof input !== 'string') return '';
+  return input.trim().slice(0, maxLength);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
+    // Get client identifier for rate limiting
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
+
     const requestBody = await req.json();
     console.log('Received request:', { 
       url: req.url, 
       origin: req.headers.get('origin'),
-      userAgent: req.headers.get('user-agent'),
       body: requestBody 
     });
     
@@ -32,9 +64,30 @@ serve(async (req) => {
       );
     }
 
+    // Sanitize inputs
+    const sanitizedUsername = sanitizeInput(username, 50);
+    const sanitizedMessage = sanitizeInput(message, 1000);
+
+    // Rate limit check (use username + IP as identifier)
+    const rateLimitKey = `${sanitizedUsername}:${clientIP}`;
+    
+    // Skip rate limit for health checks
+    const isHealthCheck = sanitizedUsername === 'status-check' && sanitizedMessage === 'ping';
+    
+    if (!isHealthCheck && isRateLimited(rateLimitKey)) {
+      console.log(`Rate limit exceeded for: ${rateLimitKey}`);
+      return new Response(
+        JSON.stringify({ 
+          success: false,
+          error: 'Too many requests. Please slow down.',
+          botResponse: "You're sending messages too quickly. Please wait a moment before trying again."
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if this is a health check or bot mention
-    const isHealthCheck = username === 'status-check' && message === 'ping';
-    const isBotMention = message.toLowerCase().startsWith('@bot') || 
+    const isBotMention = sanitizedMessage.toLowerCase().startsWith('@bot') || 
                         mentions?.some((m: any) => m.username?.toLowerCase() === 'bot');
 
     if (!isHealthCheck && !isBotMention) {
@@ -57,7 +110,7 @@ serve(async (req) => {
     }
 
     // Extract the actual message content (remove @bot mention)
-    const cleanMessage = message.replace(/^@bot\s*/i, '').trim();
+    const cleanMessage = sanitizedMessage.replace(/^@bot\s*/i, '').trim();
 
     if (!cleanMessage) {
       return new Response(
@@ -70,9 +123,9 @@ serve(async (req) => {
       );
     }
 
-    console.log('Processing bot request:', { cleanMessage, username });
+    console.log('Processing bot request:', { cleanMessage, username: sanitizedUsername });
 
-    // Send to n8n webhook (MAIN CHAT ENDPOINT) with proper error handling and timeout
+    // Send to n8n webhook with proper error handling and timeout
     let webhookResponse;
     let webhookData;
     
@@ -91,9 +144,9 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           message: cleanMessage,
-          username: username,
+          username: sanitizedUsername,
           mentions: mentions,
-          isBot: true // Flag to indicate this is a bot mention request
+          isBot: true
         }),
         signal: controller.signal
       });
@@ -106,7 +159,6 @@ serve(async (req) => {
         const errorText = await webhookResponse.text();
         console.error('n8n webhook error:', webhookResponse.status, webhookResponse.statusText, errorText);
         
-        // Return a friendly error instead of throwing
         return new Response(
           JSON.stringify({ 
             success: false,
@@ -123,7 +175,6 @@ serve(async (req) => {
     } catch (fetchError) {
       console.error('Network error calling n8n webhook:', fetchError);
       
-      // Return a friendly error for network issues
       return new Response(
         JSON.stringify({ 
           success: false,
@@ -151,22 +202,20 @@ serve(async (req) => {
       botResponse = "I received your message but couldn't process it properly. Please try again.";
     }
 
-    // If botResponse is still an object (like JSON), try to extract content
+    // If botResponse is still an object, try to extract content
     if (typeof botResponse === 'object' && botResponse !== null) {
       if (botResponse.content) {
         botResponse = botResponse.content;
       } else if (botResponse.message) {
         botResponse = botResponse.message;
       } else {
-        // If it's still an object, stringify it as fallback
         botResponse = JSON.stringify(botResponse);
       }
     }
 
     console.log('Final bot response from n8n:', botResponse);
 
-    // CRITICAL: Save bot response to Supabase database for real-time display to all users
-    // This ensures bot messages appear in real-time for everyone, not just the sender
+    // Save bot response to Supabase database
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabaseClient = createClient(supabaseUrl, supabaseKey);
@@ -187,7 +236,6 @@ serve(async (req) => {
     if (insertError) {
       console.error('Error inserting bot message to database:', insertError);
       
-      // Return error but don't fail completely - user still gets the response
       return new Response(
         JSON.stringify({ 
           success: false,
@@ -205,7 +253,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         botResponse: botResponse,
-        messageId: messageData.id, // Use the actual database message ID
+        messageId: messageData.id,
         savedToDatabase: true
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -214,7 +262,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in chat-bot function:', error);
     
-    // Return a friendly error with 200 status to prevent frontend errors
     return new Response(
       JSON.stringify({ 
         success: false,
@@ -223,7 +270,7 @@ serve(async (req) => {
         details: error.message
       }),
       { 
-        status: 200, // Use 200 so frontend can handle the error gracefully
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );

@@ -13,6 +13,46 @@ interface ContactFormData {
   message: string;
 }
 
+// Rate limiting: Track submissions per IP (in-memory, resets on function restart)
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 5; // Max submissions per window
+const RATE_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const record = rateLimitMap.get(ip);
+  
+  if (!record || now > record.resetTime) {
+    rateLimitMap.set(ip, { count: 1, resetTime: now + RATE_WINDOW });
+    return false;
+  }
+  
+  if (record.count >= RATE_LIMIT) {
+    return true;
+  }
+  
+  record.count++;
+  return false;
+}
+
+// Sanitize input to prevent XSS and HTML injection
+function sanitizeInput(input: string, maxLength: number): string {
+  return input
+    .trim()
+    .slice(0, maxLength)
+    .replace(/<[^>]*>/g, '') // Remove HTML tags
+    .replace(/[<>\"'&]/g, (char) => {
+      const entities: Record<string, string> = {
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#x27;',
+        '&': '&amp;'
+      };
+      return entities[char] || char;
+    });
+}
+
 const handler = async (req: Request): Promise<Response> => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -27,6 +67,20 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Get client IP for rate limiting
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
+                     req.headers.get('cf-connecting-ip') || 
+                     'unknown';
+
+    // Check rate limit
+    if (isRateLimited(clientIP)) {
+      console.log(`Rate limit exceeded for IP: ${clientIP}`);
+      return new Response(
+        JSON.stringify({ error: 'Too many submissions. Please try again later.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { name, email, message }: ContactFormData = await req.json();
 
     // Validate required fields
@@ -37,9 +91,22 @@ const handler = async (req: Request): Promise<Response> => {
       );
     }
 
+    // Sanitize and limit input lengths
+    const sanitizedName = sanitizeInput(name, 100);
+    const sanitizedEmail = email.trim().slice(0, 255).toLowerCase();
+    const sanitizedMessage = sanitizeInput(message, 2000);
+
+    // Validate that sanitized inputs are not empty
+    if (!sanitizedName || !sanitizedMessage) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input: name and message cannot be empty or contain only HTML' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
+    if (!emailRegex.test(sanitizedEmail)) {
       return new Response(
         JSON.stringify({ error: 'Invalid email format' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -52,23 +119,22 @@ const handler = async (req: Request): Promise<Response> => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Store the contact form submission
+    // Store the contact form submission with sanitized data
     const { error: insertError } = await supabase
       .from('contact_submissions')
       .insert({
-        name: name.trim(),
-        email: email.trim(),
-        message: message.trim(),
+        name: sanitizedName,
+        email: sanitizedEmail,
+        message: sanitizedMessage,
         submitted_at: new Date().toISOString()
       });
 
     if (insertError) {
       console.error('Database error:', insertError);
       // Continue with success response even if DB insert fails
-      // This ensures form submission always appears successful to users
     }
 
-    console.log(`Contact form submission received from ${name} (${email})`);
+    console.log(`Contact form submission received from ${sanitizedName} (${sanitizedEmail})`);
 
     return new Response(
       JSON.stringify({ 
