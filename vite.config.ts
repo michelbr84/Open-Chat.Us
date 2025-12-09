@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => ({
         target: 'https://jbdnwdfvatnycvjifrcn.supabase.co',
         changeOrigin: true,
         secure: false,
+        ws: true,
         rewrite: (path) => path.replace(/^\/api/, ''),
       },
       '/functions/v1': {
