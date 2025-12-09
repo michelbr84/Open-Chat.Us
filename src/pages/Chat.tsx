@@ -56,33 +56,33 @@ const Index = () => {
   const { validateAndSanitizeMessage, logSecurityEvent } = useSecureMessageHandling();
   const { logSecurityEvent: logSecurity } = useSecurityMonitoring();
   const { botStatus, sendMessageToBot, isBotMention } = useBotIntegration();
-  
+
   // App state
   const [ageVerified, setAgeVerified] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [showDonate, setShowDonate] = useState(false);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   const [showBookmarks, setShowBookmarks] = useState(false);
-  
+
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Message[]>([]);
-  
+
   // User state
   const [guestName, setGuestName] = useState('');
   const [userList, setUserList] = useState<OnlineUser[]>([]);
-  
+
   // Private chat state
-  const [activePrivateChat, setActivePrivateChat] = useState<{id: string; name: string} | null>(null);
-  
+  const [activePrivateChat, setActivePrivateChat] = useState<{ id: string; name: string } | null>(null);
+
   // Mention state
   const [mentionToAdd, setMentionToAdd] = useState<string>('');
   const [shouldClearMention, setShouldClearMention] = useState(false);
-  
+
   // Thread state
   const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
-  
+
   // Refs and throttling
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const presenceChannelRef = useRef<any>(null);
@@ -103,7 +103,7 @@ const Index = () => {
       const secureGuestName = getOrCreateGuestName();
       setGuestName(secureGuestName);
     }
-    
+
     // Clear guest data when user logs in
     if (user && guestName) {
       clearGuestData();
@@ -173,7 +173,7 @@ const Index = () => {
         { event: 'UPDATE', schema: 'public', table: 'messages' },
         (payload) => {
           console.log('✏️ Message updated via realtime:', payload.new);
-          setMessages((prev) => 
+          setMessages((prev) =>
             prev.map((msg) => {
               if (msg.id === payload.new.id) {
                 // Transform the payload to ensure mentions is properly typed
@@ -225,13 +225,13 @@ const Index = () => {
     const setupPresence = () => {
       const currentUser = user;
       const currentGuestName = guestName;
-      
+
       if (!currentUser && !currentGuestName) return;
 
-      const name = currentUser 
+      const name = currentUser
         ? (currentUser.user_metadata?.name || currentUser.email)
         : currentGuestName;
-      
+
       const key = currentUser ? currentUser.id : `${currentGuestName}_${Date.now()}`;
       const isMember = !!currentUser;
 
@@ -243,7 +243,7 @@ const Index = () => {
         .on('presence', { event: 'sync' }, () => {
           const state = channel.presenceState();
           const online: OnlineUser[] = [];
-          
+
           for (const presenceKey in state) {
             state[presenceKey].forEach((entry: any) => {
               online.push({
@@ -253,7 +253,7 @@ const Index = () => {
               });
             });
           }
-          
+
           setUserList(online);
         })
         .subscribe((status) => {
@@ -285,7 +285,7 @@ const Index = () => {
   // Handle search
   useEffect(() => {
     if (!ageVerified) return;
-    
+
     if (!searchQuery) {
       setSearchResults([]);
       return;
@@ -326,7 +326,7 @@ const Index = () => {
     }
     lastMessageTimeRef.current = now;
 
-    const senderName = user 
+    const senderName = user
       ? (user.user_metadata?.name || user.email)
       : guestName;
 
@@ -334,16 +334,16 @@ const Index = () => {
     // Check if this message is intended for the bot
     if (isBotMention(content, mentions)) {
       console.log('🤖 Bot mention detected, sending to bot...');
-      
+
       // Show loading toast
       toast({
         title: "Sending message to AI...",
         description: "The bot is processing your request.",
       });
-      
+
       // Send to bot and handle the response
       const botResponse = await sendMessageToBot(content, senderName, mentions);
-      
+
       if (botResponse.success && botResponse.botResponse) {
         // Bot responded successfully - verify if it was saved to database
         console.log('✅ Bot responded successfully:', {
@@ -351,7 +351,7 @@ const Index = () => {
           messageId: botResponse.messageId,
           savedToDatabase: botResponse.savedToDatabase
         });
-        
+
         if (botResponse.savedToDatabase) {
           toast({
             title: "AI response received!",
@@ -366,7 +366,7 @@ const Index = () => {
             variant: "destructive",
           });
         }
-        
+
         // Don't send the user's @bot message to the database - only the bot response should appear
         return;
       } else {
@@ -394,7 +394,21 @@ const Index = () => {
         console.error('❌ Error sending message:', error);
       } else {
         console.log('✅ Message sent successfully:', data);
-        
+
+        // Optimistic update: Add message to UI immediately
+        // The real-time subscription handles deduplication via ID check
+        setMessages((prev) => {
+          const messageExists = prev.some(msg => msg.id === data.id);
+          if (messageExists) return prev;
+
+          const newMessage = {
+            ...data,
+            mentions: Array.isArray(data.mentions) ? data.mentions : []
+          } as Message;
+
+          return [...prev, newMessage]; // Add to end (Oldest -> Newest)
+        });
+
         // Send mention notifications if there are mentions (but not for bot mentions)
         if (mentions && mentions.length > 0) {
           const nonBotMentions = mentions.filter(m => m.username?.toLowerCase() !== 'bot');
@@ -453,14 +467,14 @@ const Index = () => {
     // Keeping for backward compatibility but redirecting to mention
     handleMentionUser(name);
   };
-  
+
   // Handle user mention
   const handleMentionUser = (username: string) => {
     setMentionToAdd(username);
     setShouldClearMention(true);
     setShowMobileSidebar(false); // Close mobile sidebar
   };
-  
+
   // Handle mention added
   const handleMentionAdded = () => {
     if (shouldClearMention) {
@@ -491,7 +505,7 @@ const Index = () => {
 
     // Use enhanced sanitization
     const validation = sanitizeGuestName(newName);
-    
+
     if (!validation.valid) {
       toast({
         title: "Invalid name",
@@ -503,16 +517,16 @@ const Index = () => {
 
     try {
       // Log security event
-      logSecurityEvent('guest_name_change', { 
-        oldName: guestName, 
+      logSecurityEvent('guest_name_change', {
+        oldName: guestName,
         newName: validation.sanitized,
         timestamp: new Date().toISOString()
       });
 
       await presenceChannelRef.current.untrack();
-      await presenceChannelRef.current.track({ 
-        name: validation.sanitized, 
-        isMember: false 
+      await presenceChannelRef.current.track({
+        name: validation.sanitized,
+        isMember: false
       });
       setGuestName(validation.sanitized);
       updateGuestName(validation.sanitized);
@@ -570,7 +584,7 @@ const Index = () => {
           fixed inset-0 bg-black/50 z-40 transition-opacity md:hidden
           ${showMobileSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}
         `} onClick={() => setShowMobileSidebar(false)} />
-        
+
         {/* Sidebar with user list */}
         <div className={`
           fixed left-0 top-0 h-full z-50 transition-transform md:relative md:translate-x-0 md:z-auto
@@ -593,7 +607,7 @@ const Index = () => {
           >
             <Users className="w-5 h-5" />
           </button>
-          
+
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto p-4 pt-16 md:pt-4 space-y-1">
             {isSearching && (
@@ -610,7 +624,7 @@ const Index = () => {
             )}
 
             {displayMessages.map((message) => {
-              const isOwn = user 
+              const isOwn = user
                 ? message.sender_id === user.id
                 : message.sender_name === guestName;
 
@@ -619,8 +633,8 @@ const Index = () => {
 
               return (
                 <div key={message.id} className="group">
-                  <ChatMessage 
-                    message={message} 
+                  <ChatMessage
+                    message={message}
                     isOwn={isOwn}
                     guestName={guestName}
                     reactions={reactions[message.id]}
@@ -631,7 +645,7 @@ const Index = () => {
                     onReply={startReply}
                     onPrivateMessage={handleOpenPrivateChat}
                   />
-                  
+
                   {/* Thread Reply Button */}
                   <div className="ml-10 mb-2">
                     <ThreadedReplyButton
@@ -653,7 +667,7 @@ const Index = () => {
                       isThreadOpen={isThreadOpen}
                     />
                   </div>
-                  
+
                   {/* Thread Replies */}
                   {isThreadOpen && threadReplies.length > 0 && (
                     <div className="ml-10 space-y-2 mb-4">
@@ -672,7 +686,7 @@ const Index = () => {
                       ))}
                     </div>
                   )}
-                  
+
                   {/* Reply Input */}
                   {replyingTo === message.id && (
                     <div className="ml-10 mb-4">
@@ -711,7 +725,7 @@ const Index = () => {
           onClose={() => setActivePrivateChat(null)}
         />
       )}
-      
+
       {/* Bookmarks Modal */}
       {showBookmarks && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
