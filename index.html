@@ -1,88 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="Content-Security-Policy" content="
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="
       default-src 'self';
-      script-src 'self' https://lbadeqrxsvhfuygxvyqf.supabase.co https://cdn.gpteng.co https://www.googletagmanager.com;
-      style-src 'self' https://fonts.googleapis.com;
+      script-src 'self' 'unsafe-inline' 'unsafe-eval' https://jbdnwdfvatnycvjifrcn.supabase.co https://cdn.gpteng.co https://www.googletagmanager.com;
+      style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
       img-src 'self' data: https: blob: https://api.qrserver.com;
-      connect-src 'self' https://lbadeqrxsvhfuygxvyqf.supabase.co wss://lbadeqrxsvhfuygxvyqf.supabase.co https://cdn.gpteng.co https://www.google-analytics.com;
+      connect-src 'self' http://localhost:* https://localhost:* ws://localhost:* wss://localhost:* https://jbdnwdfvatnycvjifrcn.supabase.co wss://jbdnwdfvatnycvjifrcn.supabase.co https://cdn.gpteng.co https://www.google-analytics.com;
       font-src 'self' data: https://fonts.gstatic.com;
       object-src 'none';
       base-uri 'self';
       form-action 'self';
       upgrade-insecure-requests;
-      report-uri /csp-report;
     ">
-    <title>OpenChat - Modern Real-time Community Chat Platform</title>
-    <meta name="description" content="OpenChat is a modern, real-time, open community chat platform. Chat as a guest or sign in for private messaging, multi-theme UI, and crypto donations. No ads, privacy-first." />
-    <meta name="keywords" content="chat, real-time chat, community chat, private messaging, open source chat, secure chat, crypto donations, guest chat" />
-    <meta name="author" content="OpenChat" />
-    <meta name="robots" content="index, follow" />
-    <link rel="canonical" href="https://open-chat.us" />
+  <title>OpenChat - Modern Real-time Community Chat Platform</title>
+  <meta name="description"
+    content="OpenChat is a modern, real-time, open community chat platform. Chat as a guest or sign in for private messaging, multi-theme UI, and crypto donations. No ads, privacy-first." />
+  <meta name="keywords"
+    content="chat, real-time chat, community chat, private messaging, open source chat, secure chat, crypto donations, guest chat" />
+  <meta name="author" content="OpenChat" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://open-chat.us" />
 
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://open-chat.us" />
-    <meta property="og:title" content="OpenChat - Modern Real-time Community Chat Platform" />
-    <meta property="og:description" content="Join the open community chat! Real-time messaging, private conversations, multi-theme UI with neon/dark/light modes. Chat as guest or member with crypto donation support." />
-    <meta property="og:image" content="https://open-chat.us/lovable-uploads/b4c9e6cb-023b-4de1-91cc-28fac6a5bbc5.png" />
-    <meta property="og:site_name" content="OpenChat" />
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://open-chat.us" />
+  <meta property="og:title" content="OpenChat - Modern Real-time Community Chat Platform" />
+  <meta property="og:description"
+    content="Join the open community chat! Real-time messaging, private conversations, multi-theme UI with neon/dark/light modes. Chat as guest or member with crypto donation support." />
+  <meta property="og:image" content="https://open-chat.us/lovable-uploads/b4c9e6cb-023b-4de1-91cc-28fac6a5bbc5.png" />
+  <meta property="og:site_name" content="OpenChat" />
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://open-chat.us" />
-    <meta name="twitter:title" content="OpenChat - Modern Real-time Community Chat Platform" />
-    <meta name="twitter:description" content="Join the open community chat! Real-time messaging, private conversations, multi-theme UI. Chat as guest or member." />
-    <meta name="twitter:image" content="https://open-chat.us/lovable-uploads/b4c9e6cb-023b-4de1-91cc-28fac6a5bbc5.png" />
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://open-chat.us" />
+  <meta name="twitter:title" content="OpenChat - Modern Real-time Community Chat Platform" />
+  <meta name="twitter:description"
+    content="Join the open community chat! Real-time messaging, private conversations, multi-theme UI. Chat as guest or member." />
+  <meta name="twitter:image" content="https://open-chat.us/lovable-uploads/b4c9e6cb-023b-4de1-91cc-28fac6a5bbc5.png" />
 
-    <!-- Security & Performance Headers -->
-    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
-    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-    <meta name="theme-color" content="#00ff88" />
+  <!-- Security & Performance Headers -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
+  <meta name="theme-color" content="#00ff88" />
 
-    <!-- PWA & Mobile -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="OpenChat" />
+  <!-- PWA & Mobile -->
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="OpenChat" />
 
-    <!-- Preconnect for performance -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="preconnect" href="https://lbadeqrxsvhfuygxvyqf.supabase.co" />
-    
-    <!-- PWA Manifest -->
-    <link rel="manifest" href="/manifest.json" />
-    
-    <!-- High-resolution favicon for modern browsers and PWA -->
-    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
-    <!-- Fallbacks for best browser support -->
-    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-512x512.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-512x512.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-512x512.png">
-    <!-- Apple devices shortcut icon -->
-    <link rel="apple-touch-icon" sizes="180x180" href="/favicon-512x512.png">
+  <!-- Preconnect for performance -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://jbdnwdfvatnycvjifrcn.supabase.co" />
 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17395476760"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/manifest.json" />
 
-      gtag('config', 'AW-17395476760');
-    </script>
-    <script src="/js/structured-data.js"></script>
+  <!-- High-resolution favicon for modern browsers and PWA -->
+  <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512x512.png">
+  <!-- Fallbacks for best browser support -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/favicon-512x512.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-512x512.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-512x512.png">
+  <!-- Apple devices shortcut icon -->
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-512x512.png">
 
-    <!-- Google Search Console Verification (Placeholder) -->
-    <meta name="google-site-verification" content="YOUR_VERIFICATION_TOKEN" />
-  </head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17395476760"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+    gtag('config', 'AW-17395476760');
+  </script>
+  <script src="/js/structured-data.js"></script>
+
+  <!-- Google Search Console Verification (Placeholder) -->
+  <meta name="google-site-verification" content="YOUR_VERIFICATION_TOKEN" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
