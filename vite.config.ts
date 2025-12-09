@@ -8,6 +8,20 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    proxy: {
+      '/api': {
+        target: 'https://jbdnwdfvatnycvjifrcn.supabase.co',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+      '/functions/v1': {
+        target: 'https://jbdnwdfvatnycvjifrcn.supabase.co/functions/v1',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/functions\/v1/, ''),
+      },
+    },
   },
   plugins: [
     react(),
