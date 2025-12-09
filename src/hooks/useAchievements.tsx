@@ -9,10 +9,8 @@ export interface Achievement {
   name: string;
   description: string;
   category: string;
-  rarity: 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
-  reputation_reward: number;
-  icon_name?: string;
-  unlocks_feature?: string;
+  points: number;
+  icon?: string;
   created_at: string;
 }
 
@@ -134,14 +132,13 @@ export const useAchievements = () => {
     });
   };
 
-  // Get rarity color
-  const getRarityColor = (rarity: string) => {
-    switch (rarity) {
-      case 'common': return 'text-slate-600 border-slate-300';
-      case 'uncommon': return 'text-green-600 border-green-300';
-      case 'rare': return 'text-blue-600 border-blue-300';
-      case 'epic': return 'text-purple-600 border-purple-300';
-      case 'legendary': return 'text-orange-600 border-orange-300';
+  // Get category color
+  const getCategoryColor = (category: string) => {
+    switch (category.toLowerCase()) {
+      case 'social': return 'text-green-600 border-green-300';
+      case 'content': return 'text-blue-600 border-blue-300';
+      case 'moderation': return 'text-purple-600 border-purple-300';
+      case 'special': return 'text-orange-600 border-orange-300';
       default: return 'text-slate-600 border-slate-300';
     }
   };
@@ -158,7 +155,7 @@ export const useAchievements = () => {
     getAchievementsByCategory,
     hasAchievement,
     getAchievementProgress,
-    getRarityColor,
+    getCategoryColor,
     getTotalAchievementPoints
   };
 };

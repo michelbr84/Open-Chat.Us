@@ -29,7 +29,7 @@ interface ContentFilter {
   filter_type: string;
   pattern: string;
   is_regex: boolean;
-  severity: number;
+  severity: string;
   is_active: boolean;
   created_at: string;
 }
@@ -41,7 +41,7 @@ export const AdminSettings = () => {
     type: 'profanity',
     pattern: '',
     isRegex: false,
-    severity: 1
+    severity: 'warning'
   });
   
   const { addContentFilter } = useAutoModeration();
@@ -94,7 +94,7 @@ export const AdminSettings = () => {
         type: 'profanity',
         pattern: '',
         isRegex: false,
-        severity: 1
+        severity: 'warning'
       });
 
       fetchContentFilters();
@@ -153,21 +153,21 @@ export const AdminSettings = () => {
     }
   };
 
-  const getSeverityColor = (severity: number) => {
+  const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 1: return 'bg-yellow-500';
-      case 2: return 'bg-orange-500';
-      case 3: return 'bg-red-500';
+      case 'warning': return 'bg-yellow-500';
+      case 'flag': return 'bg-orange-500';
+      case 'block': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
 
-  const getSeverityText = (severity: number) => {
+  const getSeverityText = (severity: string) => {
     switch (severity) {
-      case 1: return 'Low';
-      case 2: return 'Medium';
-      case 3: return 'High';
-      default: return 'Unknown';
+      case 'warning': return 'Warning';
+      case 'flag': return 'Flag';
+      case 'block': return 'Block';
+      default: return severity;
     }
   };
 
@@ -225,16 +225,16 @@ export const AdminSettings = () => {
               <div>
                 <label className="text-sm font-medium mb-2 block">Severity:</label>
                 <Select 
-                  value={newFilter.severity.toString()} 
-                  onValueChange={(value) => setNewFilter({...newFilter, severity: parseInt(value)})}
+                  value={newFilter.severity} 
+                  onValueChange={(value) => setNewFilter({...newFilter, severity: value})}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="1">Low (Warning)</SelectItem>
-                    <SelectItem value="2">Medium (Flag)</SelectItem>
-                    <SelectItem value="3">High (Block)</SelectItem>
+                    <SelectItem value="warning">Warning</SelectItem>
+                    <SelectItem value="flag">Flag</SelectItem>
+                    <SelectItem value="block">Block</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

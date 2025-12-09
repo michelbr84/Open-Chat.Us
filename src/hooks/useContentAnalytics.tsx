@@ -1,4 +1,4 @@
-import { useOptimizedAnalytics, trackQueryPerformance } from '@/utils/analyticsOptimization';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface ContentAnalyticsData {
@@ -36,38 +36,25 @@ export interface ContentAnalyticsData {
 }
 
 export const useContentAnalytics = (dateRange: { from: Date; to: Date }) => {
-  const fetchContentAnalytics = async (): Promise<ContentAnalyticsData> => {
-    return trackQueryPerformance('content-analytics', async () => {
-      const fromDate = dateRange.from.toISOString();
-      const toDate = dateRange.to.toISOString();
+  const [data, setData] = useState<ContentAnalyticsData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchContentAnalytics = useCallback(async () => {
+    try {
+      setLoading(true);
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
-      // Get total messages (using audit logs as proxy)
+      // Get total messages
       const { count: totalMessages } = await supabase
-        .from('audit_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('action_type', 'MESSAGE_POST');
+        .from('messages')
+        .select('*', { count: 'exact', head: true });
 
       // Get messages this week
       const { count: messagesThisWeek } = await supabase
-        .from('audit_logs')
+        .from('messages')
         .select('*', { count: 'exact', head: true })
-        .eq('action_type', 'MESSAGE_POST')
         .gte('created_at', weekAgo);
-
-      // Get messages previous week for growth calculation
-      const previousWeekStart = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
-      const { count: messagesPreviousWeek } = await supabase
-        .from('audit_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('action_type', 'MESSAGE_POST')
-        .gte('created_at', previousWeekStart)
-        .lt('created_at', weekAgo);
-
-      // Calculate growth rate
-      const messagesGrowth = messagesPreviousWeek 
-        ? ((messagesThisWeek || 0) - messagesPreviousWeek) / messagesPreviousWeek * 100 
-        : 0;
 
       // Get total reactions
       const { count: totalReactions } = await supabase
@@ -97,7 +84,7 @@ export const useContentAnalytics = (dateRange: { from: Date; to: Date }) => {
         .select('*', { count: 'exact', head: true })
         .neq('review_status', 'pending');
 
-      const flagResolutionRate = totalFlags ? (resolvedFlags || 0) / totalFlags * 100 : 0;
+      const flagResolutionRate = totalFlags ? ((resolvedFlags || 0) / totalFlags) * 100 : 0;
 
       // Get auto-flagged content for auto-moderation rate
       const { count: autoFlags } = await supabase
@@ -105,174 +92,60 @@ export const useContentAnalytics = (dateRange: { from: Date; to: Date }) => {
         .select('*', { count: 'exact', head: true })
         .eq('auto_flagged', true);
 
-      const autoModerationRate = totalFlags ? (autoFlags || 0) / totalFlags * 100 : 0;
-
-      // Get message volume trend
-      const { data: messageVolumeData } = await supabase
-        .from('audit_logs')
-        .select('created_at')
-        .eq('action_type', 'MESSAGE_POST')
-        .gte('created_at', fromDate)
-        .lte('created_at', toDate)
-        .order('created_at');
-
-      // Get reaction trend
-      const { data: reactionData } = await supabase
-        .from('message_reactions')
-        .select('created_at')
-        .gte('created_at', fromDate)
-        .lte('created_at', toDate)
-        .order('created_at');
-
-      const messageVolumeTrend = processMessageVolumeTrend(
-        messageVolumeData || [], 
-        reactionData || [], 
-        dateRange.from.toISOString().split('T')[0], 
-        dateRange.to.toISOString().split('T')[0]
-      );
-
-      // Get flagging trend
-      const { data: flagData } = await supabase
-        .from('flagged_content')
-        .select('created_at, review_status')
-        .gte('created_at', fromDate)
-        .lte('created_at', toDate)
-        .order('created_at');
-
-      const flaggingTrend = processFlaggingTrend(
-        flagData || [], 
-        dateRange.from.toISOString().split('T')[0], 
-        dateRange.to.toISOString().split('T')[0]
-      );
+      const autoModerationRate = totalFlags ? ((autoFlags || 0) / totalFlags) * 100 : 0;
 
       // Get moderation action types
       const { data: moderationData } = await supabase
         .from('moderation_actions')
-        .select('action');
+        .select('action_type');
 
       const moderationActionTypes = processModerationActions(moderationData || []);
-
-      // Get content type distribution (simplified)
-      const contentTypeDistribution = [
-        { type: 'Text Messages', count: totalMessages || 0 },
-        { type: 'Media', count: Math.floor((totalMessages || 0) * 0.15) },
-        { type: 'Links', count: Math.floor((totalMessages || 0) * 0.08) },
-        { type: 'Reactions', count: totalReactions || 0 }
-      ];
 
       // Get top flag reasons
       const { data: flagReasonData } = await supabase
         .from('flagged_content')
-        .select('flag_reason');
+        .select('reason');
 
       const topFlagReasons = processFlagReasons(flagReasonData || []);
 
-      return {
+      setData({
         totalMessages: totalMessages || 0,
         messagesThisWeek: messagesThisWeek || 0,
-        messagesGrowth,
+        messagesGrowth: 0,
         totalReactions: totalReactions || 0,
         reactionsThisWeek: reactionsThisWeek || 0,
         totalFlags: totalFlags || 0,
         flagsThisWeek: flagsThisWeek || 0,
         flagResolutionRate,
         autoModerationRate,
-        messageVolumeTrend,
-        flaggingTrend,
+        messageVolumeTrend: [],
+        flaggingTrend: [],
         moderationActionTypes,
-        contentTypeDistribution,
+        contentTypeDistribution: [
+          { type: 'Text Messages', count: totalMessages || 0 },
+          { type: 'Reactions', count: totalReactions || 0 }
+        ],
         topFlagReasons
-      };
-    });
-  };
-
-  const { data, loading, error } = useOptimizedAnalytics(
-    'content-analytics',
-    fetchContentAnalytics,
-    [dateRange.from?.toISOString(), dateRange.to?.toISOString()],
-    {
-      cacheable: true,
-      realtime: true,
-      realtimeTable: 'flagged_content',
-      realtimeEvent: '*'
+      });
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setLoading(false);
     }
-  );
+  }, [dateRange]);
+
+  useEffect(() => {
+    fetchContentAnalytics();
+  }, [fetchContentAnalytics]);
 
   return { data, loading, error };
-};
-
-// Helper functions
-const processMessageVolumeTrend = (messageData: any[], reactionData: any[], fromDate: string, toDate: string) => {
-  const dateMap = new Map<string, { messages: number; reactions: number }>();
-  
-  // Initialize all dates
-  const start = new Date(fromDate);
-  const end = new Date(toDate);
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split('T')[0];
-    dateMap.set(dateStr, { messages: 0, reactions: 0 });
-  }
-  
-  // Count messages
-  messageData.forEach(item => {
-    const date = item.created_at.split('T')[0];
-    if (dateMap.has(date)) {
-      const entry = dateMap.get(date)!;
-      entry.messages++;
-    }
-  });
-  
-  // Count reactions
-  reactionData.forEach(item => {
-    const date = item.created_at.split('T')[0];
-    if (dateMap.has(date)) {
-      const entry = dateMap.get(date)!;
-      entry.reactions++;
-    }
-  });
-  
-  return Array.from(dateMap.entries()).map(([date, data]) => ({
-    date,
-    messages: data.messages,
-    reactions: data.reactions
-  }));
-};
-
-const processFlaggingTrend = (flagData: any[], fromDate: string, toDate: string) => {
-  const dateMap = new Map<string, { flags: number; resolved: number }>();
-  
-  // Initialize all dates
-  const start = new Date(fromDate);
-  const end = new Date(toDate);
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split('T')[0];
-    dateMap.set(dateStr, { flags: 0, resolved: 0 });
-  }
-  
-  // Count flags and resolutions
-  flagData.forEach(item => {
-    const date = item.created_at.split('T')[0];
-    if (dateMap.has(date)) {
-      const entry = dateMap.get(date)!;
-      entry.flags++;
-      if (item.review_status !== 'pending') {
-        entry.resolved++;
-      }
-    }
-  });
-  
-  return Array.from(dateMap.entries()).map(([date, data]) => ({
-    date,
-    flags: data.flags,
-    resolved: data.resolved
-  }));
 };
 
 const processModerationActions = (data: any[]) => {
   const actionMap = new Map<string, number>();
   
   data.forEach(item => {
-    const action = item.action || 'unknown';
+    const action = item.action_type || 'unknown';
     actionMap.set(action, (actionMap.get(action) || 0) + 1);
   });
   
@@ -289,7 +162,7 @@ const processFlagReasons = (data: any[]) => {
   const reasonMap = new Map<string, number>();
   
   data.forEach(item => {
-    const reason = item.flag_reason || 'Other';
+    const reason = item.reason || 'Other';
     reasonMap.set(reason, (reasonMap.get(reason) || 0) + 1);
   });
   

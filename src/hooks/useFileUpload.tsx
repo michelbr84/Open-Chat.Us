@@ -80,31 +80,13 @@ export const useFileUpload = () => {
         .from('chat-attachments')
         .getPublicUrl(fileName);
 
-      // Save file metadata to database
-      const { data: fileData, error: dbError } = await supabase
-        .from('file_attachments')
-        .insert([
-          {
-            filename: file.name,
-            file_path: fileName,
-            file_size: file.size,
-            file_type: file.type,
-            uploaded_by_user_id: user?.id || null,
-            uploaded_by_guest_id: !user ? guestId : null,
-          }
-        ])
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
       const uploadedFile: UploadedFile = {
-        id: fileData.id,
+        id: fileName,
         name: file.name,
         size: file.size,
         type: file.type,
         url: urlData.publicUrl,
-        uploadedAt: new Date(fileData.created_at),
+        uploadedAt: new Date(),
       };
 
       toast({
@@ -136,14 +118,6 @@ export const useFileUpload = () => {
         .remove([filePath]);
 
       if (storageError) throw storageError;
-
-      // Delete from database
-      const { error: dbError } = await supabase
-        .from('file_attachments')
-        .delete()
-        .eq('id', fileId);
-
-      if (dbError) throw dbError;
 
       toast({
         title: 'File Deleted',
