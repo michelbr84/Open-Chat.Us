@@ -1,229 +1,59 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { toast } from 'sonner';
-
-interface Notification {
-  id: string;
-  user_id: string;
-  type: 'mention' | 'dm' | 'reaction' | 'achievement' | 'announcement' | 'system';
-  title: string;
-  message?: string;
-  data?: any;
-  is_read: boolean;
-  created_at: string;
-}
-
-interface NotificationPreferences {
-  [key: string]: boolean;
-  mentions: boolean;
-  dms: boolean;
-  reactions: boolean;
-  announcements: boolean;
-}
+import { useState, useEffect, useCallback } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 export const useNotifications = () => {
-  const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [preferences, setPreferences] = useState<NotificationPreferences>({
-    mentions: true,
-    dms: true,
-    reactions: true,
-    announcements: true,
-  });
+  const [permission, setPermission] = useState<NotificationPermission>('default');
+  const { toast } = useToast();
 
-  // Fetch notifications
   useEffect(() => {
-    if (!user) {
-      setIsLoading(false);
-      return;
+    if ('Notification' in window) {
+      setPermission(Notification.permission);
     }
+  }, []);
 
-    const fetchNotifications = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('notifications')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(50);
-
-        if (error) throw error;
-
-        setNotifications((data || []) as Notification[]);
-        setUnreadCount(data?.filter(n => !n.is_read).length || 0);
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-        setIsLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, [user]);
-
-  // Real-time notification subscription
-  useEffect(() => {
-    if (!user) return;
-
-    const channel = supabase
-      .channel('notifications')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          
-          setNotifications(prev => [newNotification, ...prev]);
-          setUnreadCount(prev => prev + 1);
-
-          // Show browser notification if preferences allow
-          if (shouldShowNotification(newNotification.type)) {
-            showBrowserNotification(newNotification);
-            toast(newNotification.title, {
-              description: newNotification.message,
-              action: {
-                label: 'View',
-                onClick: () => markAsRead(newNotification.id),
-              },
-            });
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, preferences]);
-
-  // Check if notification should be shown based on preferences
-  const shouldShowNotification = (type: Notification['type']): boolean => {
-    switch (type) {
-      case 'mention':
-        return preferences.mentions;
-      case 'dm':
-        return preferences.dms;
-      case 'reaction':
-        return preferences.reactions;
-      case 'announcement':
-        return preferences.announcements;
-      default:
-        return true;
-    }
-  };
-
-  // Show browser notification
-  const showBrowserNotification = (notification: Notification) => {
-    if (!('Notification' in window)) return;
-
-    if (Notification.permission === 'granted') {
-      new Notification(notification.title, {
-        body: notification.message,
-        icon: '/favicon.png',
-        tag: notification.id,
-      });
-    } else if (Notification.permission !== 'denied') {
-      Notification.requestPermission().then((permission) => {
-        if (permission === 'granted') {
-          new Notification(notification.title, {
-            body: notification.message,
-            icon: '/favicon.png',
-            tag: notification.id,
-          });
-        }
-      });
-    }
-  };
-
-  // Mark notification as read
-  const markAsRead = async (notificationId: string) => {
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('id', notificationId);
-
-      if (error) throw error;
-
-      setNotifications(prev =>
-        prev.map(n =>
-          n.id === notificationId ? { ...n, is_read: true } : n
-        )
-      );
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (error) {
-      console.error('Error marking notification as read:', error);
-    }
-  };
-
-  // Mark all notifications as read
-  const markAllAsRead = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('notifications')
-        .update({ is_read: true })
-        .eq('user_id', user.id)
-        .eq('is_read', false);
-
-      if (error) throw error;
-
-      setNotifications(prev =>
-        prev.map(n => ({ ...n, is_read: true }))
-      );
-      setUnreadCount(0);
-    } catch (error) {
-      console.error('Error marking all notifications as read:', error);
-    }
-  };
-
-  // Update notification preferences (stored in localStorage for now)
-  const updatePreferences = async (newPreferences: NotificationPreferences) => {
-    setPreferences(newPreferences);
-    localStorage.setItem('notification_preferences', JSON.stringify(newPreferences));
-    toast.success('Notification preferences updated');
-  };
-
-  // Request notification permission
-  const requestNotificationPermission = async () => {
+  const requestPermission = useCallback(async () => {
     if (!('Notification' in window)) {
-      toast.error('This browser does not support notifications');
+      toast({
+        title: "Not supported",
+        description: "This browser does not support desktop notifications.",
+        variant: "destructive",
+      });
       return false;
     }
 
-    if (Notification.permission === 'granted') {
-      return true;
-    }
+    try {
+      const result = await Notification.requestPermission();
+      setPermission(result);
 
-    const permission = await Notification.requestPermission();
-    
+      if (result === 'granted') {
+        toast({
+          title: "Notifications enabled",
+          description: "You will now receive notifications for mentions.",
+        });
+        return true;
+      } else {
+        toast({
+          title: "Notifications blocked",
+          description: "Please enable notifications in your browser settings if you want to receive alerts.",
+          variant: "destructive",
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error('Error requesting notification permission:', error);
+      return false;
+    }
+  }, [toast]);
+
+  const sendNotification = useCallback((title: string, options?: NotificationOptions) => {
     if (permission === 'granted') {
-      toast.success('Notifications enabled!');
-      return true;
-    } else {
-      toast.error('Notifications permission denied');
-      return false;
+      try {
+        new Notification(title, options);
+      } catch (e) {
+        console.error('Notification error:', e);
+      }
     }
-  };
+  }, [permission]);
 
-  return {
-    notifications,
-    unreadCount,
-    isLoading,
-    preferences,
-    markAsRead,
-    markAllAsRead,
-    updatePreferences,
-    requestNotificationPermission,
-    hasPermission: typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted',
-  };
+  return { permission, requestPermission, sendNotification };
 };

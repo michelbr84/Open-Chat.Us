@@ -6,7 +6,8 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Palette, LogIn, LogOut, Heart, X, Circle, Bookmark } from 'lucide-react';
+import { Search, Palette, LogIn, LogOut, Heart, X, Circle, Bookmark, Bell } from 'lucide-react';
+import { useNotifications } from '@/hooks/useNotifications';
 import { UnreadMessageIndicator } from '@/components/UnreadMessageIndicator';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { StatusUpdateModal } from '@/components/StatusUpdateModal';
@@ -22,10 +23,10 @@ interface ChatHeaderProps {
   onShowBookmarks?: () => void;
 }
 
-export const ChatHeader = ({ 
-  searchQuery, 
-  onSearchChange, 
-  onLoginClick, 
+export const ChatHeader = ({
+  searchQuery,
+  onSearchChange,
+  onLoginClick,
   onDonateClick,
   onOpenPrivateChat,
   onShowBookmarks
@@ -33,6 +34,7 @@ export const ChatHeader = ({
   const { cycleTheme, theme } = useTheme();
   const { user } = useAuth();
   const { getOnlineCount } = useUserPresence();
+  const { permission, requestPermission } = useNotifications();
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -61,7 +63,7 @@ export const ChatHeader = ({
             <span>{getOnlineCount()} online</span>
           </div>
         </div>
-        
+
         {/* Mobile theme toggle */}
         <Button
           variant="outline"
@@ -100,6 +102,20 @@ export const ChatHeader = ({
 
       {/* Action buttons */}
       <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
+        {/* Notification Permission Toggle */}
+        {permission === 'default' && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={requestPermission}
+            className="min-h-[40px] px-3"
+            title="Enable browser notifications"
+          >
+            <Bell className="w-4 h-4" />
+            <span className="sr-only">Enable Notifications</span>
+          </Button>
+        )}
+
         {user && (
           <>
             <NotificationCenter />
@@ -127,7 +143,7 @@ export const ChatHeader = ({
             <UnreadMessageIndicator onOpenPrivateChat={onOpenPrivateChat} />
           </>
         )}
-        
+
         {!user ? (
           <Button variant="outline" onClick={onLoginClick} className="min-h-[40px] px-4">
             <LogIn className="w-4 h-4 mr-2" />
@@ -139,7 +155,7 @@ export const ChatHeader = ({
             <span className="hidden sm:inline">Log Out</span>
           </Button>
         )}
-        
+
         {/* Desktop theme toggle */}
         <Button
           variant="outline"
@@ -150,15 +166,15 @@ export const ChatHeader = ({
           <Palette className="w-4 h-4 mr-2" />
           {getThemeIcon()}
         </Button>
-        
+
         <BotTestButton />
-        
+
         <Button variant="outline" onClick={onDonateClick} className="min-h-[40px] px-4">
           <Heart className="w-4 h-4 mr-2" />
           <span className="hidden sm:inline">Donate</span>
         </Button>
       </div>
-      
+
       <StatusUpdateModal
         isOpen={isStatusModalOpen}
         onClose={() => setIsStatusModalOpen(false)}

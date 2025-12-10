@@ -9,6 +9,8 @@ import { MentionSuggestions } from '@/components/MentionSuggestions';
 import { EmojiPickerAutocomplete } from '@/components/EmojiPickerAutocomplete';
 import { SlashCommandSuggestions } from '@/components/SlashCommandSuggestions';
 import { FileUploadButton } from '@/components/FileUploadButton';
+import { AudioRecorder } from '@/components/AudioRecorder';
+import { useFileUpload } from '@/hooks/useFileUpload';
 import { useMentionSearch } from '@/hooks/useMentionSearch';
 import { useSlashCommands } from '@/hooks/useSlashCommands';
 import { parseMentions, createMentionString } from '@/utils/mentionParser';
@@ -24,9 +26,9 @@ interface MessageInputProps {
   onSlashCommand?: (command: string) => void;
 }
 
-export const MessageInput = ({ 
-  onSendMessage, 
-  disabled = false, 
+export const MessageInput = ({
+  onSendMessage,
+  disabled = false,
   placeholder = "Type a message...",
   onlineUsers = [],
   mentionToAdd,
@@ -38,27 +40,28 @@ export const MessageInput = ({
   const [mentionStartIndex, setMentionStartIndex] = useState(-1);
   const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(0);
   const [cursorPosition, setCursorPosition] = useState(0);
-  
+
   // Emoji autocomplete state
   const [showEmojiSuggestions, setShowEmojiSuggestions] = useState(false);
   const [emojiQuery, setEmojiQuery] = useState('');
   const [emojiStartIndex, setEmojiStartIndex] = useState(-1);
   const [selectedEmojiIndex, setSelectedEmojiIndex] = useState(0);
-  
+
   // Slash command state
   const [showSlashSuggestions, setShowSlashSuggestions] = useState(false);
   const [selectedSlashIndex, setSelectedSlashIndex] = useState(0);
-  
+
   // File attachments
   const [attachments, setAttachments] = useState<any[]>([]);
-  
+
   const inputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const { validateAndSanitizeMessage } = useSecureMessageHandling();
-  
+
   const { suggestions, searchUsers, clearSuggestions, isLoading } = useMentionSearch(onlineUsers);
   const { executeSlashCommand, getSuggestions: getSlashSuggestions, isSlashCommand } = useSlashCommands();
-  
+  const { uploadFile } = useFileUpload();
+
   const MAX_MESSAGE_LENGTH = 1000;
 
   // Handle mention detection and suggestions
@@ -66,13 +69,13 @@ export const MessageInput = ({
     // Find the last @ symbol before the cursor
     const textBeforeCursor = text.slice(0, cursorPos);
     const lastAtIndex = textBeforeCursor.lastIndexOf('@');
-    
+
     if (lastAtIndex === -1) {
       setShowMentionSuggestions(false);
       clearSuggestions();
       return;
     }
-    
+
     // Check if there's a space between @ and cursor (invalid mention)
     const textAfterAt = textBeforeCursor.slice(lastAtIndex + 1);
     if (textAfterAt.includes(' ')) {
@@ -80,7 +83,7 @@ export const MessageInput = ({
       clearSuggestions();
       return;
     }
-    
+
     // Valid mention in progress
     setMentionStartIndex(lastAtIndex);
     setShowMentionSuggestions(true);
@@ -91,13 +94,13 @@ export const MessageInput = ({
   const detectEmoji = (text: string, cursorPos: number) => {
     const textBeforeCursor = text.slice(0, cursorPos);
     const lastColonIndex = textBeforeCursor.lastIndexOf(':');
-    
+
     if (lastColonIndex === -1) {
       setShowEmojiSuggestions(false);
       setEmojiQuery('');
       return;
     }
-    
+
     // Check if there's a space between : and cursor (invalid emoji)
     const textAfterColon = textBeforeCursor.slice(lastColonIndex + 1);
     if (textAfterColon.includes(' ') || textAfterColon.includes(':')) {
@@ -105,7 +108,7 @@ export const MessageInput = ({
       setEmojiQuery('');
       return;
     }
-    
+
     // Valid emoji shortcode in progress
     setEmojiStartIndex(lastColonIndex);
     setEmojiQuery(textAfterColon);
@@ -115,10 +118,10 @@ export const MessageInput = ({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newMessage = e.target.value;
     const newCursorPosition = e.target.selectionStart || 0;
-    
+
     setMessage(newMessage);
     setCursorPosition(newCursorPosition);
-    
+
     // Check for slash commands
     if (newMessage.startsWith('/')) {
       const slashSuggestions = getSlashSuggestions(newMessage);
@@ -136,19 +139,19 @@ export const MessageInput = ({
 
   const handleMentionSelect = (user: { name: string; id: string }) => {
     if (mentionStartIndex === -1) return;
-    
+
     const beforeMention = message.slice(0, mentionStartIndex);
     const afterCursor = message.slice(cursorPosition);
     const mentionText = createMentionString(user.name);
-    
+
     const newMessage = beforeMention + mentionText + ' ' + afterCursor;
     const newCursorPosition = beforeMention.length + mentionText.length + 1;
-    
+
     setMessage(newMessage);
     setShowMentionSuggestions(false);
     clearSuggestions();
     setMentionStartIndex(-1);
-    
+
     // Focus back to input and set cursor position
     setTimeout(() => {
       if (inputRef.current) {
@@ -160,7 +163,7 @@ export const MessageInput = ({
 
   const handleSend = async () => {
     const trimmedMessage = message.trim();
-    
+
     if (!trimmedMessage && attachments.length === 0) {
       toast({
         title: "Empty message",
@@ -169,7 +172,7 @@ export const MessageInput = ({
       });
       return;
     }
-    
+
     // Check if it's a slash command
     if (isSlashCommand(trimmedMessage)) {
       const result = await executeSlashCommand(trimmedMessage);
@@ -180,7 +183,7 @@ export const MessageInput = ({
         return;
       }
     }
-    
+
     if (trimmedMessage.length > MAX_MESSAGE_LENGTH) {
       toast({
         title: "Message too long",
@@ -196,11 +199,11 @@ export const MessageInput = ({
       if (!validation.isValid) {
         return;
       }
-      
+
       // Use the sanitized message for further processing  
       const { content: emojiProcessed } = parseEmojiShortcodes(validation.sanitized);
       const { content, mentions } = parseMentions(emojiProcessed);
-      
+
       if (!disabled) {
         onSendMessage(content, mentions, attachments);
         setMessage('');
@@ -227,18 +230,18 @@ export const MessageInput = ({
   // Handle emoji selection
   const handleEmojiSelect = (emoji: { emoji: string; name: string }) => {
     if (emojiStartIndex === -1) return;
-    
+
     const beforeEmoji = message.slice(0, emojiStartIndex);
     const afterCursor = message.slice(cursorPosition);
-    
+
     const newMessage = beforeEmoji + emoji.emoji + ' ' + afterCursor;
     const newCursorPosition = beforeEmoji.length + emoji.emoji.length + 1;
-    
+
     setMessage(newMessage);
     setShowEmojiSuggestions(false);
     setEmojiQuery('');
     setEmojiStartIndex(-1);
-    
+
     // Focus back to input and set cursor position
     setTimeout(() => {
       if (inputRef.current) {
@@ -253,26 +256,26 @@ export const MessageInput = ({
     if (showEmojiSuggestions) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedEmojiIndex(prev => 
+        setSelectedEmojiIndex(prev =>
           prev < 7 ? prev + 1 : 0 // Max 8 emoji suggestions
         );
         return;
       }
-      
+
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedEmojiIndex(prev => 
+        setSelectedEmojiIndex(prev =>
           prev > 0 ? prev - 1 : 7
         );
         return;
       }
-      
+
       if (e.key === 'Enter' && selectedEmojiIndex >= 0) {
         e.preventDefault();
         // We'll need to get the emoji from the autocomplete component
         return;
       }
-      
+
       if (e.key === 'Escape') {
         e.preventDefault();
         setShowEmojiSuggestions(false);
@@ -280,31 +283,31 @@ export const MessageInput = ({
         return;
       }
     }
-    
+
     // Handle mention suggestions
     if (showMentionSuggestions && suggestions.length > 0) {
       if (e.key === 'ArrowDown') {
         e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
+        setSelectedSuggestionIndex(prev =>
           prev < suggestions.length - 1 ? prev + 1 : 0
         );
         return;
       }
-      
+
       if (e.key === 'ArrowUp') {
         e.preventDefault();
-        setSelectedSuggestionIndex(prev => 
+        setSelectedSuggestionIndex(prev =>
           prev > 0 ? prev - 1 : suggestions.length - 1
         );
         return;
       }
-      
+
       if (e.key === 'Enter' && selectedSuggestionIndex >= 0) {
         e.preventDefault();
         handleMentionSelect(suggestions[selectedSuggestionIndex]);
         return;
       }
-      
+
       if (e.key === 'Escape') {
         e.preventDefault();
         setShowMentionSuggestions(false);
@@ -312,13 +315,13 @@ export const MessageInput = ({
         return;
       }
     }
-    
+
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
   };
-  
+
   // Update cursor position tracking
   const handleCursorChange = () => {
     if (inputRef.current) {
@@ -327,12 +330,12 @@ export const MessageInput = ({
       detectMention(message, newCursorPosition);
     }
   };
-  
+
   // Reset suggestion index when suggestions change
   useEffect(() => {
     setSelectedSuggestionIndex(0);
   }, [suggestions]);
-  
+
   // Handle external mention addition
   useEffect(() => {
     if (mentionToAdd) {
@@ -340,7 +343,7 @@ export const MessageInput = ({
       const newMessage = message ? `${message} ${mentionText} ` : `${mentionText} `;
       setMessage(newMessage);
       onMentionAdded?.();
-      
+
       // Focus the input
       setTimeout(() => {
         if (inputRef.current) {
@@ -350,20 +353,20 @@ export const MessageInput = ({
       }, 0);
     }
   }, [mentionToAdd, message, onMentionAdded]);
-  
+
   // Calculate suggestion position
   const getSuggestionPosition = () => {
     if (!inputRef.current || mentionStartIndex === -1) {
       return { top: 0, left: 0 };
     }
-    
+
     const input = inputRef.current;
     const rect = input.getBoundingClientRect();
-    
+
     // Approximate character width (this is rough, but works for most cases)
     const charWidth = 8;
     const mentionOffset = mentionStartIndex * charWidth;
-    
+
     return {
       top: rect.top - 10, // Position above input
       left: rect.left + mentionOffset + 12 // Add padding offset
@@ -375,14 +378,14 @@ export const MessageInput = ({
     if (!inputRef.current || emojiStartIndex === -1) {
       return { top: 0, left: 0 };
     }
-    
+
     const input = inputRef.current;
     const rect = input.getBoundingClientRect();
-    
+
     // Approximate character width
     const charWidth = 8;
     const emojiOffset = emojiStartIndex * charWidth;
-    
+
     return {
       top: rect.top - 10, // Position above input
       left: rect.left + emojiOffset + 12 // Add padding offset
@@ -391,7 +394,7 @@ export const MessageInput = ({
 
   const remainingChars = MAX_MESSAGE_LENGTH - message.length;
   const isNearLimit = remainingChars <= 100;
-  
+
   return (
     <div className="border-t border-border p-3 md:p-4 relative">
       <div className="flex gap-2 items-end">
@@ -412,11 +415,10 @@ export const MessageInput = ({
             autoComplete="off"
           />
           {isNearLimit && (
-            <div 
+            <div
               id="char-count"
-              className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs ${
-                remainingChars <= 50 ? 'text-destructive' : 'text-muted-foreground'
-              }`}
+              className={`absolute right-2 top-1/2 -translate-y-1/2 text-xs ${remainingChars <= 50 ? 'text-destructive' : 'text-muted-foreground'
+                }`}
               aria-live="polite"
             >
               {remainingChars}
@@ -424,6 +426,23 @@ export const MessageInput = ({
           )}
         </div>
         <div className="flex items-center gap-2">
+          <AudioRecorder
+            onAudioRecorded={async (file) => {
+              try {
+                const uploadedFile = await uploadFile(file);
+                if (uploadedFile) {
+                  onSendMessage('', [], [uploadedFile]);
+                  toast({
+                    title: "Voice message sent",
+                    description: "Your voice message has been sent.",
+                  });
+                }
+              } catch (error) {
+                console.error("Failed to upload voice message", error);
+              }
+            }}
+            disabled={disabled}
+          />
           <FileUploadButton
             onFileUploaded={(file) => {
               setAttachments(prev => [...prev, file]);
@@ -443,27 +462,29 @@ export const MessageInput = ({
             <Send className="w-5 h-5 md:w-4 md:h-4" aria-hidden="true" />
           </Button>
         </div>
-      </div>
-      
+      </div >
+
       {/* File attachments preview */}
-      {attachments.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
-          {attachments.map((file, index) => (
-            <div key={index} className="flex items-center gap-2 px-2 py-1 bg-muted rounded text-sm">
-              <span className="truncate max-w-[200px]">{file.name}</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))}
-                className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive"
-              >
-                ×
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
-      
+      {
+        attachments.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-2">
+            {attachments.map((file, index) => (
+              <div key={index} className="flex items-center gap-2 px-2 py-1 bg-muted rounded text-sm">
+                <span className="truncate max-w-[200px]">{file.name}</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setAttachments(prev => prev.filter((_, i) => i !== index))}
+                  className="h-4 w-4 p-0 text-muted-foreground hover:text-destructive"
+                >
+                  ×
+                </Button>
+              </div>
+            ))}
+          </div>
+        )
+      }
+
       {/* Mention Suggestions */}
       <MentionSuggestions
         suggestions={suggestions}
@@ -473,7 +494,7 @@ export const MessageInput = ({
         position={getSuggestionPosition()}
         visible={showMentionSuggestions && suggestions.length > 0}
       />
-      
+
       {/* Emoji Autocomplete */}
       <EmojiPickerAutocomplete
         visible={showEmojiSuggestions}
@@ -487,7 +508,7 @@ export const MessageInput = ({
         selectedIndex={selectedEmojiIndex}
         onHover={setSelectedEmojiIndex}
       />
-      
+
       {/* Slash Command Suggestions */}
       <SlashCommandSuggestions
         suggestions={getSlashSuggestions(message)}
@@ -504,6 +525,6 @@ export const MessageInput = ({
         }}
         isVisible={showSlashSuggestions}
       />
-    </div>
+    </div >
   );
 };

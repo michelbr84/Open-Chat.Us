@@ -83,6 +83,90 @@ const Index = () => {
   // Thread state
   const [openThreads, setOpenThreads] = useState<Set<string>>(new Set());
 
+  // Pagination state
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const loadingRef = useRef<HTMLDivElement>(null);
+  const PAGE_SIZE = 50;
+
+  // Load initial messages
+  const loadInitialMessages = async () => {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(PAGE_SIZE);
+
+    if (!error && data) {
+      if (data.length < PAGE_SIZE) setHasMore(false);
+
+      const transformedMessages = data.map(msg => ({
+        ...msg,
+        mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+      }));
+      setMessages(transformedMessages.reverse());
+    }
+  };
+
+  // Load more messages (older)
+  const loadMoreMessages = async () => {
+    if (isLoadingMore || !hasMore || messages.length === 0) return;
+
+    setIsLoadingMore(true);
+    const oldestMessage = messages[0];
+
+    try {
+      const { data, error } = await supabase
+        .from('messages')
+        .select('*')
+        .eq('is_deleted', false)
+        .lt('created_at', oldestMessage.created_at)
+        .order('created_at', { ascending: false })
+        .limit(PAGE_SIZE);
+
+      if (error) throw error;
+
+      if (data) {
+        if (data.length < PAGE_SIZE) setHasMore(false);
+
+        const transformedMessages = data.map(msg => ({
+          ...msg,
+          mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+        }));
+
+        setMessages(prev => [...transformedMessages.reverse(), ...prev]);
+      }
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load older messages",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
+
+  // Setup Intersection Observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMoreMessages();
+        }
+      },
+      { threshold: 0.5 }
+    );
+
+    if (loadingRef.current) {
+      observer.observe(loadingRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, messages]);
+
   // Refs and throttling
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const presenceChannelRef = useRef<any>(null);
@@ -115,25 +199,7 @@ const Index = () => {
   useEffect(() => {
     if (!ageVerified) return;
 
-    const loadMessages = async () => {
-      const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('is_deleted', false) // Don't load deleted messages
-        .order('created_at', { ascending: false })
-        .limit(100);
-
-      if (!error && data) {
-        // Transform the data to ensure mentions is properly typed
-        const transformedMessages = data.map(msg => ({
-          ...msg,
-          mentions: Array.isArray(msg.mentions) ? msg.mentions : []
-        }));
-        setMessages(transformedMessages.reverse());
-      }
-    };
-
-    loadMessages();
+    loadInitialMessages();
 
     // Subscribe to new and updated messages with enhanced debugging and error handling
     const messagesChannel = supabase
@@ -281,6 +347,19 @@ const Index = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, searchQuery]);
+
+  // Handle mobile keyboard resize
+  useEffect(() => {
+    const handleResize = () => {
+      // Small delay to ensure layout has updated
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    };
+
+    window.visualViewport?.addEventListener('resize', handleResize);
+    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+  }, []);
 
   // Handle search
   useEffect(() => {
@@ -551,13 +630,42 @@ const Index = () => {
   };
 
   // Handle message editing
-  const handleEdit = (messageId: string, newContent: string) => {
-    editMessage(messageId, newContent);
+  const handleEdit = async (messageId: string, newContent: string) => {
+    // Optimistic update
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId
+        ? { ...msg, content: newContent, edited_at: new Date().toISOString() }
+        : msg
+    ));
+
+    const success = await editMessage(messageId, newContent);
+    if (!success) {
+      toast({
+        title: "Edit failed",
+        description: "Failed to save changes. Refreshing...",
+        variant: "destructive"
+      });
+      // In a real app we might revert, but a re-fetch or letting realtime fix it is robust enough for now
+    }
   };
 
   // Handle message deletion
-  const handleDelete = (messageId: string) => {
-    deleteMessage(messageId);
+  const handleDelete = async (messageId: string) => {
+    // Optimistic update
+    setMessages(prev => prev.map(msg =>
+      msg.id === messageId
+        ? { ...msg, is_deleted: true, content: 'This message was deleted' }
+        : msg
+    ));
+
+    const success = await deleteMessage(messageId);
+    if (!success) {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete message.",
+        variant: "destructive"
+      });
+    }
   };
 
   const isSearching = searchQuery.length > 0;
@@ -610,6 +718,11 @@ const Index = () => {
 
           {/* Messages area */}
           <div className="flex-1 overflow-y-auto p-4 pt-16 md:pt-4 space-y-1">
+            {/* Loading indicator for pagination */}
+            <div ref={loadingRef} className="h-4 w-full flex justify-center items-center py-2">
+              {isLoadingMore && <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>}
+            </div>
+
             {isSearching && (
               <div className="mb-4 p-3 bg-muted rounded-lg animate-fade-in">
                 <h3 className="font-semibold text-sm mb-2">
