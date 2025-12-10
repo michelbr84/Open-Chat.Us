@@ -7,8 +7,7 @@ import {
 } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useUnreadMessages } from '@/hooks/useUnreadMessages';
-import { MessageCircle, Clock } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import { MessageCircle } from 'lucide-react';
 
 interface UnreadMessageIndicatorProps {
   onOpenPrivateChat: (senderId: string, senderName: string) => void;
@@ -67,18 +66,9 @@ export const UnreadMessageIndicator = ({ onOpenPrivateChat }: UnreadMessageIndic
                     <span className="font-medium text-sm truncate">
                       {conversation.sender_name}
                     </span>
-                    <div className="flex items-center gap-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {conversation.unread_count}
-                      </Badge>
-                    </div>
-                  </div>
-                  <p className="text-xs text-muted-foreground text-left truncate w-full">
-                    {conversation.latest_message}
-                  </p>
-                  <div className="flex items-center text-xs text-muted-foreground mt-1">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {formatDistanceToNow(new Date(conversation.latest_message_time), { addSuffix: true })}
+                    <Badge variant="secondary" className="text-xs">
+                      {conversation.unread_count} unread
+                    </Badge>
                   </div>
                 </div>
               </Button>

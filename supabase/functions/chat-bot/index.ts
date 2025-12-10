@@ -8,6 +8,9 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 };
 
+// Get n8n webhook URL from environment
+const N8N_WEBHOOK_URL = Deno.env.get('N8N_WEBHOOK_URL') || '';
+
 // Rate limiting: Track requests per user/IP
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT = 20; // Max requests per window
@@ -135,7 +138,7 @@ serve(async (req) => {
     try {
       console.log('Calling n8n webhook with bot message:', cleanMessage);
       
-      webhookResponse = await fetch('https://michelbr.app.n8n.cloud/webhook/8c9a5f1d-03df-46b1-89db-db79c4facba0/chat', {
+      webhookResponse = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
