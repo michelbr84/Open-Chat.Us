@@ -118,41 +118,21 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 ## 📋 Project Status & ToDo
 
 ### ✅ Recently Implemented Features
-
-#### Security & Infrastructure
-- **CSP hardening** - Allowed GTM/Analytics, strictly blocked others
-- **Dual-mode Connectivity** - Auto-switching between Proxy (Dev/Mobile) and Direct (Prod)
-- **Input sanitization** - DOMPurify integration with content filtering
-- **Database security** - RLS policies for all sensitive tables
-- **Guest user protection** - Enhanced validation and impersonation prevention
-- **Audit logging** - Comprehensive security event tracking
-- **Rate limiting** - Client and server-side protection
-
-#### Chat Features
-- **AI Bot integration** - Fixed array parsing, robust n8n webhook support
-- **Private messaging** - Unread indicators, notifications, conversation management
-- **File attachments** - Drag-and-drop support with security validation
-- **Threaded replies** - Organized conversation context
-- **Message reactions** - Real-time emoji reactions with counts
-- **Slash commands** - /help, /clear, /theme with autocomplete
-- **Emoji system** - Comprehensive picker with autocomplete
-
-#### User Experience
-- **Performance** - Implemented Lazy Loading & Code Splitting (LCP < 2s)
-- **Mobile optimization** - Fixed LAN/Mobile access, touch-friendly design
-- **Theme system** - Neon, Dark, Light modes with persistence
-- **User presence** - Real-time online/offline status tracking
-- **Achievement system** - Gamified user engagement
-- **Message formatting** - Markdown support with live preview
+- **Performance**: Smart pagination with infinite scrolling (loads older messages on scroll).
+- **Mobile Experience**: Fixed iOS keyboard layout and viewport issues.
+- **Notifications**: Browser push notifications for mentions.
+- **Message Features**: Instant message editing/deleting (optimistic UI) and Voice Messages support.
+- **Security**: Enhanced CSP protections and Realtime policies.
+- **Bot**: Fixed AI response parsing errors.
 
 ### 🚧 Current Known Issues & Pending Tasks
 
 #### High Priority
-- [ ] **Performance optimization** - Message pagination for large conversations
-- [ ] **Mobile keyboard issues** - iOS Safari input focus improvements
-- [ ] **Notification permissions** - Browser notification setup
-- [ ] **Message editing** - Allow users to edit their own messages
-- [ ] **Voice messages** - Audio recording and playback
+- [ ] **User profiles** - Custom avatars, bios, and status
+- [ ] **Advanced search** - Filter by user, date, or channel
+- [ ] **Content Export** - Allow users to download their chat history
+- [ ] **Admin Dashboard** - UI for moderation actions and analytics
+- [ ] **Testing** - comprehensive cross-browser and mobile testing
 
 #### Medium Priority
 - [ ] **User profiles** - Extended profile information and avatars
