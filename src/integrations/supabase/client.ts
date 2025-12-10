@@ -11,8 +11,8 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL.startsWith('/')
-  ? `${window.location.origin}${import.meta.env.VITE_SUPABASE_URL}`
+const supabaseUrl = import.meta.env.DEV
+  ? `${window.location.origin}/api`
   : import.meta.env.VITE_SUPABASE_URL;
 
 export const supabase = createClient<Database>(supabaseUrl, SUPABASE_PUBLISHABLE_KEY, {
