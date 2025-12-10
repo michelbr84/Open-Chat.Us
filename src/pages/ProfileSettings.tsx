@@ -71,7 +71,7 @@ export default function ProfileSettings() {
                     bio: profile.bio,
                     avatar_url: profile.avatar_url,
                     updated_at: new Date().toISOString(),
-                });
+                }, { onConflict: 'user_id' });
 
             if (error) throw error;
 
