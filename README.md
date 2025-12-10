@@ -120,7 +120,8 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 ### ✅ Recently Implemented Features
 
 #### Security & Infrastructure
-- **CSP hardening** - Removed unsafe directives, added security headers
+- **CSP hardening** - Allowed GTM/Analytics, strictly blocked others
+- **Dual-mode Connectivity** - Auto-switching between Proxy (Dev/Mobile) and Direct (Prod)
 - **Input sanitization** - DOMPurify integration with content filtering
 - **Database security** - RLS policies for all sensitive tables
 - **Guest user protection** - Enhanced validation and impersonation prevention
@@ -128,7 +129,7 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 - **Rate limiting** - Client and server-side protection
 
 #### Chat Features
-- **AI Bot integration** - Complete n8n webhook integration with real-time updates
+- **AI Bot integration** - Fixed array parsing, robust n8n webhook support
 - **Private messaging** - Unread indicators, notifications, conversation management
 - **File attachments** - Drag-and-drop support with security validation
 - **Threaded replies** - Organized conversation context
@@ -137,7 +138,8 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 - **Emoji system** - Comprehensive picker with autocomplete
 
 #### User Experience
-- **Mobile optimization** - Touch-friendly responsive design
+- **Performance** - Implemented Lazy Loading & Code Splitting (LCP < 2s)
+- **Mobile optimization** - Fixed LAN/Mobile access, touch-friendly design
 - **Theme system** - Neon, Dark, Light modes with persistence
 - **User presence** - Real-time online/offline status tracking
 - **Achievement system** - Gamified user engagement
@@ -147,10 +149,10 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 
 #### High Priority
 - [ ] **Performance optimization** - Message pagination for large conversations
-- [ ] **Error handling** - Improved offline/connection error states
 - [ ] **Mobile keyboard issues** - iOS Safari input focus improvements
 - [ ] **Notification permissions** - Browser notification setup
 - [ ] **Message editing** - Allow users to edit their own messages
+- [ ] **Voice messages** - Audio recording and playback
 
 #### Medium Priority
 - [ ] **User profiles** - Extended profile information and avatars
@@ -162,7 +164,6 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 #### Testing & Documentation
 - [ ] **Cross-browser testing** - Comprehensive compatibility testing
 - [ ] **API documentation** - Detailed developer documentation
-- [ ] **Performance testing** - Load testing for high concurrent users
 - [ ] **Security audit** - Third-party security assessment
 
 ### 🚀 Future Roadmap
@@ -182,7 +183,6 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 - **Documentation** - OpenAPI specification and integration guides
 
 #### Phase 3: Advanced Features
-- **Voice messages** - Audio recording and playback
 - **Video chat** - WebRTC peer-to-peer video calls
 - **Message translation** - Multi-language support
 - **Custom themes** - User-created theme system
@@ -371,4 +371,4 @@ This project is [MIT Licensed](LICENSE) - feel free to use it for personal or co
 
 ---
 
-*Last updated: July/29 2025*
+*Last updated: December 09, 2025*
