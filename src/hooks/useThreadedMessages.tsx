@@ -156,21 +156,23 @@ export const useThreadedMessages = (channelId?: string) => {
     try {
       const { data, error } = await supabase
         .from('messages')
-        .select(`
-          *,
-          message_reactions (*)
-        `)
-        .eq('thread_id', threadId)
+        .select('id, content, sender_id, sender_name, created_at, edited_at')
+        .eq('parent_message_id', threadId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
       // Transform data to match ThreadedMessage interface
-      const transformedMessages = (data || []).map(msg => ({
-        ...msg,
+      const transformedMessages: ThreadedMessage[] = (data || []).map(msg => ({
+        id: msg.id,
+        content: msg.content,
+        sender_id: msg.sender_id || '',
+        sender_name: msg.sender_name,
+        created_at: msg.created_at,
+        edited_at: msg.edited_at || undefined,
         is_edited: !!msg.edited_at,
-        reactions: msg.message_reactions || [],
-      })) as ThreadedMessage[];
+        reactions: [],
+      }));
 
       setThreadMessages(prev => ({
         ...prev,
