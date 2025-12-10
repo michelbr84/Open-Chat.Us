@@ -130,19 +130,20 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 ### 🚧 Current Known Issues & Pending Tasks
 
 #### Low Priority
-- [ ] **Advanced search** - Date and Channel filters (Partial support via client-side search)
+- [ ] **Advanced search** - Date and Channel filters (Partial client-side support)
 - [ ] **Testing** - Comprehensive cross-browser verification (Ongoing)
 
 #### Resolved
 - [x] **User profiles** - Custom avatars, bios, and status
 - [x] **Content Export** - Allow users to download their chat history
 - [x] **Admin Dashboard** - UI for moderation actions and analytics
+- [x] **Message Deletion** - Soft delete functionality
+- [x] **Google Login** - Error handling for configuration issues
+- [x] **Optimistic UI** - Smart revert logic for network failures
 
 #### Medium Priority
 - [ ] **User profiles** - Extended profile information and avatars
-- [ ] **Message deletion** - Soft delete with admin override
 - [ ] **Advanced search** - Full-text search with filters
-- [ ] **Content export** - Message history export functionality
 - [ ] **Admin dashboard** - Enhanced moderation and analytics tools
 
 #### Testing & Documentation

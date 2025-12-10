@@ -29,15 +29,15 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Welcome back!",
         description: "You have successfully logged in.",
@@ -57,7 +57,7 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     try {
       const { error } = await supabase.auth.signUp({
         email: signupData.email,
@@ -69,9 +69,9 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
           },
         },
       });
-      
+
       if (error) throw error;
-      
+
       toast({
         title: "Account created!",
         description: "Please check your email to verify your account.",
@@ -95,12 +95,20 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
           redirectTo: `${window.location.origin}/`,
         },
       });
-      
+
       if (error) throw error;
     } catch (error: any) {
+      let errorMessage = error.message;
+      let errorTitle = "Google login failed";
+
+      if (error.message?.includes("provider is not enabled") || error.code === 400) {
+        errorMessage = "Google Login is not enabled in the Supabase Dashboard. Please contact the administrator.";
+        errorTitle = "Configuration Error";
+      }
+
       toast({
-        title: "Google login failed",
-        description: error.message,
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive",
       });
     }
@@ -131,7 +139,7 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
               <TabsTrigger value="login">Login</TabsTrigger>
               <TabsTrigger value="signup">Sign Up</TabsTrigger>
             </TabsList>
-            
+
             <TabsContent value="login">
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
@@ -169,7 +177,7 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
                 </Button>
               </form>
             </TabsContent>
-            
+
             <TabsContent value="signup">
               <form onSubmit={handleSignup} className="space-y-4">
                 <div className="space-y-2">
@@ -222,7 +230,7 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
               </form>
             </TabsContent>
           </Tabs>
-          
+
           <div className="mt-6">
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -232,7 +240,7 @@ export const LoginModal = ({ onClose }: LoginModalProps) => {
                 <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
               </div>
             </div>
-            
+
             <div className="mt-4 space-y-2">
               <Button variant="outline" onClick={handleGoogleLogin} className="w-full">
                 Continue with Google

@@ -657,6 +657,9 @@ const Index = () => {
 
   // Handle message editing
   const handleEdit = async (messageId: string, newContent: string) => {
+    // Store original state for revert
+    const originalMessage = messages.find(m => m.id === messageId);
+
     // Optimistic update
     setMessages(prev => prev.map(msg =>
       msg.id === messageId
@@ -668,15 +671,23 @@ const Index = () => {
     if (!success) {
       toast({
         title: "Edit failed",
-        description: "Failed to save changes. Refreshing...",
+        description: "Failed to save changes. Reverting...",
         variant: "destructive"
       });
-      // In a real app we might revert, but a re-fetch or letting realtime fix it is robust enough for now
+      // Revert change
+      if (originalMessage) {
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId ? originalMessage : msg
+        ));
+      }
     }
   };
 
   // Handle message deletion
   const handleDelete = async (messageId: string) => {
+    // Store original state for revert
+    const originalMessage = messages.find(m => m.id === messageId);
+
     // Optimistic update
     setMessages(prev => prev.map(msg =>
       msg.id === messageId
@@ -688,9 +699,15 @@ const Index = () => {
     if (!success) {
       toast({
         title: "Delete failed",
-        description: "Failed to delete message.",
+        description: "Failed to delete message. Reverting...",
         variant: "destructive"
       });
+      // Revert change
+      if (originalMessage) {
+        setMessages(prev => prev.map(msg =>
+          msg.id === messageId ? originalMessage : msg
+        ));
+      }
     }
   };
 
