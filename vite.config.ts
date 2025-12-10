@@ -36,6 +36,13 @@ export default defineConfig(({ mode }) => ({
   },
   build: {
     rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+          supabase: ['@supabase/supabase-js'],
+          ui: ['@radix-ui/react-slot', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+        },
+      },
       input: {
         main: path.resolve(__dirname, 'index.html'),
       },

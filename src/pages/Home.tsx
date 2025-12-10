@@ -8,7 +8,7 @@ import { SiteNavigation } from "@/components/SiteNavigation";
 
 const Home = () => {
   return (
-    <div className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background">
       <SiteNavigation />
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
@@ -20,7 +20,7 @@ const Home = () => {
             Welcome to OpenChat
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            A modern, real-time community chat platform with private messaging, 
+            A modern, real-time community chat platform with private messaging,
             multi-theme UI, and crypto donation support. Built for transparency and user privacy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -31,8 +31,8 @@ const Home = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg px-8">
-              <Link to="/docs">
-                Learn More
+              <Link to="/docs" aria-label="Read the documentation">
+                Read Documentation
               </Link>
             </Button>
           </div>
@@ -47,7 +47,7 @@ const Home = () => {
             Experience the future of community communication with our feature-rich platform
           </p>
         </div>
-        
+
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           <Card>
             <CardHeader>
@@ -116,7 +116,7 @@ const Home = () => {
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to Join the Community?</h2>
           <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Join thousands of users already chatting on OpenChat. No registration required - 
+            Join thousands of users already chatting on OpenChat. No registration required -
             start as a guest or create an account for the full experience.
           </p>
           <Button asChild size="lg" className="text-lg px-8">
@@ -129,7 +129,7 @@ const Home = () => {
       </div>
 
       <Footer />
-    </div>
+    </main>
   );
 };
 
