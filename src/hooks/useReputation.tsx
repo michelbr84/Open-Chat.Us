@@ -69,14 +69,14 @@ export const useReputation = () => {
       try {
         // Get user profile with reputation score
         const { data: profile, error: profileError } = await supabase
-          .from('user_profiles')
-          .select('reputation_score')
-          .eq('id', user.id)
-          .single();
+          .from('profiles')
+          .select('reputation')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
         if (profileError) throw profileError;
 
-        const score = profile?.reputation_score || 0;
+        const score = profile?.reputation || 0;
         const levelInfo = calculateLevel(score);
         
         setReputation({
@@ -84,23 +84,21 @@ export const useReputation = () => {
           ...levelInfo
         });
 
-        // Load recent reputation activities from audit logs
-        const { data: auditData, error: auditError } = await supabase
-          .from('audit_logs')
+        // Load recent activities from moderation_actions (as a proxy for activity)
+        const { data: actionsData } = await supabase
+          .from('moderation_actions')
           .select('*')
-          .eq('user_id', user.id)
-          .in('action_type', ['MESSAGE_POST', 'REACTION_ADD', 'HELPFUL_ACTION'])
           .order('created_at', { ascending: false })
           .limit(20);
 
-        if (!auditError && auditData) {
-          const reputationActivities = auditData.map(log => ({
+        if (actionsData) {
+          const reputationActivities = actionsData.map(log => ({
             id: log.id,
             action_type: log.action_type,
-            action_description: log.action_description,
+            action_description: log.reason || 'Activity',
             points_earned: getPointsForAction(log.action_type),
             created_at: log.created_at,
-            metadata: log.metadata
+            metadata: null
           }));
           setActivities(reputationActivities);
         }
@@ -133,15 +131,23 @@ export const useReputation = () => {
     const pointsToAward = points || getPointsForAction(actionType);
     
     try {
-      // Update user reputation score
-      const { error } = await supabase.rpc('update_user_reputation', {
-        user_id_param: user.id,
-        points: pointsToAward
-      });
+      // Get current reputation
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('reputation')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const currentScore = profile?.reputation || 0;
+      const newScore = currentScore + pointsToAward;
+
+      // Update reputation
+      const { error } = await supabase
+        .from('profiles')
+        .update({ reputation: newScore })
+        .eq('user_id', user.id);
 
       if (!error) {
-        // Update local state
-        const newScore = reputation.reputation_score + pointsToAward;
         const levelInfo = calculateLevel(newScore);
         
         setReputation(prev => ({
@@ -155,13 +161,13 @@ export const useReputation = () => {
     }
   };
 
-  // Get reputation rank (would need server-side function for accurate ranking)
+  // Get reputation rank
   const getReputationRank = async (): Promise<number | null> => {
     try {
       const { count } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*', { count: 'exact', head: true })
-        .gt('reputation_score', reputation.reputation_score);
+        .gt('reputation', reputation.reputation_score);
 
       return (count || 0) + 1;
     } catch (error) {
