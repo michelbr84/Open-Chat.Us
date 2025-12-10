@@ -116,6 +116,7 @@ export const usePerformanceTesting = () => {
             const { error } = await supabase.from('message_reactions').insert({
               message_id: messageId,
               user_id: `perf-test-${Date.now()}-${index}`,
+              user_name: `PerfTester${index}`,
               emoji,
             });
 

@@ -34,34 +34,12 @@ export const useNotifications = () => {
     announcements: true,
   });
 
-  // Fetch user's notification preferences
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchPreferences = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('notification_preferences')
-          .eq('id', user.id)
-          .single();
-
-        if (error) throw error;
-
-        if (data?.notification_preferences) {
-          setPreferences(data.notification_preferences as NotificationPreferences);
-        }
-      } catch (error) {
-        console.error('Error fetching notification preferences:', error);
-      }
-    };
-
-    fetchPreferences();
-  }, [user]);
-
   // Fetch notifications
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
 
     const fetchNotifications = async () => {
       try {
@@ -208,24 +186,11 @@ export const useNotifications = () => {
     }
   };
 
-  // Update notification preferences
+  // Update notification preferences (stored in localStorage for now)
   const updatePreferences = async (newPreferences: NotificationPreferences) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('user_profiles')
-        .update({ notification_preferences: newPreferences })
-        .eq('id', user.id);
-
-      if (error) throw error;
-
-      setPreferences(newPreferences);
-      toast.success('Notification preferences updated');
-    } catch (error) {
-      console.error('Error updating notification preferences:', error);
-      toast.error('Failed to update preferences');
-    }
+    setPreferences(newPreferences);
+    localStorage.setItem('notification_preferences', JSON.stringify(newPreferences));
+    toast.success('Notification preferences updated');
   };
 
   // Request notification permission
@@ -259,6 +224,6 @@ export const useNotifications = () => {
     markAllAsRead,
     updatePreferences,
     requestNotificationPermission,
-    hasPermission: Notification.permission === 'granted',
+    hasPermission: typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted',
   };
 };

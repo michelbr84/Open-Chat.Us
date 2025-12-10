@@ -37,6 +37,9 @@ export const LeaderboardCard = ({
     }
   };
 
+  const displayName = entry.username || 'Anonymous';
+  const initials = displayName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+
   return (
     <Card className={`transition-all duration-200 hover:shadow-md ${
       isCurrentUser ? 'ring-2 ring-primary' : ''
@@ -50,9 +53,9 @@ export const LeaderboardCard = ({
 
           {/* Avatar */}
           <Avatar className="h-10 w-10 flex-shrink-0">
-            <AvatarImage src={entry.avatar_url} alt={entry.full_name} />
+            <AvatarImage src={entry.avatar_url} alt={displayName} />
             <AvatarFallback>
-              {entry.full_name.split(' ').map(n => n[0]).join('').toUpperCase()}
+              {initials}
             </AvatarFallback>
           </Avatar>
 
@@ -60,7 +63,7 @@ export const LeaderboardCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <h3 className="font-semibold truncate">
-                {entry.full_name}
+                {displayName}
                 {isCurrentUser && (
                   <Badge variant="secondary" className="ml-2 text-xs">You</Badge>
                 )}
@@ -83,7 +86,7 @@ export const LeaderboardCard = ({
 
           {/* Score */}
           <div className="text-right flex-shrink-0">
-            <div className="text-lg font-bold">{entry.reputation_score}</div>
+            <div className="text-lg font-bold">{entry.total_points}</div>
             <div className="text-xs text-muted-foreground">points</div>
           </div>
         </div>

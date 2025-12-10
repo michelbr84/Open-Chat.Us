@@ -29,7 +29,7 @@ export const ContentAnalyticsDashboard = () => {
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-destructive">Error loading content analytics: {error}</p>
+        <p className="text-destructive">Error loading content analytics: {String(error)}</p>
       </div>
     );
   }

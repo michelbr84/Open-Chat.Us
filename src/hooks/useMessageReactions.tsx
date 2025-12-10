@@ -47,7 +47,7 @@ export const useMessageReactions = () => {
       }
       
       grouped[reaction.message_id][reaction.emoji].count++;
-      grouped[reaction.message_id][reaction.emoji].users.push(reaction.user_id);
+      grouped[reaction.message_id][reaction.emoji].users.push(reaction.user_id || reaction.user_name);
       
       // Check if current user reacted (handle both authenticated users and secure guest IDs)
       const currentUserId = user ? user.id : getOrCreateGuestId();
@@ -84,6 +84,7 @@ export const useMessageReactions = () => {
   const toggleReaction = async (messageId: string, emoji: string) => {
     // Use secure guest ID for consistent identification
     const userId = user ? user.id : getOrCreateGuestId();
+    const userName = user?.email?.split('@')[0] || `Guest-${userId.slice(0, 8)}`;
     
     if (!user) {
       // For guests, reactions will persist using secure localStorage-based IDs
@@ -111,13 +112,14 @@ export const useMessageReactions = () => {
         return;
       }
     } else {
-      // Add reaction
+      // Add reaction - include required user_name field
       const { error } = await supabase
         .from('message_reactions')
         .insert({
           message_id: messageId,
           user_id: userId,
           emoji: emoji,
+          user_name: userName
         });
 
       if (error) {

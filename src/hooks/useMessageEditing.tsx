@@ -27,7 +27,10 @@ export const useMessageEditing = () => {
 
     const { error } = await supabase
       .from('messages')
-      .update({ content: newContent.trim() })
+      .update({ 
+        content: newContent.trim(),
+        edited_at: new Date().toISOString()
+      })
       .eq('id', messageId)
       .eq('sender_id', user.id); // Security: users can only edit their own messages
 
@@ -61,7 +64,6 @@ export const useMessageEditing = () => {
       .from('messages')
       .update({ 
         is_deleted: true, 
-        deleted_at: new Date().toISOString(),
         content: '[Message deleted]'
       })
       .eq('id', messageId)
@@ -83,21 +85,9 @@ export const useMessageEditing = () => {
     return true;
   };
 
+  // Get edit history - we'll just return empty array since we don't have an edit history table
   const getEditHistory = async (messageId: string) => {
-    if (!user) return [];
-
-    const { data, error } = await supabase
-      .from('message_edit_history')
-      .select('*')
-      .eq('message_id', messageId)
-      .order('edited_at', { ascending: false });
-
-    if (error) {
-      console.error('Failed to load edit history:', error);
-      return [];
-    }
-
-    return data || [];
+    return [];
   };
 
   return {

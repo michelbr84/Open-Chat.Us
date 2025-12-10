@@ -23,22 +23,12 @@ import {
 
 interface ModerationAction {
   id: string;
-  target_user_id: string;
-  moderator_id: string;
-  action: string;
-  reason: string;
-  details?: string;
-  duration_minutes?: number;
-  expires_at?: string;
+  target_user_id: string | null;
+  moderator_id: string | null;
+  action_type: string;
+  reason: string | null;
+  duration_minutes: number | null;
   created_at: string;
-  moderator_profile?: {
-    name: string;
-    email: string;
-  };
-  target_profile?: {
-    name: string;
-    email: string;
-  };
 }
 
 export const ActionHistory = () => {
@@ -56,16 +46,12 @@ export const ActionHistory = () => {
     try {
       let query = supabase
         .from('moderation_actions')
-        .select(`
-          *,
-          moderator_profile:moderator_id(name, email),
-          target_profile:target_user_id(name, email)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       // Apply action filter
       if (filterAction !== 'all') {
-        query = query.eq('action', filterAction as any);
+        query = query.eq('action_type', filterAction);
       }
 
       // Apply time filter
@@ -94,12 +80,7 @@ export const ActionHistory = () => {
 
       if (error) throw error;
       
-      // Type assertion for the joined data
-      setActions((data as any[])?.map(action => ({
-        ...action,
-        moderator_profile: action.moderator_profile || null,
-        target_profile: action.target_profile || null
-      })) || []);
+      setActions(data || []);
     } catch (error) {
       console.error('Failed to fetch action history:', error);
     } finally {
@@ -136,11 +117,9 @@ export const ActionHistory = () => {
   const filteredActions = actions.filter(action => {
     const searchLower = searchTerm.toLowerCase();
     return (
-      action.target_profile?.name?.toLowerCase().includes(searchLower) ||
-      action.target_profile?.email?.toLowerCase().includes(searchLower) ||
-      action.moderator_profile?.name?.toLowerCase().includes(searchLower) ||
-      action.reason.toLowerCase().includes(searchLower) ||
-      action.target_user_id.includes(searchTerm)
+      action.target_user_id?.toLowerCase().includes(searchLower) ||
+      action.moderator_id?.toLowerCase().includes(searchLower) ||
+      action.reason?.toLowerCase().includes(searchLower)
     );
   });
 
@@ -215,19 +194,19 @@ export const ActionHistory = () => {
           </Card>
         ) : (
           filteredActions.map((action) => {
-            const ActionIcon = getActionIcon(action.action);
+            const ActionIcon = getActionIcon(action.action_type);
             
             return (
               <Card key={action.id}>
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <ActionIcon className={`h-5 w-5 ${getActionColor(action.action)}`} />
+                      <ActionIcon className={`h-5 w-5 ${getActionColor(action.action_type)}`} />
                       <div>
                         <CardTitle className="text-base flex items-center gap-2">
-                          {action.action.charAt(0).toUpperCase() + action.action.slice(1)} Action
-                          <Badge variant="outline" className={getActionColor(action.action)}>
-                            {action.action}
+                          {action.action_type.charAt(0).toUpperCase() + action.action_type.slice(1)} Action
+                          <Badge variant="outline" className={getActionColor(action.action_type)}>
+                            {action.action_type}
                           </Badge>
                         </CardTitle>
                         <CardDescription>
@@ -243,7 +222,7 @@ export const ActionHistory = () => {
                   <div>
                     <h4 className="text-sm font-medium mb-1">Target User:</h4>
                     <p className="text-sm text-muted-foreground">
-                      {action.target_profile?.name || 'Unknown'} ({action.target_profile?.email || action.target_user_id})
+                      {action.target_user_id || 'Unknown'}
                     </p>
                   </div>
 
@@ -251,39 +230,26 @@ export const ActionHistory = () => {
                   <div>
                     <h4 className="text-sm font-medium mb-1">Moderator:</h4>
                     <p className="text-sm text-muted-foreground">
-                      {action.moderator_profile?.name || 'System'} ({action.moderator_profile?.email || 'Automated'})
+                      {action.moderator_id || 'System'}
                     </p>
                   </div>
 
                   {/* Reason */}
-                  <div>
-                    <h4 className="text-sm font-medium mb-1">Reason:</h4>
-                    <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
-                      {action.reason}
-                    </p>
-                  </div>
+                  {action.reason && (
+                    <div>
+                      <h4 className="text-sm font-medium mb-1">Reason:</h4>
+                      <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
+                        {action.reason}
+                      </p>
+                    </div>
+                  )}
 
-                  {/* Duration and Expiry */}
+                  {/* Duration */}
                   {action.duration_minutes && (
                     <div>
                       <h4 className="text-sm font-medium mb-1">Duration:</h4>
                       <p className="text-sm text-muted-foreground">
                         {action.duration_minutes} minutes
-                        {action.expires_at && (
-                          <span className="ml-2">
-                            (Expires: {new Date(action.expires_at).toLocaleString()})
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Additional Details */}
-                  {action.details && (
-                    <div>
-                      <h4 className="text-sm font-medium mb-1">Additional Details:</h4>
-                      <p className="text-sm text-muted-foreground bg-muted p-2 rounded">
-                        {action.details}
                       </p>
                     </div>
                   )}
