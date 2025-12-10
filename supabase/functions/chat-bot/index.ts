@@ -19,16 +19,16 @@ const RATE_WINDOW = 60 * 1000; // 1 minute in milliseconds
 function isRateLimited(identifier: string): boolean {
   const now = Date.now();
   const record = rateLimitMap.get(identifier);
-  
+
   if (!record || now > record.resetTime) {
     rateLimitMap.set(identifier, { count: 1, resetTime: now + RATE_WINDOW });
     return false;
   }
-  
+
   if (record.count >= RATE_LIMIT) {
     return true;
   }
-  
+
   record.count++;
   return false;
 }
@@ -46,17 +46,17 @@ serve(async (req) => {
 
   try {
     // Get client identifier for rate limiting
-    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 
-                     req.headers.get('cf-connecting-ip') || 
-                     'unknown';
+    const clientIP = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      req.headers.get('cf-connecting-ip') ||
+      'unknown';
 
     const requestBody = await req.json();
-    console.log('Received request:', { 
-      url: req.url, 
+    console.log('Received request:', {
+      url: req.url,
       origin: req.headers.get('origin'),
-      body: requestBody 
+      body: requestBody
     });
-    
+
     const { message, username, mentions } = requestBody;
 
     if (!message || !username) {
@@ -73,14 +73,14 @@ serve(async (req) => {
 
     // Rate limit check (use username + IP as identifier)
     const rateLimitKey = `${sanitizedUsername}:${clientIP}`;
-    
+
     // Skip rate limit for health checks
     const isHealthCheck = sanitizedUsername === 'status-check' && sanitizedMessage === 'ping';
-    
+
     if (!isHealthCheck && isRateLimited(rateLimitKey)) {
       console.log(`Rate limit exceeded for: ${rateLimitKey}`);
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           success: false,
           error: 'Too many requests. Please slow down.',
           botResponse: "You're sending messages too quickly. Please wait a moment before trying again."
@@ -90,8 +90,8 @@ serve(async (req) => {
     }
 
     // Check if this is a health check or bot mention
-    const isBotMention = sanitizedMessage.toLowerCase().startsWith('@bot') || 
-                        mentions?.some((m: any) => m.username?.toLowerCase() === 'bot');
+    const isBotMention = sanitizedMessage.toLowerCase().startsWith('@bot') ||
+      mentions?.some((m: any) => m.username?.toLowerCase() === 'bot');
 
     if (!isHealthCheck && !isBotMention) {
       return new Response(
@@ -103,7 +103,7 @@ serve(async (req) => {
     // Handle health check
     if (isHealthCheck) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           success: true,
           botResponse: "Bot is online and ready!",
           messageId: null
@@ -117,7 +117,7 @@ serve(async (req) => {
 
     if (!cleanMessage) {
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           success: false,
           error: 'No message content provided',
           botResponse: "Hi! I'm here to help. What would you like to know?"
@@ -131,13 +131,13 @@ serve(async (req) => {
     // Send to n8n webhook with proper error handling and timeout
     let webhookResponse;
     let webhookData;
-    
+
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-    
+
     try {
       console.log('Calling n8n webhook with bot message:', cleanMessage);
-      
+
       webhookResponse = await fetch(N8N_WEBHOOK_URL, {
         method: 'POST',
         headers: {
@@ -153,7 +153,7 @@ serve(async (req) => {
         }),
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
 
       console.log('n8n webhook response status:', webhookResponse.status);
@@ -161,9 +161,9 @@ serve(async (req) => {
       if (!webhookResponse.ok) {
         const errorText = await webhookResponse.text();
         console.error('n8n webhook error:', webhookResponse.status, webhookResponse.statusText, errorText);
-        
+
         return new Response(
-          JSON.stringify({ 
+          JSON.stringify({
             success: false,
             error: 'Bot is temporarily busy. Please try again in a moment.',
             botResponse: "I'm having trouble processing your request right now. Please try again in a few moments!"
@@ -174,12 +174,12 @@ serve(async (req) => {
 
       webhookData = await webhookResponse.json();
       console.log('n8n webhook response data:', webhookData);
-      
+
     } catch (fetchError) {
       console.error('Network error calling n8n webhook:', fetchError);
-      
+
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           success: false,
           error: 'Bot is temporarily unavailable. Please try again later.',
           botResponse: "I'm currently offline. Please try again later!"
@@ -190,17 +190,30 @@ serve(async (req) => {
 
     // Parse the bot response from n8n webhook
     let botResponse = '';
-    if (typeof webhookData === 'string') {
-      botResponse = webhookData;
-    } else if (webhookData && webhookData.response) {
-      botResponse = webhookData.response;
-    } else if (webhookData && webhookData.message) {
-      botResponse = webhookData.message;
-    } else if (webhookData && webhookData.botResponse) {
-      botResponse = webhookData.botResponse;
-    } else if (webhookData && webhookData.content) {
-      botResponse = webhookData.content;
-    } else {
+
+    // Handle array response (common in n8n)
+    let responseData = webhookData;
+    if (Array.isArray(webhookData) && webhookData.length > 0) {
+      responseData = webhookData[0];
+    }
+
+    if (typeof responseData === 'string') {
+      botResponse = responseData;
+    } else if (responseData && typeof responseData === 'object') {
+      if (responseData.output) {
+        botResponse = responseData.output;
+      } else if (responseData.response) {
+        botResponse = responseData.response;
+      } else if (responseData.message) {
+        botResponse = responseData.message;
+      } else if (responseData.botResponse) {
+        botResponse = responseData.botResponse;
+      } else if (responseData.content) {
+        botResponse = responseData.content;
+      }
+    }
+
+    if (!botResponse) {
       console.log('Unexpected n8n webhook response format:', webhookData);
       botResponse = "I received your message but couldn't process it properly. Please try again.";
     }
@@ -238,9 +251,9 @@ serve(async (req) => {
 
     if (insertError) {
       console.error('Error inserting bot message to database:', insertError);
-      
+
       return new Response(
-        JSON.stringify({ 
+        JSON.stringify({
           success: false,
           error: 'Bot responded but failed to save to database',
           botResponse: botResponse,
@@ -253,8 +266,8 @@ serve(async (req) => {
     console.log('✅ Bot message saved to database successfully:', messageData.id);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         botResponse: botResponse,
         messageId: messageData.id,
         savedToDatabase: true
@@ -264,17 +277,17 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in chat-bot function:', error);
-    
+
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         success: false,
         error: 'Bot is temporarily unavailable. Please try again later.',
         botResponse: "I'm sorry, I'm having technical difficulties right now. Please try again later!",
         details: error.message
       }),
-      { 
+      {
         status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       }
     );
   }
