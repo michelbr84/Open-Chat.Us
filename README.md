@@ -122,17 +122,21 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 - **Mobile Experience**: Fixed iOS keyboard layout and viewport issues.
 - **Notifications**: Browser push notifications for mentions.
 - **Message Features**: Instant message editing/deleting (optimistic UI) and Voice Messages support.
+- **User Features**: User Profile management, Status updates, and Chat History Export.
+- **Admin**: Dedicated Dashboard for moderation.
 - **Security**: Enhanced CSP protections and Realtime policies.
 - **Bot**: Fixed AI response parsing errors.
 
 ### 🚧 Current Known Issues & Pending Tasks
 
-#### High Priority
-- [ ] **User profiles** - Custom avatars, bios, and status
-- [ ] **Advanced search** - Filter by user, date, or channel
-- [ ] **Content Export** - Allow users to download their chat history
-- [ ] **Admin Dashboard** - UI for moderation actions and analytics
-- [ ] **Testing** - comprehensive cross-browser and mobile testing
+#### Low Priority
+- [ ] **Advanced search** - Date and Channel filters (Partial support via client-side search)
+- [ ] **Testing** - Comprehensive cross-browser verification (Ongoing)
+
+#### Resolved
+- [x] **User profiles** - Custom avatars, bios, and status
+- [x] **Content Export** - Allow users to download their chat history
+- [x] **Admin Dashboard** - UI for moderation actions and analytics
 
 #### Medium Priority
 - [ ] **User profiles** - Extended profile information and avatars

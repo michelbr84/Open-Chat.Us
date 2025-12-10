@@ -21,6 +21,7 @@ const AdminDashboard = lazy(() => import("./pages/AdminDashboard").then(module =
 const Achievements = lazy(() => import("./pages/Achievements").then(module => ({ default: module.Achievements })));
 const Leaderboard = lazy(() => import("./pages/Leaderboard").then(module => ({ default: module.Leaderboard })));
 const GitHubSecurityChecker = lazy(() => import("./pages/GitHubSecurityChecker").then(module => ({ default: module.GitHubSecurityChecker })));
+const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
 
 const queryClient = new QueryClient();
 
@@ -50,6 +51,7 @@ const App = () => (
                 <Route path="/terms" element={<Terms />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/profile" element={<ProfileSettings />} />
                 <Route path="/achievements" element={<Achievements />} />
                 <Route path="/leaderboard" element={<Leaderboard />} />
                 <Route path="/security-checker" element={<GitHubSecurityChecker />} />

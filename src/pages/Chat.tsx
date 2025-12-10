@@ -619,6 +619,32 @@ const Index = () => {
     }
   };
 
+  // Handle chat export
+  const handleExportChat = () => {
+    try {
+      const dataStr = JSON.stringify(messages, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+
+      const exportFileDefaultName = `chat-export-${new Date().toISOString().slice(0, 10)}.json`;
+
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+
+      toast({
+        title: "Chat Exported",
+        description: "Your chat history has been downloaded.",
+      });
+    } catch (error) {
+      toast({
+        title: "Export failed",
+        description: "Could not export chat history.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Handle emoji reactions - now connected to real backend
   const handleReaction = (messageId: string, emoji: string) => {
     toggleReaction(messageId, emoji);
@@ -684,6 +710,7 @@ const Index = () => {
         onDonateClick={() => setShowDonate(true)}
         onOpenPrivateChat={handleOpenPrivateChat}
         onShowBookmarks={() => setShowBookmarks(true)}
+        onExportChat={handleExportChat}
       />
 
       <div className="flex-1 flex overflow-hidden">

@@ -6,13 +6,23 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserPresence } from '@/hooks/useUserPresence';
 import { supabase } from '@/integrations/supabase/client';
-import { Search, Palette, LogIn, LogOut, Heart, X, Circle, Bookmark, Bell } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Palette, LogIn, LogOut, Heart, X, Circle, Bookmark, Bell, User, Download, Settings, Loader2 } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
 import { UnreadMessageIndicator } from '@/components/UnreadMessageIndicator';
 import { NotificationCenter } from '@/components/NotificationCenter';
 import { StatusUpdateModal } from '@/components/StatusUpdateModal';
 import { UserPresenceIndicator } from '@/components/UserPresenceIndicator';
 import { BotTestButton } from '@/components/BotTestButton';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 
 interface ChatHeaderProps {
   searchQuery: string;
@@ -21,6 +31,7 @@ interface ChatHeaderProps {
   onDonateClick: () => void;
   onOpenPrivateChat: (senderId: string, senderName: string) => void;
   onShowBookmarks?: () => void;
+  onExportChat?: () => void;
 }
 
 export const ChatHeader = ({
@@ -29,10 +40,12 @@ export const ChatHeader = ({
   onLoginClick,
   onDonateClick,
   onOpenPrivateChat,
-  onShowBookmarks
+  onShowBookmarks,
+  onExportChat
 }: ChatHeaderProps) => {
   const { cycleTheme, theme } = useTheme();
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { getOnlineCount } = useUserPresence();
   const { permission, requestPermission } = useNotifications();
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -131,28 +144,55 @@ export const ChatHeader = ({
                 <span className="hidden sm:inline">Bookmarks</span>
               </Button>
             )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsStatusModalOpen(true)}
-              className="flex items-center gap-2 min-h-[40px]"
-            >
-              <UserPresenceIndicator userId={user.id} userName={user.email} />
-              <span className="hidden sm:inline">Status</span>
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2 px-2 min-h-[40px]">
+                  <UserPresenceIndicator userId={user.id} userName={user.email} />
+                  <span className="hidden sm:inline-block max-w-[100px] truncate">
+                    {user.identities?.[0]?.identity_data?.full_name || user.email?.split('@')[0]}
+                  </span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setIsStatusModalOpen(true)}>
+                  <Circle className="mr-2 h-4 w-4 fill-current" />
+                  <span>Set Status</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/achievements')}>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Achievements</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                {onExportChat && (
+                  <>
+                    <DropdownMenuItem onClick={onExportChat}>
+                      <Download className="mr-2 h-4 w-4" />
+                      <span>Export Chat</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <UnreadMessageIndicator onOpenPrivateChat={onOpenPrivateChat} />
           </>
         )}
 
-        {!user ? (
+
+
+        {!user && (
           <Button variant="outline" onClick={onLoginClick} className="min-h-[40px] px-4">
             <LogIn className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline">Log In</span>
-          </Button>
-        ) : (
-          <Button variant="outline" onClick={handleLogout} className="min-h-[40px] px-4">
-            <LogOut className="w-4 h-4 mr-2" />
-            <span className="hidden sm:inline">Log Out</span>
           </Button>
         )}
 
