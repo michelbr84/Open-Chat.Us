@@ -113,8 +113,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          expires_at: string | null
           id: string
+          is_temporary: boolean | null
+          max_participants: number | null
           name: string
+          room_type: string | null
           status: string | null
           type: string | null
         }
@@ -122,8 +126,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: string
+          is_temporary?: boolean | null
+          max_participants?: number | null
           name: string
+          room_type?: string | null
           status?: string | null
           type?: string | null
         }
@@ -131,10 +139,38 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          expires_at?: string | null
           id?: string
+          is_temporary?: boolean | null
+          max_participants?: number | null
           name?: string
+          room_type?: string | null
           status?: string | null
           type?: string | null
+        }
+        Relationships: []
+      }
+      contacts: {
+        Row: {
+          contact_user_id: string
+          created_at: string | null
+          id: string
+          nickname: string | null
+          user_id: string
+        }
+        Insert: {
+          contact_user_id: string
+          created_at?: string | null
+          id?: string
+          nickname?: string | null
+          user_id: string
+        }
+        Update: {
+          contact_user_id?: string
+          created_at?: string | null
+          id?: string
+          nickname?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -208,6 +244,41 @@ export type Database = {
             columns: ["message_id"]
             isOneToOne: false
             referencedRelation: "messages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      group_members: {
+        Row: {
+          channel_id: string
+          id: string
+          invited_by: string | null
+          joined_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          channel_id: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          channel_id?: string
+          id?: string
+          invited_by?: string | null
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_channel_id_fkey"
+            columns: ["channel_id"]
+            isOneToOne: false
+            referencedRelation: "channels"
             referencedColumns: ["id"]
           },
         ]
@@ -657,6 +728,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_temporary_rooms: { Args: never; Returns: undefined }
       enhanced_rate_limit_check: {
         Args: { p_action_type?: string; p_user_id: string }
         Returns: boolean
