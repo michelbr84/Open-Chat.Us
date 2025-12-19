@@ -22,7 +22,7 @@ export const useBotIntegration = () => {
     setIsCheckingStatus(true);
     try {
       const startTime = Date.now();
-      
+
       // Test the edge function with a health check message
       const { data, error } = await supabase.functions.invoke('chat-bot', {
         body: {
@@ -43,7 +43,7 @@ export const useBotIntegration = () => {
         lastChecked: new Date(),
         responseTime: isOnline ? responseTime : undefined
       }));
-      
+
       return isOnline;
 
     } catch (error) {
@@ -61,15 +61,16 @@ export const useBotIntegration = () => {
   };
 
   // Send message to bot and return response data
-  const sendMessageToBot = async (message: string, username: string, mentions: any[] = []) => {
+  const sendMessageToBot = async (message: string, username: string, mentions: any[] = [], channelId?: string | null) => {
     try {
-      console.log('🚀 Sending message to bot via edge function:', { message, username, mentions });
+      console.log('🚀 Sending message to bot via edge function:', { message, username, mentions, channelId });
 
       const { data, error } = await supabase.functions.invoke('chat-bot', {
         body: {
           message,
           username,
-          mentions
+          mentions,
+          channel_id: channelId || null,
         }
       });
 
@@ -80,7 +81,7 @@ export const useBotIntegration = () => {
           description: "Failed to send message to the AI bot. Please try again.",
           variant: "destructive",
         });
-        
+
         // Mark bot as offline and return error
         setBotStatus(prev => ({
           ...prev,
@@ -91,7 +92,7 @@ export const useBotIntegration = () => {
       }
 
       console.log('✅ Bot response received:', data);
-      
+
       // Handle different response formats
       if (data?.success === false) {
         // Bot returned an error but with a friendly message
@@ -120,8 +121,8 @@ export const useBotIntegration = () => {
       }));
 
       // Successful response
-      return { 
-        success: true, 
+      return {
+        success: true,
         botResponse: data?.botResponse || "I received your message!",
         messageId: data?.messageId,
         savedToDatabase: data?.savedToDatabase || false
@@ -134,7 +135,7 @@ export const useBotIntegration = () => {
         description: "Could not connect to the AI bot. Please check your connection.",
         variant: "destructive",
       });
-      
+
       // Mark bot as offline on connection errors
       setBotStatus(prev => ({
         ...prev,
@@ -148,8 +149,8 @@ export const useBotIntegration = () => {
   // Check if a message is intended for the bot
   const isBotMention = (content: string, mentions: any[] = []): boolean => {
     const startsWithBot = content.toLowerCase().trim().startsWith('@bot');
-    const hasBotMention = mentions?.some(mention => 
-      mention.username?.toLowerCase() === 'bot' || 
+    const hasBotMention = mentions?.some(mention =>
+      mention.username?.toLowerCase() === 'bot' ||
       mention.display_name?.toLowerCase() === 'bot'
     );
     return startsWithBot || hasBotMention;

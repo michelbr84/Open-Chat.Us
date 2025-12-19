@@ -38,9 +38,22 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
+          // Core vendor libraries
+          vendor: ['react', 'react-dom'],
+          router: ['react-router-dom'],
           supabase: ['@supabase/supabase-js'],
-          ui: ['@radix-ui/react-slot', 'class-variance-authority', 'clsx', 'tailwind-merge'],
+          // UI libraries (Radix is large, split it out)
+          'radix-ui': [
+            '@radix-ui/react-slot',
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-avatar',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-scroll-area',
+          ],
+          ui: ['class-variance-authority', 'clsx', 'tailwind-merge'],
+          // Utilities
+          utils: ['date-fns', 'dompurify', 'uuid'],
         },
       },
       input: {
@@ -48,6 +61,7 @@ export default defineConfig(({ mode }) => ({
       },
     },
     copyPublicDir: true,
+    chunkSizeWarningLimit: 600, // Warn if chunks exceed 600kb
   },
   publicDir: 'public',
 }));

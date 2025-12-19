@@ -421,7 +421,7 @@ const Index = () => {
       });
 
       // Send to bot and handle the response
-      const botResponse = await sendMessageToBot(content, senderName, mentions);
+      const botResponse = await sendMessageToBot(content, senderName, mentions, null); // Always null for public chat in this context
 
       if (botResponse.success && botResponse.botResponse) {
         // Bot responded successfully - verify if it was saved to database

@@ -1,3 +1,4 @@
+// @ts-nocheck - This file runs in Deno runtime, IDE is configured for Node.js
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
@@ -57,7 +58,7 @@ serve(async (req) => {
       body: requestBody
     });
 
-    const { message, username, mentions } = requestBody;
+    const { message, username, mentions, channel_id } = requestBody;
 
     if (!message || !username) {
       console.error('Missing required fields:', { message: !!message, username: !!username });
@@ -244,7 +245,8 @@ serve(async (req) => {
         sender_name: 'bot',
         sender_id: null,
         mentions: [],
-        is_bot_message: true
+        is_bot_message: true,
+        channel_id: channel_id || null, // NULL for public chat, room ID for private/group rooms
       })
       .select()
       .single();
