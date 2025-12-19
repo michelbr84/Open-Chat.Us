@@ -3,15 +3,15 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Book, 
-  MessageSquare, 
-  Hash, 
-  Smile, 
-  AtSign, 
-  Bold, 
-  Italic, 
-  Underline, 
+import {
+  Book,
+  MessageSquare,
+  Hash,
+  Smile,
+  AtSign,
+  Bold,
+  Italic,
+  Underline,
   Strikethrough,
   Code,
   Quote,
@@ -72,14 +72,14 @@ export default function Documentation() {
     </Button>
   );
 
-  const SyntaxExample = ({ 
-    syntax, 
-    description, 
-    example, 
-    copyText 
-  }: { 
-    syntax: string; 
-    description: string; 
+  const SyntaxExample = ({
+    syntax,
+    description,
+    example,
+    copyText
+  }: {
+    syntax: string;
+    description: string;
     example: string;
     copyText?: string;
   }) => (
@@ -99,7 +99,7 @@ export default function Documentation() {
   return (
     <div className="min-h-screen bg-background">
       <SiteNavigation />
-      
+
       {/* Header */}
       <div className="border-b bg-card">
         <div className="container mx-auto px-4 py-6">
@@ -115,15 +115,27 @@ export default function Documentation() {
 
       {/* Main Content */}
       <div className="container mx-auto px-4 py-8">
-        <Tabs defaultValue="bot" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+        <Tabs defaultValue="rooms" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+            <TabsTrigger value="rooms" className="flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Rooms
+            </TabsTrigger>
+            <TabsTrigger value="contacts" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Contacts
+            </TabsTrigger>
+            <TabsTrigger value="groups" className="flex items-center gap-2">
+              <Users className="w-4 h-4" />
+              Groups
+            </TabsTrigger>
             <TabsTrigger value="bot" className="flex items-center gap-2">
               <Bot className="w-4 h-4" />
               AI Bot
             </TabsTrigger>
             <TabsTrigger value="formatting" className="flex items-center gap-2">
               <Bold className="w-4 h-4" />
-              Text Formatting
+              Formatting
             </TabsTrigger>
             <TabsTrigger value="emojis" className="flex items-center gap-2">
               <Smile className="w-4 h-4" />
@@ -135,9 +147,445 @@ export default function Documentation() {
             </TabsTrigger>
             <TabsTrigger value="quick-reference" className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              Quick Reference
+              Quick Ref
             </TabsTrigger>
           </TabsList>
+
+          {/* Rooms Tab */}
+          <TabsContent value="rooms" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageSquare className="w-5 h-5" />
+                  Private Rooms & Group Chats
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What are Rooms?</h4>
+                      <p className="text-blue-800 dark:text-blue-200 text-sm">
+                        Rooms are dedicated chat spaces separate from the public chat. Create persistent rooms for long-term projects or temporary rooms for quick discussions that auto-delete after a set time.
+                      </p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Creating a Room
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                      <div>
+                        <h4 className="font-medium">Prerequisites</h4>
+                        <p className="text-sm text-muted-foreground">You must be logged in to create rooms. Guest users cannot create rooms.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground  flex items-center justify-center text-sm font-semibold">2</div>
+                      <div>
+                        <h4 className="font-medium">Find the Create Button</h4>
+                        <p className="text-sm text-muted-foreground">Look for "Rooms" in the sidebar and click the "Create Room" or "+" button.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
+                      <div>
+                        <h4 className="font-medium">Configure Your Room</h4>
+                        <p className="text-sm text-muted-foreground">Set a name, description, choose Private or Group type, and decide if it should be temporary.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">4</div>
+                      <div>
+                        <h4 className="font-medium">Create and Join</h4>
+                        <p className="text-sm text-muted-foreground">Click "Create Room" - you become the admin automatically!</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Room Types</h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Shield className="w-4 h-4" />
+                          Private Room
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          • One-on-one or small group conversations<br />
+                          • Only invited members can access<br />
+                          • Perfect for private discussions<br />
+                          • Messages stay in the room
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <Users className="w-4 h-4" />
+                          Group Room
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          • Multiple participants with roles<br />
+                          • Admin, Moderator, and Member roles<br />
+                          • Full member management<br />
+                          • Collaborative discussions
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <AlertCircle className="w-5 h-5" />
+                    Temporary Rooms
+                  </h3>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-semibold mb-2">How Temporary Rooms Work:</h4>
+                    <ul className="space-y-1 text-sm text-muted-foreground">
+                      <li>• Auto-delete after a set time (30 min, 1 hr, 2 hrs, 4 hrs, or 24 hrs)</li>
+                      <li>• Timer starts when room is created</li>
+                      <li>• All messages are deleted when room expires</li>
+                      <li>• Perfect for quick huddles or time-limited events</li>
+                      <li>• A cleanup function runs hourly to remove expired rooms</li>
+                    </ul>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    💡 Pro Tips
+                  </h4>
+                  <ul className="space-y-1 text-sm text-yellow-800 dark:text-yellow-200">
+                    <li>• Use descriptive names like "Project X Team" or "Study Group"</li>
+                    <li>• Temporary rooms are perfect for meetings - they clean up automatically</li>
+                    <li>• Persistent rooms stay forever - use them for ongoing projects</li>
+                    <li>• You can invite members after creating the room</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Contacts Tab */}
+          <TabsContent value="contacts" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Managing Contacts (Friends)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What are Contacts?</h4>
+                      <p className="text-blue-800 dark:text-blue-200 text-sm">
+                        Contacts (or Friends) are users you've added to your personal list for easy communication and group management. Add contacts to quickly invite them to groups or start private conversations.
+                      </p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Adding a Contact
+                  </h3>
+
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                      <div>
+                        <h4 className="font-medium">Open Contacts Panel</h4>
+                        <p className="text-sm text-muted-foreground">Look for the "Contacts" icon in the sidebar and click to open.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">2</div>
+                      <div>
+                        <h4 className="font-medium">Click Add Contact</h4>
+                        <p className="text-sm text-muted-foreground">A search dialog will appear.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
+                      <div>
+                        <h4 className="font-medium">Search for User</h4>
+                        <p className="text-sm text-muted-foreground">Type the username (minimum 2 characters) and see results.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">4</div>
+                      <div>
+                        <h4 className="font-medium">Add to Contacts</h4>
+                        <p className="text-sm text-muted-foreground">Click "Add" next to their name - they're added instantly!</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Contact Features</h3>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Set Nicknames</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Give contacts custom names like "Work Friend" or "Gaming Buddy" - only you can see these!
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Quick Invite</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Easily add contacts to groups from your contacts list instead of searching.
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Private Chat</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">
+                          Click any contact to start a private conversation instantly.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Managing Contacts</h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-green-700 dark:text-green-400">What You Can Do:</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• View all your contacts in one place</li>
+                        <li>• Set personalized nicknames</li>
+                        <li>• Remove contacts anytime</li>
+                        <li>• Start private conversations</li>
+                        <li>• Quickly add to groups</li>
+                      </ul>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-blue-700 dark:text-blue-400">Privacy Notes:</h4>
+                      <ul className="space-y-1 text-sm text-muted-foreground">
+                        <li>• Adding contacts doesn't notify them</li>
+                        <li>• Nicknames are private to you</li>
+                        <li>• Removing contacts doesn't notify them</li>
+                        <li>• Must be logged in to use contacts</li>
+                        <li>• Can only add registered users</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Groups Tab */}
+          <TabsContent value="groups" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Group Chat Management
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-950/30 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                    <div>
+                      <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What are Group Chats?</h4>
+                      <p className="text-blue-800 dark:text-blue-200 text-sm">
+                        Group chats are multi-user rooms with advanced member management. They include role-based permissions (Admin, Moderator, Member) and tools to manage participants.
+                      </p>
+                    </div>
+                  </div>
+
+                  <h3 className="text-lg font-semibold">Group Roles Explained</h3>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <span className="text-yellow-500">👑</span> Admin
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          • Full control over group<br />
+                          • Add/remove any member<br />
+                          • Promote/demote members<br />
+                          • Delete the entire group<br />
+                          • Change group settings
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm flex items-center gap-2">
+                          <span className="text-blue-500">🛡️</span> Moderator
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          • Add new members<br />
+                          • Remove regular members<br />
+                          • Cannot remove admins/mods<br />
+                          • Cannot delete group<br />
+                          • Help manage discussions
+                        </p>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Member</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          • Read and send messages<br />
+                          • See group members<br />
+                          • React to messages<br />
+                          • Cannot manage members<br />
+                          • Can leave group anytime
+                        </p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Creating a Group
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                      <div>
+                        <h4 className="font-medium">Create Room</h4>
+                        <p className="text-sm text-muted-foreground">Follow the room creation steps and select "Group" as the room type.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">2</div>
+                      <div>
+                        <h4 className="font-medium">You're the Admin</h4>
+                        <p className="text-sm text-muted-foreground">As creator, you automatically become the admin with full permissions.</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
+                      <div>
+                        <h4 className="font-medium">Add Members</h4>
+                        <p className="text-sm text-muted-foreground">Open the Group Members Panel (right side on desktop) and click the "+" button.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Adding Members to Groups</h3>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-semibold mb-2">Two Ways to Add:</h4>
+                    <div className="grid gap-4 md:grid-cols-2 mt-3">
+                      <div>
+                        <h5 className="font-medium text-sm mb-1">From Contacts:</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li>• See all your contacts not in the group</li>
+                          <li>• Click "Add" next to their name</li>
+                          <li>• They're added instantly</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="font-medium text-sm mb-1">Search Users:</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li>• Search by username</li>
+                          <li>• Results exclude existing members</li>
+                          <li>• Click "Add" to invite</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold">Member Management (Admin Only)</h3>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Promoting Members</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li>• Click "..." next to member name</li>
+                          <li>• Select "Promote to Moderator"</li>
+                          <li>• Or "Promote to Admin" for mods</li>
+                          <li>• Role updates instantly</li>
+                        </ul>
+                      </CardContent>
+                    </Card>
+
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm">Removing Members</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li>• Click "..." next to member name</li>
+                          <li>• Select "Remove Member"</li>
+                          <li>• Confirm the action</li>
+                          <li>• They lose access immediately</li>
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                  <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2 flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    💡 Group Best Practices
+                  </h4>
+                  <ul className="space-y-1 text-sm text-yellow-800 dark:text-yellow-200">
+                    <li>• Assign moderators in large groups to share management duties</li>
+                    <li>• Use clear group names and descriptions so members understand the purpose</li>
+                    <li>• Remove inactive members to keep discussions focused</li>
+                    <li>• Consider promoting trusted members to help manage the group</li>
+                    <li>• On mobile, the members panel is hidden - tap the members icon to access</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
 
           {/* AI Bot Tab */}
           <TabsContent value="bot" className="space-y-6">
@@ -155,26 +603,26 @@ export default function Documentation() {
                     <div>
                       <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What is @bot?</h4>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        @bot is our intelligent AI assistant powered by advanced language models. It can answer questions, 
+                        @bot is our intelligent AI assistant powered by advanced language models. It can answer questions,
                         help with research, explain concepts, assist with coding, and engage in natural conversations.
                       </p>
                     </div>
                   </div>
-                  
+
                   <h3 className="text-lg font-semibold">Basic Usage</h3>
-                  
+
                   <SyntaxExample
                     syntax="@bot Hello, how are you?"
                     description="Start any message with @bot to chat with the AI assistant"
                     example="@bot Hello, how are you?"
                   />
-                  
+
                   <SyntaxExample
                     syntax="@bot Can you explain quantum computing?"
                     description="Ask the bot to explain complex topics or concepts"
                     example="@bot Can you explain quantum computing?"
                   />
-                  
+
                   <SyntaxExample
                     syntax="@bot Help me debug this JavaScript code: console.log('hello')"
                     description="Get coding help and debugging assistance"
@@ -187,7 +635,7 @@ export default function Documentation() {
                     <Zap className="w-5 h-5" />
                     Capabilities
                   </h3>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <Card>
                       <CardHeader className="pb-3">
@@ -198,9 +646,9 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Natural conversation and Q&A<br/>
-                          • Context-aware responses<br/>
-                          • Multi-turn conversations<br/>
+                          • Natural conversation and Q&A<br />
+                          • Context-aware responses<br />
+                          • Multi-turn conversations<br />
                           • Friendly and helpful tone
                         </p>
                       </CardContent>
@@ -215,9 +663,9 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Code debugging and review<br/>
-                          • Programming explanations<br/>
-                          • Technical documentation<br/>
+                          • Code debugging and review<br />
+                          • Programming explanations<br />
+                          • Technical documentation<br />
                           • Best practices advice
                         </p>
                       </CardContent>
@@ -232,9 +680,9 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Explain complex topics<br/>
-                          • Research assistance<br/>
-                          • Educational content<br/>
+                          • Explain complex topics<br />
+                          • Research assistance<br />
+                          • Educational content<br />
                           • Fact-checking and analysis
                         </p>
                       </CardContent>
@@ -249,9 +697,9 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • OpenChat platform guidance<br/>
-                          • Feature explanations<br/>
-                          • Usage tips and tricks<br/>
+                          • OpenChat platform guidance<br />
+                          • Feature explanations<br />
+                          • Usage tips and tricks<br />
                           • Community guidelines
                         </p>
                       </CardContent>
@@ -264,7 +712,7 @@ export default function Documentation() {
                     <Settings className="w-5 h-5" />
                     How It Works
                   </h3>
-                  
+
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
@@ -295,7 +743,7 @@ export default function Documentation() {
                     <Shield className="w-5 h-5" />
                     Best Practices & Guidelines
                   </h3>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-3">
                       <h4 className="font-medium text-green-700 dark:text-green-400 flex items-center gap-2">
@@ -310,7 +758,7 @@ export default function Documentation() {
                         <li>• Report any inappropriate responses</li>
                       </ul>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <h4 className="font-medium text-red-700 dark:text-red-400 flex items-center gap-2">
                         <AlertCircle className="w-4 h-4" />
@@ -339,6 +787,42 @@ export default function Documentation() {
                     <li>• Bot messages are marked with a special @bot identifier</li>
                     <li>• Check the bot status indicator to see if it's online</li>
                   </ul>
+                </div>
+
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    Bot in Rooms and Groups
+                  </h3>
+                  <div className="p-4 bg-muted rounded-lg">
+                    <h4 className="font-semibold mb-2">Using @bot in Different Contexts:</h4>
+                    <div className="grid gap-4 md:grid-cols-3 mt-3">
+                      <div>
+                        <h5 className="font-medium text-sm mb-1">Public Chat:</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li>• Everyone sees bot responses</li>
+                          <li>• Available to all users</li>
+                          <li>• Responses saved in public chat</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="font-medium text-sm mb-1">Private Rooms:</h5>
+                        <ul className="space-y-1 text-muted-foreground text-sm">
+                          <li>• Bot responds only in that room</li>
+                          <li>• Room members see responses</li>
+                          <li>• Separate conversation context</li>
+                        </ul>
+                      </div>
+                      <div>
+                        <h5 className="font-medium text-sm mb-1">Group Chats:</h5>
+                        <ul className="space-y-1 text-sm text-muted-foreground">
+                          <li>• All group members see bot</li>
+                          <li>• Perfect for group questions</li>
+                          <li>• Room-scoped responses</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="p-4 bg-yellow-50 dark:bg-yellow-950/30 rounded-lg border border-yellow-200 dark:border-yellow-800">
@@ -374,31 +858,31 @@ export default function Documentation() {
                     description="Make text bold"
                     example="This is **bold text** in a message"
                   />
-                  
+
                   <SyntaxExample
                     syntax="*italic text*"
                     description="Make text italic"
                     example="This is *italic text* in a message"
                   />
-                  
+
                   <SyntaxExample
                     syntax="__underlined text__"
                     description="Underline text"
                     example="This is __underlined text__ in a message"
                   />
-                  
+
                   <SyntaxExample
                     syntax="~~strikethrough~~"
                     description="Strike through text"
                     example="This is ~~strikethrough~~ text"
                   />
-                  
+
                   <SyntaxExample
                     syntax="`inline code`"
                     description="Inline code formatting"
                     example="Use `console.log()` to debug"
                   />
-                  
+
                   <SyntaxExample
                     syntax="[Link Text](URL)"
                     description="Create clickable links"
@@ -411,7 +895,7 @@ export default function Documentation() {
                     <Code className="w-5 h-5" />
                     Code Blocks
                   </h3>
-                  
+
                   <SyntaxExample
                     syntax="```language
 code here
@@ -435,14 +919,14 @@ function greet(name) {
                     <Quote className="w-5 h-5" />
                     Quotes & Lists
                   </h3>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <SyntaxExample
                       syntax="> quoted text"
                       description="Create a blockquote"
                       example="> This is a quoted message"
                     />
-                    
+
                     <SyntaxExample
                       syntax="- list item"
                       description="Create bullet points (also works with * or +)"
@@ -474,26 +958,26 @@ function greet(name) {
                   <p className="text-muted-foreground">
                     Type emoji names between colons to insert emojis. Start typing and see autocomplete suggestions!
                   </p>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <SyntaxExample
                       syntax=":smile:"
                       description="Happy face emoji"
                       example="Hello there :smile:"
                     />
-                    
+
                     <SyntaxExample
                       syntax=":heart:"
                       description="Red heart emoji"
                       example="I :heart: this feature!"
                     />
-                    
+
                     <SyntaxExample
                       syntax=":fire:"
                       description="Fire emoji"
                       example="This chat is :fire:"
                     />
-                    
+
                     <SyntaxExample
                       syntax=":thumbsup:"
                       description="Thumbs up emoji"
@@ -504,7 +988,7 @@ function greet(name) {
 
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Popular Emoji Categories</h3>
-                  
+
                   <div className="grid gap-4 md:grid-cols-3">
                     <Card>
                       <CardHeader className="pb-3">
@@ -593,13 +1077,13 @@ function greet(name) {
               <CardContent className="space-y-6">
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Mentioning Users</h3>
-                  
+
                   <SyntaxExample
                     syntax="@username"
                     description="Mention a user by typing @ followed by their name"
                     example="Hey @john, check this out!"
                   />
-                  
+
                   <div className="p-4 bg-muted rounded-lg">
                     <h4 className="font-semibold mb-2">How Mentions Work</h4>
                     <ul className="space-y-2 text-sm text-muted-foreground">
@@ -617,7 +1101,7 @@ function greet(name) {
                   <p className="text-muted-foreground">
                     React to messages by hovering over them and clicking the emoji button, or use the quick reaction buttons on mobile.
                   </p>
-                  
+
                   <div className="grid gap-4 md:grid-cols-2">
                     <Card>
                       <CardHeader className="pb-3">
