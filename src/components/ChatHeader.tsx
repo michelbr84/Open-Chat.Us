@@ -14,6 +14,7 @@ import { NotificationCenter } from '@/components/NotificationCenter';
 import { StatusUpdateModal } from '@/components/StatusUpdateModal';
 import { UserPresenceIndicator } from '@/components/UserPresenceIndicator';
 import { BotTestButton } from '@/components/BotTestButton';
+import { RoomSwitcher } from '@/components/rooms/RoomSwitcher';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +25,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 
+interface Room {
+  id: string;
+  name: string;
+  room_type: string;
+  is_temporary?: boolean;
+}
+
 interface ChatHeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
@@ -32,6 +40,8 @@ interface ChatHeaderProps {
   onOpenPrivateChat: (senderId: string, senderName: string) => void;
   onShowBookmarks?: () => void;
   onExportChat?: () => void;
+  currentRoom?: Room | null;
+  onRoomSelect?: (room: Room | null) => void;
 }
 
 export const ChatHeader = ({
@@ -41,7 +51,9 @@ export const ChatHeader = ({
   onDonateClick,
   onOpenPrivateChat,
   onShowBookmarks,
-  onExportChat
+  onExportChat,
+  currentRoom,
+  onRoomSelect
 }: ChatHeaderProps) => {
   const { cycleTheme, theme } = useTheme();
   const { user } = useAuth();
@@ -115,6 +127,10 @@ export const ChatHeader = ({
 
       {/* Action buttons */}
       <div className="flex items-center gap-2 w-full md:w-auto justify-center md:justify-end">
+        {/* Room Switcher */}
+        {user && onRoomSelect && (
+          <RoomSwitcher currentRoom={currentRoom || null} onRoomSelect={onRoomSelect} />
+        )}
         {/* Notification Permission Toggle */}
         {permission === 'default' && (
           <Button

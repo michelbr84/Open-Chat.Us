@@ -22,6 +22,7 @@ import { PrivateChat } from '@/components/PrivateChat';
 import { LoginModal } from '@/components/LoginModal';
 import { DonateModal } from '@/components/DonateModal';
 import { BookmarksPanel } from '@/components/BookmarksPanel';
+import { GroupMembersPanel } from '@/components/rooms/GroupMembersPanel';
 import { Users } from 'lucide-react';
 import { sendMentionNotifications } from '@/utils/mentionNotifications';
 import { useBotIntegration } from '@/hooks/useBotIntegration';
@@ -38,6 +39,14 @@ interface Message {
   reply_count?: number;
   parent_message_id?: string | null;
   is_bot_message?: boolean;
+  channel_id?: string | null;
+}
+
+interface Room {
+  id: string;
+  name: string;
+  room_type: string;
+  is_temporary?: boolean;
 }
 
 interface OnlineUser {
@@ -76,6 +85,9 @@ const Index = () => {
   // Private chat state
   const [activePrivateChat, setActivePrivateChat] = useState<{ id: string; name: string } | null>(null);
 
+  // Room state
+  const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+
   // Mention state
   const [mentionToAdd, setMentionToAdd] = useState<string>('');
   const [shouldClearMention, setShouldClearMention] = useState(false);
@@ -91,10 +103,20 @@ const Index = () => {
 
   // Load initial messages
   const loadInitialMessages = async () => {
-    const { data, error } = await supabase
+    let query = supabase
       .from('messages')
       .select('*')
-      .eq('is_deleted', false)
+      .eq('is_deleted', false) as any; // Type assertion to prevent TS infinite recursion
+
+    // Filter by room if one is selected
+    if (selectedRoom) {
+      query = query.eq('channel_id', selectedRoom.id);
+    } else {
+      // Public chat: only messages with null channel_id
+      query = query.is('channel_id', null);
+    }
+
+    const { data, error } = await query
       .order('created_at', { ascending: false })
       .limit(PAGE_SIZE);
 
@@ -117,11 +139,20 @@ const Index = () => {
     const oldestMessage = messages[0];
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('messages')
         .select('*')
         .eq('is_deleted', false)
-        .lt('created_at', oldestMessage.created_at)
+        .lt('created_at', oldestMessage.created_at) as any; // Type assertion to prevent TS infinite recursion
+
+      // Filter by room
+      if (selectedRoom) {
+        query = query.eq('channel_id', selectedRoom.id);
+      } else {
+        query = query.is('channel_id', null);
+      }
+
+      const { data, error } = await query
         .order('created_at', { ascending: false })
         .limit(PAGE_SIZE);
 
@@ -199,11 +230,14 @@ const Index = () => {
   useEffect(() => {
     if (!ageVerified) return;
 
+    // Reload messages when room changes
+    setHasMore(true);
     loadInitialMessages();
 
     // Subscribe to new and updated messages with enhanced debugging and error handling
+    const channelName = selectedRoom ? `room-messages-${selectedRoom.id}` : 'public-messages';
     const messagesChannel = supabase
-      .channel('public-messages', {
+      .channel(channelName, {
         config: {
           broadcast: { self: false }, // Disable self-broadcast to avoid echo
           presence: { key: 'messages' }
@@ -211,7 +245,12 @@ const Index = () => {
       })
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'messages' },
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: selectedRoom ? `channel_id=eq.${selectedRoom.id}` : 'channel_id=is.null'
+        },
         (payload) => {
           try {
             console.log('✅ New message received via realtime:', payload.new);
@@ -276,7 +315,7 @@ const Index = () => {
     return () => {
       supabase.removeChannel(messagesChannel);
     };
-  }, [ageVerified]);
+  }, [ageVerified, selectedRoom]); // Reload when room changes
 
   // Handle user presence
   useEffect(() => {
@@ -421,7 +460,7 @@ const Index = () => {
       });
 
       // Send to bot and handle the response
-      const botResponse = await sendMessageToBot(content, senderName, mentions, null); // Always null for public chat in this context
+      const botResponse = await sendMessageToBot(content, senderName, mentions, selectedRoom?.id || null);
 
       if (botResponse.success && botResponse.botResponse) {
         // Bot responded successfully - verify if it was saved to database
@@ -728,6 +767,8 @@ const Index = () => {
         onOpenPrivateChat={handleOpenPrivateChat}
         onShowBookmarks={() => setShowBookmarks(true)}
         onExportChat={handleExportChat}
+        currentRoom={selectedRoom}
+        onRoomSelect={setSelectedRoom}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -871,6 +912,13 @@ const Index = () => {
             />
           )}
         </main>
+
+        {/* Group Members Panel - only for group rooms */}
+        {user && selectedRoom && selectedRoom.room_type === 'group' && (
+          <div className="hidden lg:block w-64 border-l border-border">
+            <GroupMembersPanel roomId={selectedRoom.id} roomName={selectedRoom.name} />
+          </div>
+        )}
       </div>
 
       {/* Modals and overlays */}
