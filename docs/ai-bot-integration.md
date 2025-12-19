@@ -7,6 +7,7 @@ OpenChat supports AI chatbot integration through n8n workflows, allowing you to 
 The AI bot integration allows:
 - **Real-time responses** to user messages
 - **Context-aware conversations** with message history
+- **Room-scoped interactions** - Bot works in public chat, private rooms, and groups
 - **Customizable bot personality** through n8n workflows
 - **Rate limiting** to prevent spam
 - **Secure webhook communication**
@@ -374,4 +375,100 @@ const prompt = `Share an interesting fact related to: ${userMessage}
 Keep it under 150 characters and make it engaging!`;
 ```
 
-Your AI bot should now be successfully integrated with OpenChat! 🤖✨
+## 🏠 Bot in Rooms and Groups
+
+### Room Context
+
+As of the latest update, OpenChat supports bots in **private rooms** and **group chats**!
+
+**Key Points:**
+- Bot messages are scoped to the specific room
+- Each room has its own bot conversation context
+- `channel_id` is passed with every bot request
+- Bot responses must include the same `channel_id`
+
+### Updated Workflow for Room Support
+
+Ensure your n8n webhook receives and returns the `channel_id`:
+
+```javascript
+// In your processing function
+const messageData = $json;
+const channelId = messageData.channel_id || null; // null = public chat
+
+// Store channel_id for response
+return [{
+  json: {
+    prompt: generatedPrompt,
+    channel_id: channelId, // Pass through to response
+    original_message: messageData
+  }
+}];
+```
+
+**In your response function:**
+```javascript
+// Format response with channel_id
+const channelId = $('Function').first().$json.channel_id;
+
+return [{
+  json: {
+    content: aiResponse,
+    sender_name: "AI Assistant",
+    is_bot_message: true,
+    channel_id: channelId, // CRITICAL: Include the channel_id!
+    webhook_token: "your-secret-token"
+  }
+}];
+```
+
+### Room-Aware Bot Personality
+
+You can customize bot behavior based on room type:
+
+```javascript
+// Detect room type based on channel_id
+const isPublicChat = !messageData.channel_id;
+const isPrivateRoom = messageData.channel_id && messageData.channel_id.startsWith('private');
+const isGroupRoom = messageData.channel_id && messageData.channel_id.startsWith('group');
+
+let personality = "helpful assistant";
+
+if (isPublicChat) {
+  personality = "casual and welcoming";
+} else if (isPrivateRoom) {
+  personality = "professional and focused";
+} else if (isGroupRoom) {
+  personality = "collaborative team assistant";
+}
+
+const prompt = `You are a ${personality} in an OpenChat room.
+
+${context}
+
+Current message: ${userMessage}
+
+Respond appropriately for this context.`;
+```
+
+### Testing Room Integration
+
+1. **Test in Public Chat:**
+   ```
+   @bot hello
+   ```
+   Expected: Bot responds in public chat
+
+2. **Test in Private Room:**
+   - Create a private room
+   - Send `@bot test private`
+   - Expected: Bot responds only in that room
+
+3. **Test in Group:**
+   - Create a group with multiple members
+   - Send `@bot test group`
+   - Expected: All group members see the bot response
+
+---
+
+Your AI bot should now be successfully integrated with OpenChat in all contexts! 🤖✨

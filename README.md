@@ -12,8 +12,11 @@
 
 ### Core Chat Features
 - **Open public chat** with instant messaging for everyone
+- **Private rooms** - Create persistent or temporary chat rooms
+- **Group chats** - Multi-user rooms with role-based permissions (admin/moderator/member)
+- **Contacts system** - Friends list for easy communication and group management
 - **Private messaging** with unread notifications and real-time updates
-- **AI Bot integration** via n8n webhook for automated responses
+- **AI Bot integration** via n8n webhook for automated responses (works in all contexts)
 - **File attachments** with drag-and-drop support for images, documents, and media
 - **Threaded replies** to organize conversations and maintain context
 - **Message reactions** with emoji picker and real-time updates
@@ -153,12 +156,13 @@ The app will be available at [http://localhost:5173](http://localhost:5173).
 
 ### 🚀 Future Roadmap
 
-#### Phase 1: Chat Rooms (Next Major Feature)
-- **Room creation** - Users can create custom chat rooms
-- **Room administration** - Owner controls, moderator permissions
-- **Privacy options** - Public, private, invite-only, password-protected rooms
-- **Room discovery** - Browse and join public rooms
-- **Member management** - Invite, remove, ban users from rooms
+#### ✅ Phase 1: Chat Rooms - COMPLETED!
+- ✅ **Room creation** - Users can create custom chat rooms (persistent & temporary)
+- ✅ **Room administration** - Owner controls, admin/moderator permissions
+- ✅ **Privacy options** - Public chat, private rooms, group rooms
+- ✅ **Member management** - Add, remove, promote/demote users in groups
+- ✅ **Contacts system** - Friends list for easy communication
+- ✅ **Bot integration in rooms** - AI bot works in all contexts
 
 #### Phase 2: Public API
 - **RESTful API** - Full CRUD operations for chat functionality
@@ -356,4 +360,4 @@ This project is [MIT Licensed](LICENSE) - feel free to use it for personal or co
 
 ---
 
-*Last updated: December 09, 2025*
+*Last updated: December 19, 2025*
