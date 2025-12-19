@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Book,
   MessageSquare,
@@ -28,12 +28,12 @@ import {
   Settings,
   AlertCircle,
   CheckCircle,
-  Info
-} from 'lucide-react';
-import { Link as RouterLink } from 'react-router-dom';
-import { MessageRenderer } from '@/components/MessageRenderer';
-import { useToast } from '@/hooks/use-toast';
-import { SiteNavigation } from '@/components/SiteNavigation';
+  Info,
+} from "lucide-react";
+import { Link as RouterLink } from "react-router-dom";
+import { MessageRenderer } from "@/components/MessageRenderer";
+import { useToast } from "@/hooks/use-toast";
+import { SiteNavigation } from "@/components/SiteNavigation";
 
 export default function Documentation() {
   const [copiedItem, setCopiedItem] = useState<string | null>(null);
@@ -58,17 +58,8 @@ export default function Documentation() {
   };
 
   const CopyButton = ({ text, item }: { text: string; item: string }) => (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={() => copyToClipboard(text, item)}
-      className="h-6 w-6 p-0"
-    >
-      {copiedItem === item ? (
-        <Check className="h-3 w-3 text-green-500" />
-      ) : (
-        <Copy className="h-3 w-3" />
-      )}
+    <Button variant="ghost" size="sm" onClick={() => copyToClipboard(text, item)} className="h-6 w-6 p-0">
+      {copiedItem === item ? <Check className="h-3 w-3 text-green-500" /> : <Copy className="h-3 w-3" />}
     </Button>
   );
 
@@ -76,7 +67,7 @@ export default function Documentation() {
     syntax,
     description,
     example,
-    copyText
+    copyText,
   }: {
     syntax: string;
     description: string;
@@ -167,7 +158,8 @@ export default function Documentation() {
                     <div>
                       <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What are Rooms?</h4>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        Rooms are dedicated chat spaces separate from the public chat. Create persistent rooms for long-term projects or temporary rooms for quick discussions that auto-delete after a set time.
+                        Rooms are dedicated chat spaces separate from the public chat. Create persistent rooms for
+                        long-term projects or temporary rooms for quick discussions that auto-delete after a set time.
                       </p>
                     </div>
                   </div>
@@ -179,31 +171,47 @@ export default function Documentation() {
 
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        1
+                      </div>
                       <div>
                         <h4 className="font-medium">Prerequisites</h4>
-                        <p className="text-sm text-muted-foreground">You must be logged in to create rooms. Guest users cannot create rooms.</p>
+                        <p className="text-sm text-muted-foreground">
+                          You must be logged in to create rooms. Guest users cannot create rooms.
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground  flex items-center justify-center text-sm font-semibold">2</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground  flex items-center justify-center text-sm font-semibold">
+                        2
+                      </div>
                       <div>
                         <h4 className="font-medium">Find the Create Button</h4>
-                        <p className="text-sm text-muted-foreground">Look for "Rooms" in the sidebar and click the "Create Room" or "+" button.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Look for "Rooms" in the sidebar and click the "Create Room" or "+" button.
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        3
+                      </div>
                       <div>
                         <h4 className="font-medium">Configure Your Room</h4>
-                        <p className="text-sm text-muted-foreground">Set a name, description, choose Private or Group type, and decide if it should be temporary.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Set a name, description, choose Private or Group type, and decide if it should be temporary.
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">4</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        4
+                      </div>
                       <div>
                         <h4 className="font-medium">Create and Join</h4>
-                        <p className="text-sm text-muted-foreground">Click "Create Room" - you become the admin automatically!</p>
+                        <p className="text-sm text-muted-foreground">
+                          Click "Create Room" - you become the admin automatically!
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -221,10 +229,12 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • One-on-one or small group conversations<br />
-                          • Only invited members can access<br />
-                          • Perfect for private discussions<br />
-                          • Messages stay in the room
+                          • One-on-one or small group conversations
+                          <br />
+                          • Only invited members can access
+                          <br />
+                          • Perfect for private discussions
+                          <br />• Messages stay in the room
                         </p>
                       </CardContent>
                     </Card>
@@ -238,10 +248,12 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Multiple participants with roles<br />
-                          • Admin, Moderator, and Member roles<br />
-                          • Full member management<br />
-                          • Collaborative discussions
+                          • Multiple participants with roles
+                          <br />
+                          • Admin, Moderator, and Member roles
+                          <br />
+                          • Full member management
+                          <br />• Collaborative discussions
                         </p>
                       </CardContent>
                     </Card>
@@ -297,7 +309,8 @@ export default function Documentation() {
                     <div>
                       <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What are Contacts?</h4>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        Contacts (or Friends) are users you've added to your personal list for easy communication and group management. Add contacts to quickly invite them to groups or start private conversations.
+                        Contacts (or Friends) are users you've added to your personal list for easy communication and
+                        group management. Add contacts to quickly invite them to groups or start private conversations.
                       </p>
                     </div>
                   </div>
@@ -309,31 +322,45 @@ export default function Documentation() {
 
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        1
+                      </div>
                       <div>
                         <h4 className="font-medium">Open Contacts Panel</h4>
-                        <p className="text-sm text-muted-foreground">Look for the "Contacts" icon in the sidebar and click to open.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Look for the "Contacts" icon in the sidebar and click to open.
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">2</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        2
+                      </div>
                       <div>
                         <h4 className="font-medium">Click Add Contact</h4>
                         <p className="text-sm text-muted-foreground">A search dialog will appear.</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        3
+                      </div>
                       <div>
                         <h4 className="font-medium">Search for User</h4>
-                        <p className="text-sm text-muted-foreground">Type the username (minimum 2 characters) and see results.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Type the username (minimum 2 characters) and see results.
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">4</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        4
+                      </div>
                       <div>
                         <h4 className="font-medium">Add to Contacts</h4>
-                        <p className="text-sm text-muted-foreground">Click "Add" next to their name - they're added instantly!</p>
+                        <p className="text-sm text-muted-foreground">
+                          Click "Add" next to their name - they're added instantly!
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -423,7 +450,8 @@ export default function Documentation() {
                     <div>
                       <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What are Group Chats?</h4>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        Group chats are multi-user rooms with advanced member management. They include role-based permissions (Admin, Moderator, Member) and tools to manage participants.
+                        Group chats are multi-user rooms with advanced member management. They include role-based
+                        permissions (Admin, Moderator, Member) and tools to manage participants.
                       </p>
                     </div>
                   </div>
@@ -438,11 +466,14 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Full control over group<br />
-                          • Add/remove any member<br />
-                          • Promote/demote members<br />
-                          • Delete the entire group<br />
-                          • Change group settings
+                          • Full control over group
+                          <br />
+                          • Add/remove any member
+                          <br />
+                          • Promote/demote members
+                          <br />
+                          • Delete the entire group
+                          <br />• Change group settings
                         </p>
                       </CardContent>
                     </Card>
@@ -455,11 +486,14 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Add new members<br />
-                          • Remove regular members<br />
-                          • Cannot remove admins/mods<br />
-                          • Cannot delete group<br />
-                          • Help manage discussions
+                          • Add new members
+                          <br />
+                          • Remove regular members
+                          <br />
+                          • Cannot remove admins/mods
+                          <br />
+                          • Cannot delete group
+                          <br />• Help manage discussions
                         </p>
                       </CardContent>
                     </Card>
@@ -470,11 +504,14 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Read and send messages<br />
-                          • See group members<br />
-                          • React to messages<br />
-                          • Cannot manage members<br />
-                          • Can leave group anytime
+                          • Read and send messages
+                          <br />
+                          • See group members
+                          <br />
+                          • React to messages
+                          <br />
+                          • Cannot manage members
+                          <br />• Can leave group anytime
                         </p>
                       </CardContent>
                     </Card>
@@ -488,24 +525,36 @@ export default function Documentation() {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        1
+                      </div>
                       <div>
                         <h4 className="font-medium">Create Room</h4>
-                        <p className="text-sm text-muted-foreground">Follow the room creation steps and select "Group" as the room type.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Follow the room creation steps and select "Group" as the room type.
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">2</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        2
+                      </div>
                       <div>
                         <h4 className="font-medium">You're the Admin</h4>
-                        <p className="text-sm text-muted-foreground">As creator, you automatically become the admin with full permissions.</p>
+                        <p className="text-sm text-muted-foreground">
+                          As creator, you automatically become the admin with full permissions.
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        3
+                      </div>
                       <div>
                         <h4 className="font-medium">Add Members</h4>
-                        <p className="text-sm text-muted-foreground">Open the Group Members Panel (right side on desktop) and click the "+" button.</p>
+                        <p className="text-sm text-muted-foreground">
+                          Open the Group Members Panel (right side on desktop) and click the "+" button.
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -586,7 +635,6 @@ export default function Documentation() {
             </Card>
           </TabsContent>
 
-
           {/* AI Bot Tab */}
           <TabsContent value="bot" className="space-y-6">
             <Card>
@@ -603,8 +651,9 @@ export default function Documentation() {
                     <div>
                       <h4 className="font-semibold text-blue-900 dark:text-blue-100 mb-2">What is @bot?</h4>
                       <p className="text-blue-800 dark:text-blue-200 text-sm">
-                        @bot is our intelligent AI assistant powered by advanced language models. It can answer questions,
-                        help with research, explain concepts, assist with coding, and engage in natural conversations.
+                        @bot is our intelligent AI assistant powered by advanced language models. It can answer
+                        questions, help with research, explain concepts, assist with coding, and engage in natural
+                        conversations.
                       </p>
                     </div>
                   </div>
@@ -646,10 +695,12 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Natural conversation and Q&A<br />
-                          • Context-aware responses<br />
-                          • Multi-turn conversations<br />
-                          • Friendly and helpful tone
+                          • Natural conversation and Q&A
+                          <br />
+                          • Context-aware responses
+                          <br />
+                          • Multi-turn conversations
+                          <br />• Friendly and helpful tone
                         </p>
                       </CardContent>
                     </Card>
@@ -663,10 +714,12 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Code debugging and review<br />
-                          • Programming explanations<br />
-                          • Technical documentation<br />
-                          • Best practices advice
+                          • Code debugging and review
+                          <br />
+                          • Programming explanations
+                          <br />
+                          • Technical documentation
+                          <br />• Best practices advice
                         </p>
                       </CardContent>
                     </Card>
@@ -680,10 +733,12 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • Explain complex topics<br />
-                          • Research assistance<br />
-                          • Educational content<br />
-                          • Fact-checking and analysis
+                          • Explain complex topics
+                          <br />
+                          • Research assistance
+                          <br />
+                          • Educational content
+                          <br />• Fact-checking and analysis
                         </p>
                       </CardContent>
                     </Card>
@@ -697,10 +752,12 @@ export default function Documentation() {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         <p className="text-sm text-muted-foreground">
-                          • OpenChat platform guidance<br />
-                          • Feature explanations<br />
-                          • Usage tips and tricks<br />
-                          • Community guidelines
+                          • OpenChat platform guidance
+                          <br />
+                          • Feature explanations
+                          <br />
+                          • Usage tips and tricks
+                          <br />• Community guidelines
                         </p>
                       </CardContent>
                     </Card>
@@ -715,24 +772,34 @@ export default function Documentation() {
 
                   <div className="space-y-3">
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">1</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        1
+                      </div>
                       <div>
                         <h4 className="font-medium">Send Message</h4>
                         <p className="text-sm text-muted-foreground">Type @bot followed by your question or request</p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">2</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        2
+                      </div>
                       <div>
                         <h4 className="font-medium">AI Processing</h4>
-                        <p className="text-sm text-muted-foreground">Your message is sent to our AI system for analysis</p>
+                        <p className="text-sm text-muted-foreground">
+                          Your message is sent to our AI system for analysis
+                        </p>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">3</div>
+                      <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-semibold">
+                        3
+                      </div>
                       <div>
                         <h4 className="font-medium">Real-time Response</h4>
-                        <p className="text-sm text-muted-foreground">Bot response appears in chat for everyone to see</p>
+                        <p className="text-sm text-muted-foreground">
+                          Bot response appears in chat for everyone to see
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -832,7 +899,9 @@ export default function Documentation() {
                   </h4>
                   <div className="text-sm text-yellow-800 dark:text-yellow-200 space-y-2">
                     <p>• Bot integration uses Supabase Edge Functions for secure AI communication</p>
-                    <p>• All bot responses are automatically saved to the database with <code>is_bot_message: true</code></p>
+                    <p>
+                      • All bot responses are automatically saved to the database with <code>is_bot_message: true</code>
+                    </p>
                     <p>• Bot messages appear in real-time to all connected users via Supabase realtime</p>
                     <p>• The system includes automatic error handling and graceful degradation</p>
                     <p>• Bot status is monitored and displayed to users in real-time</p>
@@ -960,29 +1029,13 @@ function greet(name) {
                   </p>
 
                   <div className="grid gap-4 md:grid-cols-2">
-                    <SyntaxExample
-                      syntax=":smile:"
-                      description="Happy face emoji"
-                      example="Hello there :smile:"
-                    />
+                    <SyntaxExample syntax=":smile:" description="Happy face emoji" example="Hello there :smile:" />
 
-                    <SyntaxExample
-                      syntax=":heart:"
-                      description="Red heart emoji"
-                      example="I :heart: this feature!"
-                    />
+                    <SyntaxExample syntax=":heart:" description="Red heart emoji" example="I :heart: this feature!" />
 
-                    <SyntaxExample
-                      syntax=":fire:"
-                      description="Fire emoji"
-                      example="This chat is :fire:"
-                    />
+                    <SyntaxExample syntax=":fire:" description="Fire emoji" example="This chat is :fire:" />
 
-                    <SyntaxExample
-                      syntax=":thumbsup:"
-                      description="Thumbs up emoji"
-                      example="Great job :thumbsup:"
-                    />
+                    <SyntaxExample syntax=":thumbsup:" description="Thumbs up emoji" example="Great job :thumbsup:" />
                   </div>
                 </div>
 
@@ -996,11 +1049,11 @@ function greet(name) {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         {[
-                          { code: ':smile:', emoji: '😄' },
-                          { code: ':joy:', emoji: '😂' },
-                          { code: ':heart_eyes:', emoji: '😍' },
-                          { code: ':wink:', emoji: '😉' },
-                          { code: ':thinking:', emoji: '🤔' },
+                          { code: ":smile:", emoji: "😄" },
+                          { code: ":joy:", emoji: "😂" },
+                          { code: ":heart_eyes:", emoji: "😍" },
+                          { code: ":wink:", emoji: "😉" },
+                          { code: ":thinking:", emoji: "🤔" },
                         ].map((item) => (
                           <div key={item.code} className="flex items-center justify-between">
                             <code className="text-xs">{item.code}</code>
@@ -1016,11 +1069,11 @@ function greet(name) {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         {[
-                          { code: ':fire:', emoji: '🔥' },
-                          { code: ':star:', emoji: '⭐' },
-                          { code: ':sparkles:', emoji: '✨' },
-                          { code: ':zap:', emoji: '⚡' },
-                          { code: ':100:', emoji: '💯' },
+                          { code: ":fire:", emoji: "🔥" },
+                          { code: ":star:", emoji: "⭐" },
+                          { code: ":sparkles:", emoji: "✨" },
+                          { code: ":zap:", emoji: "⚡" },
+                          { code: ":100:", emoji: "💯" },
                         ].map((item) => (
                           <div key={item.code} className="flex items-center justify-between">
                             <code className="text-xs">{item.code}</code>
@@ -1036,11 +1089,11 @@ function greet(name) {
                       </CardHeader>
                       <CardContent className="space-y-2">
                         {[
-                          { code: ':thumbsup:', emoji: '👍' },
-                          { code: ':clap:', emoji: '👏' },
-                          { code: ':raised_hands:', emoji: '🙌' },
-                          { code: ':muscle:', emoji: '💪' },
-                          { code: ':pray:', emoji: '🙏' },
+                          { code: ":thumbsup:", emoji: "👍" },
+                          { code: ":clap:", emoji: "👏" },
+                          { code: ":raised_hands:", emoji: "🙌" },
+                          { code: ":muscle:", emoji: "💪" },
+                          { code: ":pray:", emoji: "🙏" },
                         ].map((item) => (
                           <div key={item.code} className="flex items-center justify-between">
                             <code className="text-xs">{item.code}</code>
@@ -1099,7 +1152,8 @@ function greet(name) {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">Message Reactions</h3>
                   <p className="text-muted-foreground">
-                    React to messages by hovering over them and clicking the emoji button, or use the quick reaction buttons on mobile.
+                    React to messages by hovering over them and clicking the emoji button, or use the quick reaction
+                    buttons on mobile.
                   </p>
 
                   <div className="grid gap-4 md:grid-cols-2">
@@ -1156,62 +1210,94 @@ function greet(name) {
                       </thead>
                       <tbody>
                         <tr>
-                          <td className="border border-border p-3"><code>@user</code></td>
+                          <td className="border border-border p-3">
+                            <code>@user</code>
+                          </td>
                           <td className="border border-border p-3">Mention</td>
                           <td className="border border-border p-3">Notifies the person</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>**text**</code></td>
-                          <td className="border border-border p-3"><strong>Bold</strong></td>
+                          <td className="border border-border p-3">
+                            <code>**text**</code>
+                          </td>
+                          <td className="border border-border p-3">
+                            <strong>Bold</strong>
+                          </td>
                           <td className="border border-border p-3">Markdown style</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>*text*</code></td>
-                          <td className="border border-border p-3"><em>Italic</em></td>
+                          <td className="border border-border p-3">
+                            <code>*text*</code>
+                          </td>
+                          <td className="border border-border p-3">
+                            <em>Italic</em>
+                          </td>
                           <td className="border border-border p-3">Markdown style</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>__text__</code></td>
-                          <td className="border border-border p-3"><u>Underline</u></td>
+                          <td className="border border-border p-3">
+                            <code>__text__</code>
+                          </td>
+                          <td className="border border-border p-3">
+                            <u>Underline</u>
+                          </td>
                           <td className="border border-border p-3">Double underscore</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>~~text~~</code></td>
-                          <td className="border border-border p-3"><s>Strikethrough</s></td>
+                          <td className="border border-border p-3">
+                            <code>~~text~~</code>
+                          </td>
+                          <td className="border border-border p-3">
+                            <s>Strikethrough</s>
+                          </td>
                           <td className="border border-border p-3">Double tilde</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>`text`</code></td>
+                          <td className="border border-border p-3">
+                            <code>`text`</code>
+                          </td>
                           <td className="border border-border p-3">Inline code</td>
                           <td className="border border-border p-3">Monospace font</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>```</code></td>
+                          <td className="border border-border p-3">
+                            <code>```</code>
+                          </td>
                           <td className="border border-border p-3">Code block</td>
                           <td className="border border-border p-3">Multiline code</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>&gt; text</code></td>
+                          <td className="border border-border p-3">
+                            <code>&gt; text</code>
+                          </td>
                           <td className="border border-border p-3">Blockquote</td>
                           <td className="border border-border p-3">Start line with &gt;</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>- item</code></td>
+                          <td className="border border-border p-3">
+                            <code>- item</code>
+                          </td>
                           <td className="border border-border p-3">List item</td>
                           <td className="border border-border p-3">Also works with * or +</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>@bot question</code></td>
+                          <td className="border border-border p-3">
+                            <code>@bot question</code>
+                          </td>
                           <td className="border border-border p-3">AI Response</td>
                           <td className="border border-border p-3">Chat with AI assistant</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>:emoji:</code></td>
+                          <td className="border border-border p-3">
+                            <code>:emoji:</code>
+                          </td>
                           <td className="border border-border p-3">Emoji</td>
                           <td className="border border-border p-3">Autocomplete available</td>
                         </tr>
                         <tr>
-                          <td className="border border-border p-3"><code>[text](url)</code></td>
+                          <td className="border border-border p-3">
+                            <code>[text](url)</code>
+                          </td>
                           <td className="border border-border p-3">Link</td>
                           <td className="border border-border p-3">Clickable link</td>
                         </tr>
