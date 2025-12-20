@@ -22,6 +22,7 @@ const Achievements = lazy(() => import("./pages/Achievements").then(module => ({
 const Leaderboard = lazy(() => import("./pages/Leaderboard").then(module => ({ default: module.Leaderboard })));
 const GitHubSecurityChecker = lazy(() => import("./pages/GitHubSecurityChecker").then(module => ({ default: module.GitHubSecurityChecker })));
 const ProfileSettings = lazy(() => import("./pages/ProfileSettings"));
+const Auth = lazy(() => import("./pages/Auth"));
 
 const queryClient = new QueryClient();
 
@@ -43,6 +44,7 @@ const App = () => (
             <Suspense fallback={<PageLoader />}>
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/auth" element={<Auth />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/thank-you" element={<ThankYou />} />

@@ -496,7 +496,13 @@ const Index = () => {
     }
 
     try {
-      console.log("📤 Sending message:", { content, senderName, sender_id: user?.id || null, mentions });
+      console.log("📤 Sending message:", { 
+        content, 
+        senderName, 
+        sender_id: user?.id || null, 
+        mentions,
+        channel_id: selectedRoom?.id || null 
+      });
       const { data, error } = await supabase
         .from("messages")
         .insert({
@@ -504,6 +510,7 @@ const Index = () => {
           sender_name: senderName,
           sender_id: user?.id || null,
           mentions: mentions || [],
+          channel_id: selectedRoom?.id || null, // CRITICAL: Include room ID for room messages
         })
         .select()
         .single();
