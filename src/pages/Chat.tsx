@@ -1,34 +1,40 @@
-import { useState, useEffect, useRef } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
-import { useMessageReactions } from '@/hooks/useMessageReactions';
-import { useMessageReports } from '@/hooks/useMessageReports';
-import { useMessageEditing } from '@/hooks/useMessageEditing';
-import { useThreadedReplies } from '@/hooks/useThreadedReplies';
-import { useSecureMessageHandling } from '@/hooks/useSecureMessageHandling';
-import { useSecurityMonitoring } from '@/hooks/useSecurityMonitoring';
-import { getOrCreateGuestId, getOrCreateGuestName, updateGuestName, clearGuestData, validateGuestSession } from '@/utils/secureGuestId';
-import { sanitizeGuestName } from '@/utils/sanitization';
-import { AgeGate } from '@/components/AgeGate';
-import { ChatHeader } from '@/components/ChatHeader';
-import { HelpButton } from '@/components/HelpButton';
-import { UserList } from '@/components/UserList';
-import { ChatMessage } from '@/components/ChatMessage';
-import { MessageInput } from '@/components/MessageInput';
-import { ThreadedReplyButton } from '@/components/ThreadedReplyButton';
-import { ThreadReplyInput } from '@/components/ThreadReplyInput';
-import { PrivateChat } from '@/components/PrivateChat';
-import { LoginModal } from '@/components/LoginModal';
-import { DonateModal } from '@/components/DonateModal';
-import { BookmarksPanel } from '@/components/BookmarksPanel';
-import { GroupMembersPanel } from '@/components/rooms/GroupMembersPanel';
-import { RoomsList } from '@/components/rooms/RoomsList';
-import { ContactsList } from '@/components/contacts/ContactsList';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, MessageSquare, UserPlus } from 'lucide-react';
-import { sendMentionNotifications } from '@/utils/mentionNotifications';
-import { useBotIntegration } from '@/hooks/useBotIntegration';
+import { useState, useEffect, useRef } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { useMessageReactions } from "@/hooks/useMessageReactions";
+import { useMessageReports } from "@/hooks/useMessageReports";
+import { useMessageEditing } from "@/hooks/useMessageEditing";
+import { useThreadedReplies } from "@/hooks/useThreadedReplies";
+import { useSecureMessageHandling } from "@/hooks/useSecureMessageHandling";
+import { useSecurityMonitoring } from "@/hooks/useSecurityMonitoring";
+import {
+  getOrCreateGuestId,
+  getOrCreateGuestName,
+  updateGuestName,
+  clearGuestData,
+  validateGuestSession,
+} from "@/utils/secureGuestId";
+import { sanitizeGuestName } from "@/utils/sanitization";
+import { AgeGate } from "@/components/AgeGate";
+import { ChatHeader } from "@/components/ChatHeader";
+import { HelpButton } from "@/components/HelpButton";
+import { UserList } from "@/components/UserList";
+import { ChatMessage } from "@/components/ChatMessage";
+import { MessageInput } from "@/components/MessageInput";
+import { ThreadedReplyButton } from "@/components/ThreadedReplyButton";
+import { ThreadReplyInput } from "@/components/ThreadReplyInput";
+import { PrivateChat } from "@/components/PrivateChat";
+import { LoginModal } from "@/components/LoginModal";
+import { DonateModal } from "@/components/DonateModal";
+import { BookmarksPanel } from "@/components/BookmarksPanel";
+import { GroupMembersPanel } from "@/components/rooms/GroupMembersPanel";
+import { RoomsList } from "@/components/rooms/RoomsList";
+import { ContactsList } from "@/components/contacts/ContactsList";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Users, MessageSquare, UserPlus } from "lucide-react";
+import { sendMentionNotifications } from "@/utils/mentionNotifications";
+import { useBotIntegration } from "@/hooks/useBotIntegration";
 
 interface Message {
   id: string;
@@ -78,11 +84,11 @@ const Index = () => {
 
   // Chat state
   const [messages, setMessages] = useState<Message[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Message[]>([]);
 
   // User state
-  const [guestName, setGuestName] = useState('');
+  const [guestName, setGuestName] = useState("");
   const [userList, setUserList] = useState<OnlineUser[]>([]);
 
   // Private chat state
@@ -92,10 +98,10 @@ const Index = () => {
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
 
   // Sidebar tab state
-  const [sidebarTab, setSidebarTab] = useState<'users' | 'rooms' | 'contacts'>('users');
+  const [sidebarTab, setSidebarTab] = useState<"users" | "rooms" | "contacts">("users");
 
   // Mention state
-  const [mentionToAdd, setMentionToAdd] = useState<string>('');
+  const [mentionToAdd, setMentionToAdd] = useState<string>("");
   const [shouldClearMention, setShouldClearMention] = useState(false);
 
   // Thread state
@@ -109,29 +115,24 @@ const Index = () => {
 
   // Load initial messages
   const loadInitialMessages = async () => {
-    let query = supabase
-      .from('messages')
-      .select('*')
-      .eq('is_deleted', false) as any; // Type assertion to prevent TS infinite recursion
+    let query = supabase.from("messages").select("*").eq("is_deleted", false) as any; // Type assertion to prevent TS infinite recursion
 
     // Filter by room if one is selected
     if (selectedRoom) {
-      query = query.eq('channel_id', selectedRoom.id);
+      query = query.eq("channel_id", selectedRoom.id);
     } else {
       // Public chat: only messages with null channel_id
-      query = query.is('channel_id', null);
+      query = query.is("channel_id", null);
     }
 
-    const { data, error } = await query
-      .order('created_at', { ascending: false })
-      .limit(PAGE_SIZE);
+    const { data, error } = await query.order("created_at", { ascending: false }).limit(PAGE_SIZE);
 
     if (!error && data) {
       if (data.length < PAGE_SIZE) setHasMore(false);
 
-      const transformedMessages = data.map(msg => ({
+      const transformedMessages = data.map((msg) => ({
         ...msg,
-        mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+        mentions: Array.isArray(msg.mentions) ? msg.mentions : [],
       }));
       setMessages(transformedMessages.reverse());
     }
@@ -146,40 +147,38 @@ const Index = () => {
 
     try {
       let query = supabase
-        .from('messages')
-        .select('*')
-        .eq('is_deleted', false)
-        .lt('created_at', oldestMessage.created_at) as any; // Type assertion to prevent TS infinite recursion
+        .from("messages")
+        .select("*")
+        .eq("is_deleted", false)
+        .lt("created_at", oldestMessage.created_at) as any; // Type assertion to prevent TS infinite recursion
 
       // Filter by room
       if (selectedRoom) {
-        query = query.eq('channel_id', selectedRoom.id);
+        query = query.eq("channel_id", selectedRoom.id);
       } else {
-        query = query.is('channel_id', null);
+        query = query.is("channel_id", null);
       }
 
-      const { data, error } = await query
-        .order('created_at', { ascending: false })
-        .limit(PAGE_SIZE);
+      const { data, error } = await query.order("created_at", { ascending: false }).limit(PAGE_SIZE);
 
       if (error) throw error;
 
       if (data) {
         if (data.length < PAGE_SIZE) setHasMore(false);
 
-        const transformedMessages = data.map(msg => ({
+        const transformedMessages = data.map((msg) => ({
           ...msg,
-          mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+          mentions: Array.isArray(msg.mentions) ? msg.mentions : [],
         }));
 
-        setMessages(prev => [...transformedMessages.reverse(), ...prev]);
+        setMessages((prev) => [...transformedMessages.reverse(), ...prev]);
       }
     } catch (error) {
-      console.error('Error loading more messages:', error);
+      console.error("Error loading more messages:", error);
       toast({
         title: "Error",
         description: "Failed to load older messages",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setIsLoadingMore(false);
@@ -194,7 +193,7 @@ const Index = () => {
           loadMoreMessages();
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.5 },
     );
 
     if (loadingRef.current) {
@@ -209,11 +208,10 @@ const Index = () => {
   const presenceChannelRef = useRef<any>(null);
   const lastMessageTimeRef = useRef(0);
 
-
   // Check age verification on mount
   useEffect(() => {
-    const previouslyConfirmed = localStorage.getItem('ageVerified');
-    if (previouslyConfirmed === 'true') {
+    const previouslyConfirmed = localStorage.getItem("ageVerified");
+    if (previouslyConfirmed === "true") {
       setAgeVerified(true);
     }
   }, []);
@@ -228,7 +226,7 @@ const Index = () => {
     // Clear guest data when user logs in
     if (user && guestName) {
       clearGuestData();
-      setGuestName('');
+      setGuestName("");
     }
   }, [ageVerified, user, guestName]);
 
@@ -241,80 +239,76 @@ const Index = () => {
     loadInitialMessages();
 
     // Subscribe to new and updated messages with enhanced debugging and error handling
-    const channelName = selectedRoom ? `room-messages-${selectedRoom.id}` : 'public-messages';
+    const channelName = selectedRoom ? `room-messages-${selectedRoom.id}` : "public-messages";
     const messagesChannel = supabase
       .channel(channelName, {
         config: {
           broadcast: { self: false }, // Disable self-broadcast to avoid echo
-          presence: { key: 'messages' }
-        }
+          presence: { key: "messages" },
+        },
       })
       .on(
-        'postgres_changes',
+        "postgres_changes",
         {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: selectedRoom ? `channel_id=eq.${selectedRoom.id}` : 'channel_id=is.null'
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: selectedRoom ? `channel_id=eq.${selectedRoom.id}` : "channel_id=is.null",
         },
         (payload) => {
           try {
-            console.log('✅ New message received via realtime:', payload.new);
+            console.log("✅ New message received via realtime:", payload.new);
             setMessages((prev) => {
               // Check if message already exists to prevent duplicates
-              const messageExists = prev.some(msg => msg.id === payload.new.id);
+              const messageExists = prev.some((msg) => msg.id === payload.new.id);
               if (messageExists) {
-                console.log('📝 Message already exists, skipping duplicate');
+                console.log("📝 Message already exists, skipping duplicate");
                 return prev;
               }
               // Transform the payload to ensure mentions is properly typed
               const transformedMessage = {
                 ...payload.new,
-                mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : []
+                mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : [],
               };
               return [...prev, transformedMessage as Message];
             });
           } catch (error) {
-            console.error('❌ Error processing new message:', error);
+            console.error("❌ Error processing new message:", error);
           }
-        }
+        },
       )
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'messages' },
-        (payload) => {
-          console.log('✏️ Message updated via realtime:', payload.new);
-          setMessages((prev) =>
-            prev.map((msg) => {
-              if (msg.id === payload.new.id) {
-                // Transform the payload to ensure mentions is properly typed
-                return {
-                  ...payload.new,
-                  mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : []
-                } as Message;
-              }
-              return msg;
-            })
-          );
-        }
-      )
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => {
+        console.log("✏️ Message updated via realtime:", payload.new);
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (msg.id === payload.new.id) {
+              // Transform the payload to ensure mentions is properly typed
+              return {
+                ...payload.new,
+                mentions: Array.isArray(payload.new.mentions) ? payload.new.mentions : [],
+              } as Message;
+            }
+            return msg;
+          }),
+        );
+      })
       .subscribe((status) => {
-        console.log('📡 Messages subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ Successfully subscribed to real-time messages');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ Channel subscription error - attempting reconnection');
+        console.log("📡 Messages subscription status:", status);
+        if (status === "SUBSCRIBED") {
+          console.log("✅ Successfully subscribed to real-time messages");
+        } else if (status === "CHANNEL_ERROR") {
+          console.error("❌ Channel subscription error - attempting reconnection");
           // Attempt to resubscribe after a delay
           setTimeout(() => {
-            if (messagesChannel.state === 'errored') {
+            if (messagesChannel.state === "errored") {
               messagesChannel.unsubscribe();
               // The effect will re-run and create a new subscription
             }
           }, 2000);
-        } else if (status === 'TIMED_OUT') {
-          console.error('⏰ Channel subscription timed out');
-        } else if (status === 'CLOSED') {
-          console.log('📴 Channel subscription closed');
+        } else if (status === "TIMED_OUT") {
+          console.error("⏰ Channel subscription timed out");
+        } else if (status === "CLOSED") {
+          console.log("📴 Channel subscription closed");
         }
       });
 
@@ -339,19 +333,17 @@ const Index = () => {
 
       if (!currentUser && !currentGuestName) return;
 
-      const name = currentUser
-        ? (currentUser.user_metadata?.name || currentUser.email)
-        : currentGuestName;
+      const name = currentUser ? currentUser.user_metadata?.name || currentUser.email : currentGuestName;
 
       const key = currentUser ? currentUser.id : `${currentGuestName}_${Date.now()}`;
       const isMember = !!currentUser;
 
-      const channel = supabase.channel('online-users', {
-        config: { presence: { key } }
+      const channel = supabase.channel("online-users", {
+        config: { presence: { key } },
       });
 
       channel
-        .on('presence', { event: 'sync' }, () => {
+        .on("presence", { event: "sync" }, () => {
           const state = channel.presenceState();
           const online: OnlineUser[] = [];
 
@@ -368,7 +360,7 @@ const Index = () => {
           setUserList(online);
         })
         .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
+          if (status === "SUBSCRIBED") {
             channel.track({ name, isMember });
           }
         });
@@ -388,8 +380,8 @@ const Index = () => {
 
   // Auto-scroll to bottom
   useEffect(() => {
-    if (searchQuery === '') {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (searchQuery === "") {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, searchQuery]);
 
@@ -398,12 +390,12 @@ const Index = () => {
     const handleResize = () => {
       // Small delay to ensure layout has updated
       setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
       }, 100);
     };
 
-    window.visualViewport?.addEventListener('resize', handleResize);
-    return () => window.visualViewport?.removeEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener("resize", handleResize);
+    return () => window.visualViewport?.removeEventListener("resize", handleResize);
   }, []);
 
   // Handle search
@@ -417,16 +409,16 @@ const Index = () => {
 
     const performSearch = async () => {
       const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .ilike('content', `%${searchQuery}%`)
-        .order('created_at', { ascending: true });
+        .from("messages")
+        .select("*")
+        .ilike("content", `%${searchQuery}%`)
+        .order("created_at", { ascending: true });
 
       if (!error) {
         // Transform the data to ensure mentions is properly typed
-        const transformedResults = (data || []).map(msg => ({
+        const transformedResults = (data || []).map((msg) => ({
           ...msg,
-          mentions: Array.isArray(msg.mentions) ? msg.mentions : []
+          mentions: Array.isArray(msg.mentions) ? msg.mentions : [],
         }));
         setSearchResults(transformedResults);
       }
@@ -450,14 +442,12 @@ const Index = () => {
     }
     lastMessageTimeRef.current = now;
 
-    const senderName = user
-      ? (user.user_metadata?.name || user.email)
-      : guestName;
+    const senderName = user ? user.user_metadata?.name || user.email : guestName;
 
     // SEAMLESS BOT INTEGRATION: Bot responses are automatically saved to Supabase and appear in real-time to all users
     // Check if this message is intended for the bot
     if (isBotMention(content, mentions)) {
-      console.log('🤖 Bot mention detected, sending to bot...');
+      console.log("🤖 Bot mention detected, sending to bot...");
 
       // Show loading toast
       toast({
@@ -470,10 +460,10 @@ const Index = () => {
 
       if (botResponse.success && botResponse.botResponse) {
         // Bot responded successfully - verify if it was saved to database
-        console.log('✅ Bot responded successfully:', {
+        console.log("✅ Bot responded successfully:", {
           response: botResponse.botResponse,
           messageId: botResponse.messageId,
-          savedToDatabase: botResponse.savedToDatabase
+          savedToDatabase: botResponse.savedToDatabase,
         });
 
         if (botResponse.savedToDatabase) {
@@ -495,7 +485,7 @@ const Index = () => {
         return;
       } else {
         // If bot failed, show error but don't send the user message either
-        console.log('🔴 Bot failed:', botResponse.error);
+        console.log("🔴 Bot failed:", botResponse.error);
         toast({
           title: "Bot unavailable",
           description: botResponse.error || "The AI bot is temporarily unavailable.",
@@ -506,28 +496,32 @@ const Index = () => {
     }
 
     try {
-      console.log('📤 Sending message:', { content, senderName, sender_id: user?.id || null, mentions });
-      const { data, error } = await supabase.from('messages').insert({
-        content,
-        sender_name: senderName,
-        sender_id: user?.id || null,
-        mentions: mentions || [],
-      }).select().single();
+      console.log("📤 Sending message:", { content, senderName, sender_id: user?.id || null, mentions });
+      const { data, error } = await supabase
+        .from("messages")
+        .insert({
+          content,
+          sender_name: senderName,
+          sender_id: user?.id || null,
+          mentions: mentions || [],
+        })
+        .select()
+        .single();
 
       if (error) {
-        console.error('❌ Error sending message:', error);
+        console.error("❌ Error sending message:", error);
       } else {
-        console.log('✅ Message sent successfully:', data);
+        console.log("✅ Message sent successfully:", data);
 
         // Optimistic update: Add message to UI immediately
         // The real-time subscription handles deduplication via ID check
         setMessages((prev) => {
-          const messageExists = prev.some(msg => msg.id === data.id);
+          const messageExists = prev.some((msg) => msg.id === data.id);
           if (messageExists) return prev;
 
           const newMessage = {
             ...data,
-            mentions: Array.isArray(data.mentions) ? data.mentions : []
+            mentions: Array.isArray(data.mentions) ? data.mentions : [],
           } as Message;
 
           return [...prev, newMessage]; // Add to end (Oldest -> Newest)
@@ -535,34 +529,30 @@ const Index = () => {
 
         // Send mention notifications if there are mentions (but not for bot mentions)
         if (mentions && mentions.length > 0) {
-          const nonBotMentions = mentions.filter(m => m.username?.toLowerCase() !== 'bot');
+          const nonBotMentions = mentions.filter((m) => m.username?.toLowerCase() !== "bot");
           if (nonBotMentions.length > 0) {
-            sendMentionNotifications(
-              data.id,
-              content,
-              senderName,
-              user?.id || null,
-              nonBotMentions
-            ).catch(err => console.error('Failed to send mention notifications:', err));
+            sendMentionNotifications(data.id, content, senderName, user?.id || null, nonBotMentions).catch((err) =>
+              console.error("Failed to send mention notifications:", err),
+            );
           }
         }
       }
 
       if (error) {
         // Handle specific error types
-        if (error.message.includes('too long')) {
+        if (error.message.includes("too long")) {
           toast({
             title: "Message too long",
             description: "Please keep your message under 1000 characters.",
             variant: "destructive",
           });
-        } else if (error.message.includes('prohibited content')) {
+        } else if (error.message.includes("prohibited content")) {
           toast({
             title: "Message blocked",
             description: "Your message contains prohibited content.",
             variant: "destructive",
           });
-        } else if (error.message.includes('rate limit')) {
+        } else if (error.message.includes("rate limit")) {
           toast({
             title: "Rate limited",
             description: "You're sending messages too quickly. Please slow down.",
@@ -602,7 +592,7 @@ const Index = () => {
   // Handle mention added
   const handleMentionAdded = () => {
     if (shouldClearMention) {
-      setMentionToAdd('');
+      setMentionToAdd("");
       setShouldClearMention(false);
     }
   };
@@ -641,21 +631,21 @@ const Index = () => {
 
     try {
       // Log security event
-      logSecurityEvent('guest_name_change', {
+      logSecurityEvent("guest_name_change", {
         oldName: guestName,
         newName: validation.sanitized,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
       await presenceChannelRef.current.untrack();
       await presenceChannelRef.current.track({
         name: validation.sanitized,
-        isMember: false
+        isMember: false,
       });
       setGuestName(validation.sanitized);
       updateGuestName(validation.sanitized);
     } catch (error) {
-      console.error('Failed to change name:', error);
+      console.error("Failed to change name:", error);
       toast({
         title: "Failed to change name",
         description: "Please try again.",
@@ -668,13 +658,13 @@ const Index = () => {
   const handleExportChat = () => {
     try {
       const dataStr = JSON.stringify(messages, null, 2);
-      const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
+      const dataUri = "data:application/json;charset=utf-8," + encodeURIComponent(dataStr);
 
       const exportFileDefaultName = `chat-export-${new Date().toISOString().slice(0, 10)}.json`;
 
-      const linkElement = document.createElement('a');
-      linkElement.setAttribute('href', dataUri);
-      linkElement.setAttribute('download', exportFileDefaultName);
+      const linkElement = document.createElement("a");
+      linkElement.setAttribute("href", dataUri);
+      linkElement.setAttribute("download", exportFileDefaultName);
       linkElement.click();
 
       toast({
@@ -685,7 +675,7 @@ const Index = () => {
       toast({
         title: "Export failed",
         description: "Could not export chat history.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -703,27 +693,25 @@ const Index = () => {
   // Handle message editing
   const handleEdit = async (messageId: string, newContent: string) => {
     // Store original state for revert
-    const originalMessage = messages.find(m => m.id === messageId);
+    const originalMessage = messages.find((m) => m.id === messageId);
 
     // Optimistic update
-    setMessages(prev => prev.map(msg =>
-      msg.id === messageId
-        ? { ...msg, content: newContent, edited_at: new Date().toISOString() }
-        : msg
-    ));
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, content: newContent, edited_at: new Date().toISOString() } : msg,
+      ),
+    );
 
     const success = await editMessage(messageId, newContent);
     if (!success) {
       toast({
         title: "Edit failed",
         description: "Failed to save changes. Reverting...",
-        variant: "destructive"
+        variant: "destructive",
       });
       // Revert change
       if (originalMessage) {
-        setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? originalMessage : msg
-        ));
+        setMessages((prev) => prev.map((msg) => (msg.id === messageId ? originalMessage : msg)));
       }
     }
   };
@@ -731,27 +719,25 @@ const Index = () => {
   // Handle message deletion
   const handleDelete = async (messageId: string) => {
     // Store original state for revert
-    const originalMessage = messages.find(m => m.id === messageId);
+    const originalMessage = messages.find((m) => m.id === messageId);
 
     // Optimistic update
-    setMessages(prev => prev.map(msg =>
-      msg.id === messageId
-        ? { ...msg, is_deleted: true, content: 'This message was deleted' }
-        : msg
-    ));
+    setMessages((prev) =>
+      prev.map((msg) =>
+        msg.id === messageId ? { ...msg, is_deleted: true, content: "This message was deleted" } : msg,
+      ),
+    );
 
     const success = await deleteMessage(messageId);
     if (!success) {
       toast({
         title: "Delete failed",
         description: "Failed to delete message. Reverting...",
-        variant: "destructive"
+        variant: "destructive",
       });
       // Revert change
       if (originalMessage) {
-        setMessages(prev => prev.map(msg =>
-          msg.id === messageId ? originalMessage : msg
-        ));
+        setMessages((prev) => prev.map((msg) => (msg.id === messageId ? originalMessage : msg)));
       }
     }
   };
@@ -779,17 +765,26 @@ const Index = () => {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Mobile sidebar overlay */}
-        <div className={`
+        <div
+          className={`
           fixed inset-0 bg-black/50 z-40 transition-opacity md:hidden
-          ${showMobileSidebar ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-        `} onClick={() => setShowMobileSidebar(false)} />
+          ${showMobileSidebar ? "opacity-100" : "opacity-0 pointer-events-none"}
+        `}
+          onClick={() => setShowMobileSidebar(false)}
+        />
 
         {/* Sidebar with user list */}
-        <div className={`
+        <div
+          className={`
           fixed left-0 top-0 h-full z-50 transition-transform md:relative md:translate-x-0 md:z-auto
-          ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}
-        `}>
-          <Tabs value={sidebarTab} onValueChange={(value) => setSidebarTab(value as 'users' | 'rooms' | 'contacts')} className="flex flex-col h-full">
+          ${showMobileSidebar ? "translate-x-0" : "-translate-x-full"}
+        `}
+        >
+          <Tabs
+            value={sidebarTab}
+            onValueChange={(value) => setSidebarTab(value as "users" | "rooms" | "contacts")}
+            className="flex flex-col h-full"
+          >
             <div className="p-3 border-b border-border">
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="users" className="flex items-center gap-1.5 text-xs">
@@ -852,26 +847,22 @@ const Index = () => {
           <div className="flex-1 overflow-y-auto p-4 pt-16 md:pt-4 space-y-1">
             {/* Loading indicator for pagination */}
             <div ref={loadingRef} className="h-4 w-full flex justify-center items-center py-2">
-              {isLoadingMore && <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>}
+              {isLoadingMore && (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent"></div>
+              )}
             </div>
 
             {isSearching && (
               <div className="mb-4 p-3 bg-muted rounded-lg animate-fade-in">
-                <h3 className="font-semibold text-sm mb-2">
-                  Search Results ({searchResults.length})
-                </h3>
+                <h3 className="font-semibold text-sm mb-2">Search Results ({searchResults.length})</h3>
                 {searchResults.length === 0 && (
-                  <p className="text-sm text-muted-foreground">
-                    No messages found for "{searchQuery}"
-                  </p>
+                  <p className="text-sm text-muted-foreground">No messages found for "{searchQuery}"</p>
                 )}
               </div>
             )}
 
             {displayMessages.map((message) => {
-              const isOwn = user
-                ? message.sender_id === user.id
-                : message.sender_name === guestName;
+              const isOwn = user ? message.sender_id === user.id : message.sender_name === guestName;
 
               const threadReplies = getThreadReplies(message.id);
               const isThreadOpen = openThreads.has(message.id);
@@ -899,13 +890,13 @@ const Index = () => {
                       onStartReply={startReply}
                       onToggleThread={(messageId) => {
                         if (isThreadOpen) {
-                          setOpenThreads(prev => {
+                          setOpenThreads((prev) => {
                             const newSet = new Set(prev);
                             newSet.delete(messageId);
                             return newSet;
                           });
                         } else {
-                          setOpenThreads(prev => new Set(prev).add(messageId));
+                          setOpenThreads((prev) => new Set(prev).add(messageId));
                           loadThreadReplies(messageId);
                         }
                       }}
@@ -924,9 +915,7 @@ const Index = () => {
                               {new Date(reply.created_at).toLocaleTimeString()}
                             </span>
                           </div>
-                          <div className="pl-4 border-l-2 border-muted">
-                            {reply.content}
-                          </div>
+                          <div className="pl-4 border-l-2 border-muted">{reply.content}</div>
                         </div>
                       ))}
                     </div>
@@ -935,11 +924,7 @@ const Index = () => {
                   {/* Reply Input */}
                   {replyingTo === message.id && (
                     <div className="ml-10 mb-4">
-                      <ThreadReplyInput
-                        parentMessageId={message.id}
-                        onSendReply={sendReply}
-                        onCancel={cancelReply}
-                      />
+                      <ThreadReplyInput parentMessageId={message.id} onSendReply={sendReply} onCancel={cancelReply} />
                     </div>
                   )}
                 </div>
@@ -961,7 +946,7 @@ const Index = () => {
         </main>
 
         {/* Group Members Panel - only for group rooms */}
-        {user && selectedRoom && selectedRoom.room_type === 'group' && (
+        {user && selectedRoom && selectedRoom.room_type === "group" && (
           <div className="hidden lg:block w-64 border-l border-border">
             <GroupMembersPanel roomId={selectedRoom.id} roomName={selectedRoom.name} />
           </div>
@@ -971,12 +956,7 @@ const Index = () => {
       {/* Modals and overlays */}
       {showLogin && <LoginModal onClose={() => setShowLogin(false)} />}
       {showDonate && <DonateModal onClose={() => setShowDonate(false)} />}
-      {activePrivateChat && (
-        <PrivateChat
-          partner={activePrivateChat}
-          onClose={() => setActivePrivateChat(null)}
-        />
-      )}
+      {activePrivateChat && <PrivateChat partner={activePrivateChat} onClose={() => setActivePrivateChat(null)} />}
 
       {/* Bookmarks Modal */}
       {showBookmarks && (
@@ -987,11 +967,11 @@ const Index = () => {
               // Scroll to message if it's visible
               const messageElement = document.querySelector(`[data-message-id="${messageId}"]`);
               if (messageElement) {
-                messageElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                messageElement.scrollIntoView({ behavior: "smooth", block: "center" });
                 // Highlight the message briefly
-                messageElement.classList.add('ring-2', 'ring-primary', 'ring-opacity-50');
+                messageElement.classList.add("ring-2", "ring-primary", "ring-opacity-50");
                 setTimeout(() => {
-                  messageElement.classList.remove('ring-2', 'ring-primary', 'ring-opacity-50');
+                  messageElement.classList.remove("ring-2", "ring-primary", "ring-opacity-50");
                 }, 2000);
               }
               setShowBookmarks(false);
