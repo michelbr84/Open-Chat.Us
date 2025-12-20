@@ -23,7 +23,10 @@ import { LoginModal } from '@/components/LoginModal';
 import { DonateModal } from '@/components/DonateModal';
 import { BookmarksPanel } from '@/components/BookmarksPanel';
 import { GroupMembersPanel } from '@/components/rooms/GroupMembersPanel';
-import { Users } from 'lucide-react';
+import { RoomsList } from '@/components/rooms/RoomsList';
+import { ContactsList } from '@/components/contacts/ContactsList';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Users, MessageSquare, UserPlus } from 'lucide-react';
 import { sendMentionNotifications } from '@/utils/mentionNotifications';
 import { useBotIntegration } from '@/hooks/useBotIntegration';
 
@@ -87,6 +90,9 @@ const Index = () => {
 
   // Room state
   const [selectedRoom, setSelectedRoom] = useState<Room | null>(null);
+
+  // Sidebar tab state
+  const [sidebarTab, setSidebarTab] = useState<'users' | 'rooms' | 'contacts'>('users');
 
   // Mention state
   const [mentionToAdd, setMentionToAdd] = useState<string>('');
@@ -783,13 +789,54 @@ const Index = () => {
           fixed left-0 top-0 h-full z-50 transition-transform md:relative md:translate-x-0 md:z-auto
           ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full'}
         `}>
-          <UserList
-            users={userList}
-            guestName={guestName}
-            onUserClick={handleUserClick}
-            onGuestNameChange={handleGuestNameChange}
-            onMentionUser={handleMentionUser}
-          />
+          <Tabs value={sidebarTab} onValueChange={(value) => setSidebarTab(value as 'users' | 'rooms' | 'contacts')} className="flex flex-col h-full">
+            <div className="p-3 border-b border-border">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="users" className="flex items-center gap-1.5 text-xs">
+                  <Users className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Users</span>
+                </TabsTrigger>
+                <TabsTrigger value="rooms" className="flex items-center gap-1.5 text-xs">
+                  <MessageSquare className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Rooms</span>
+                </TabsTrigger>
+                <TabsTrigger value="contacts" className="flex items-center gap-1.5 text-xs">
+                  <UserPlus className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Contacts</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
+
+            <TabsContent value="users" className="flex-1 overflow-hidden m-0">
+              <UserList
+                users={userList}
+                guestName={guestName}
+                onUserClick={handleUserClick}
+                onGuestNameChange={handleGuestNameChange}
+                onMentionUser={handleMentionUser}
+              />
+            </TabsContent>
+
+            <TabsContent value="rooms" className="flex-1 overflow-hidden m-0">
+              <RoomsList
+                onSelectRoom={(room) => {
+                  setSelectedRoom(room);
+                  setShowMobileSidebar(false);
+                }}
+                selectedRoomId={selectedRoom?.id}
+              />
+            </TabsContent>
+
+            <TabsContent value="contacts" className="flex-1 overflow-hidden m-0">
+              <ContactsList
+                onStartChat={(contactId, contactName) => {
+                  // Handle starting a private chat with a contact
+                  setActivePrivateChat({ id: contactId, name: contactName });
+                  setShowMobileSidebar(false);
+                }}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
 
         <main className="flex-1 flex flex-col relative">
