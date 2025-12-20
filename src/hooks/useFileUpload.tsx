@@ -36,9 +36,6 @@ export const useFileUpload = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // Generate a simple guest ID if no user
-  const guestId = user ? null : `guest-${Date.now()}-${Math.random().toString(36).substring(2)}`;
-
   const validateFile = useCallback((file: File): string | null => {
     if (file.size > MAX_FILE_SIZE) {
       return 'File size must be less than 10MB';
@@ -52,6 +49,16 @@ export const useFileUpload = () => {
   }, []);
 
   const uploadFile = useCallback(async (file: File): Promise<UploadedFile | null> => {
+    // Require authentication for file uploads
+    if (!user) {
+      toast({
+        title: 'Authentication Required',
+        description: 'Please log in to upload files.',
+        variant: 'destructive',
+      });
+      return null;
+    }
+
     const validationError = validateFile(file);
     if (validationError) {
       toast({
@@ -66,10 +73,9 @@ export const useFileUpload = () => {
     setUploadProgress(0);
 
     try {
-      // Generate unique filename
+      // Generate unique filename using authenticated user's ID
       const fileExt = file.name.split('.').pop();
-      const userId = user?.id || guestId;
-      const fileName = `${userId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -81,17 +87,19 @@ export const useFileUpload = () => {
 
       if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = supabase.storage
+      // Get signed URL (1 hour expiry) instead of public URL
+      const { data: urlData, error: urlError } = await supabase.storage
         .from('chat-attachments')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 3600);
+
+      if (urlError) throw urlError;
 
       const uploadedFile: UploadedFile = {
         id: fileName,
         name: file.name,
         size: file.size,
         type: file.type,
-        url: urlData.publicUrl,
+        url: urlData.signedUrl,
         uploadedAt: new Date(),
       };
 
@@ -114,7 +122,7 @@ export const useFileUpload = () => {
       setUploading(false);
       setUploadProgress(0);
     }
-  }, [user, guestId, validateFile, toast]);
+  }, [user, validateFile, toast]);
 
   const deleteFile = useCallback(async (fileId: string, filePath: string): Promise<boolean> => {
     try {
