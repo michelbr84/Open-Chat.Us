@@ -760,6 +760,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { user_uuid?: string }; Returns: boolean }
+      is_channel_member: {
+        Args: { _channel_id: string; _user_id: string }
+        Returns: boolean
+      }
       mark_messages_as_read: {
         Args: { p_sender_id: string; p_user_id: string }
         Returns: undefined
