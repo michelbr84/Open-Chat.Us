@@ -27,15 +27,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# Testing
-coverage/
-
-# Cache
-.eslintcache
-
-# Session state
-.estado.md
-
-# Claude audit
-.claude/audit.log
