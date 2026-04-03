@@ -41,7 +41,7 @@ interface ChatContainerProps {
   onStartReply: (messageId: string) => void;
   onOpenPrivateChat: (senderId: string, senderName: string) => void;
   onToggleThread: (messageId: string) => void;
-  onSendReply: (parentMessageId: string, content: string) => void;
+  onSendReply: (content: string, parentMessageId: string) => Promise<boolean>;
   onCancelReply: () => void;
   getThreadReplies: (messageId: string) => any[];
   loadThreadReplies: (messageId: string) => void;
