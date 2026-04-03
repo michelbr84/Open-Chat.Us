@@ -2,18 +2,17 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-
 // NOTE: These are public-safe credentials for Supabase
 // The anon key is safe to expose as it only allows authorized operations through RLS policies
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || "https://jbdnwdfvatnycvjifrcn.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpiZG53ZGZ2YXRueWN2amlmcmNuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUzMTIzMTIsImV4cCI6MjA4MDg4ODMxMn0.bV4RSZtK1Wp-hVPBPUSZGjpSN1ccob-uUMGAsuc-ygQ";
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
 const supabaseUrl = import.meta.env.DEV
   ? `${window.location.origin}/api`
-  : import.meta.env.VITE_SUPABASE_URL;
+  : SUPABASE_URL;
 
 export const supabase = createClient<Database>(supabaseUrl, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
