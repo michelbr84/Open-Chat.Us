@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 
 interface MentionData {
   user_id: string;
@@ -32,12 +33,12 @@ export const sendMentionNotifications = async (
     // For now, we'll use a simple console log approach
     // In a production app, you'd call the edge function or implement proper notifications
     
-    console.log('🔔 Mention notifications would be sent for:', {
+    logger.info('Mention notifications would be sent', {
       messageId,
       messageContent: messageContent.slice(0, 100) + (messageContent.length > 100 ? '...' : ''),
       senderName,
       senderId,
-      mentions: validMentions
+      mentionCount: validMentions.length
     });
 
     // You could call an edge function for notifications:
@@ -59,7 +60,7 @@ export const sendMentionNotifications = async (
     };
 
   } catch (error) {
-    console.error('Error sending mention notifications:', error);
+    logger.error('Error sending mention notifications', { error });
     return { 
       success: false, 
       error: error.message,

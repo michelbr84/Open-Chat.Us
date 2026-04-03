@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -66,7 +67,7 @@ export const ContentFilterManager: React.FC = () => {
       if (error) throw error;
       setFilters((data || []) as unknown as ContentFilter[]);
     } catch (error) {
-      console.error('Error loading filters:', error);
+      logger.error('Error loading filters', { error });
       toast({
         title: 'Error',
         description: 'Failed to load content filters',
@@ -129,7 +130,7 @@ export const ContentFilterManager: React.FC = () => {
       resetForm();
       await loadFilters();
     } catch (error) {
-      console.error('Error saving filter:', error);
+      logger.error('Error saving filter', { error });
       toast({
         title: 'Error',
         description: 'Failed to save filter',
@@ -169,7 +170,7 @@ export const ContentFilterManager: React.FC = () => {
       
       await loadFilters();
     } catch (error) {
-      console.error('Error deleting filter:', error);
+      logger.error('Error deleting filter', { error });
       toast({
         title: 'Error',
         description: 'Failed to delete filter',
@@ -192,7 +193,7 @@ export const ContentFilterManager: React.FC = () => {
       
       await loadFilters();
     } catch (error) {
-      console.error('Error toggling filter:', error);
+      logger.error('Error toggling filter', { error });
       toast({
         title: 'Error',
         description: 'Failed to update filter status',
@@ -222,7 +223,7 @@ export const ContentFilterManager: React.FC = () => {
               break;
           }
         } catch (error) {
-          console.error('Error testing filter:', error);
+          logger.error('Error testing filter', { error });
         }
         
         return {

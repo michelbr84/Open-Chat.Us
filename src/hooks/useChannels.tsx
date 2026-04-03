@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -52,7 +53,7 @@ export const useChannels = () => {
 
         setIsLoading(false);
       } catch (error) {
-        console.error('Error fetching channels:', error);
+        logger.error('Error fetching channels', { error });
         setIsLoading(false);
       }
     };
@@ -75,7 +76,7 @@ export const useChannels = () => {
 
         setChannelMembers((data || []) as ChannelMember[]);
       } catch (error) {
-        console.error('Error fetching channel members:', error);
+        logger.error('Error fetching channel members', { error });
       }
     };
 
@@ -113,7 +114,7 @@ export const useChannels = () => {
         });
 
       if (memberError) {
-        console.error('Error adding creator as member:', memberError);
+        logger.error('Error adding creator as member', { error: memberError });
       }
 
       setChannels(prev => [...prev, channel as Channel]);
@@ -121,7 +122,7 @@ export const useChannels = () => {
       
       return channel;
     } catch (error: any) {
-      console.error('Error creating channel:', error);
+      logger.error('Error creating channel', { error });
       
       if (error.message?.includes('Too many channels')) {
         toast.error('You can only create 5 channels per hour. Please wait before creating another.');
@@ -154,7 +155,7 @@ export const useChannels = () => {
       toast.success('Joined channel successfully!');
       return true;
     } catch (error: any) {
-      console.error('Error joining channel:', error);
+      logger.error('Error joining channel', { error });
       
       if (error.code === '23505') {
         toast.error('You are already a member of this channel');
@@ -196,7 +197,7 @@ export const useChannels = () => {
       toast.success('Left channel successfully!');
       return true;
     } catch (error) {
-      console.error('Error leaving channel:', error);
+      logger.error('Error leaving channel', { error });
       toast.error('Failed to leave channel');
       return false;
     }

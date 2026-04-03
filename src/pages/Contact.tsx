@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logger from '@/utils/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,7 +45,7 @@ const Contact = () => {
         gtag('event', 'conversion', {
           send_to: 'AW-17395476760/form_submission',
           event_callback: () => {
-            console.log('Contact form conversion tracked');
+            logger.info('Contact form conversion tracked');
           }
         });
       }
@@ -69,7 +70,7 @@ const Contact = () => {
       }, 2000);
 
     } catch (error) {
-      console.error('Form submission error:', error);
+      logger.error('Form submission error', { error });
       toast({
         title: "Error sending message",
         description: "Please try again or contact us directly at hello@open-chat.us",

@@ -53,7 +53,9 @@ export const getOrCreateGuestName = (): string => {
   let guestName = localStorage.getItem(GUEST_NAME_KEY);
   
   if (!guestName) {
-    const randomNumber = Math.floor(1000 + Math.random() * 9000);
+    const array = new Uint16Array(1);
+    crypto.getRandomValues(array);
+    const randomNumber = 1000 + (array[0] % 9000);
     guestName = `Guest${randomNumber}`;
     localStorage.setItem(GUEST_NAME_KEY, guestName);
   }

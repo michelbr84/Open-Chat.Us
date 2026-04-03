@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { HelpButton } from '@/components/HelpButton';
@@ -61,6 +61,19 @@ export const ChatHeader = ({
   const { getOnlineCount } = useUserPresence();
   const { permission, requestPermission } = useNotifications();
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Ctrl+K keyboard shortcut to focus search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -96,21 +109,24 @@ export const ChatHeader = ({
           onClick={cycleTheme}
           title={`Current theme: ${theme.replace('theme-', '')}`}
           className="md:hidden"
+          aria-label={`Switch theme, current: ${theme.replace('theme-', '')}`}
         >
-          <Palette className="w-4 h-4" />
+          <Palette className="w-4 h-4" aria-hidden="true" />
         </Button>
       </div>
 
       {/* Search bar */}
-      <div className="flex-1 w-full md:max-w-md relative">
+      <div className="flex-1 w-full md:max-w-md relative" role="search">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
           <Input
+            ref={searchInputRef}
             type="text"
-            placeholder="Search messages..."
+            placeholder="Search messages... (Ctrl+K)"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
             className="pl-10 pr-10 chat-input h-10 text-base"
+            aria-label="Search messages"
           />
           {searchQuery && (
             <Button
@@ -118,8 +134,9 @@ export const ChatHeader = ({
               size="sm"
               onClick={() => onSearchChange('')}
               className="absolute right-1 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0"
+              aria-label="Clear search"
             >
-              <X className="w-4 h-4" />
+              <X className="w-4 h-4" aria-hidden="true" />
             </Button>
           )}
         </div>

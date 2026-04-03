@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -111,7 +112,7 @@ export const useFileUpload = () => {
       return uploadedFile;
 
     } catch (error) {
-      console.error('Upload error:', error);
+      logger.error('Upload error', { error });
       toast({
         title: 'Upload Failed',
         description: 'Failed to upload file. Please try again.',
@@ -140,7 +141,7 @@ export const useFileUpload = () => {
 
       return true;
     } catch (error) {
-      console.error('Delete error:', error);
+      logger.error('Delete error', { error });
       toast({
         title: 'Delete Failed',
         description: 'Failed to delete file. Please try again.',

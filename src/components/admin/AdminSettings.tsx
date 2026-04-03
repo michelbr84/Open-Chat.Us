@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,7 +62,7 @@ export const AdminSettings = () => {
       if (error) throw error;
       setContentFilters(data || []);
     } catch (error) {
-      console.error('Failed to fetch content filters:', error);
+      logger.error('Failed to fetch content filters', { error });
       toast({
         title: "Error",
         description: "Failed to load content filters.",
@@ -99,7 +100,7 @@ export const AdminSettings = () => {
 
       fetchContentFilters();
     } catch (error) {
-      console.error('Failed to add filter:', error);
+      logger.error('Failed to add filter', { error });
     }
   };
 
@@ -119,7 +120,7 @@ export const AdminSettings = () => {
 
       fetchContentFilters();
     } catch (error) {
-      console.error('Failed to update filter:', error);
+      logger.error('Failed to update filter', { error });
       toast({
         title: "Error",
         description: "Failed to update filter status.",
@@ -144,7 +145,7 @@ export const AdminSettings = () => {
 
       fetchContentFilters();
     } catch (error) {
-      console.error('Failed to delete filter:', error);
+      logger.error('Failed to delete filter', { error });
       toast({
         title: "Error",
         description: "Failed to delete filter.",

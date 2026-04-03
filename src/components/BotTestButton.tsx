@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logger from '@/utils/logger';
 import { Button } from '@/components/ui/button';
 import { Bot, Loader2 } from 'lucide-react';
 import { useBotIntegration } from '@/hooks/useBotIntegration';
@@ -13,12 +14,12 @@ export const BotTestButton = () => {
     setIsTestingBot(true);
     
     try {
-      console.log('🧪 Testing bot integration...');
+      logger.debug('Testing bot integration');
       const result = await sendMessageToBot('@bot Hello, this is a test', 'TestUser', [
         { user_id: 'bot', username: 'bot', display_name: 'bot', start_index: 0, end_index: 4 }
       ]);
       
-      console.log('🧪 Bot test result:', result);
+      logger.debug('Bot test result', { result });
       
       if (result.success) {
         toast({
@@ -34,7 +35,7 @@ export const BotTestButton = () => {
         });
       }
     } catch (error) {
-      console.error('🧪 Bot test error:', error);
+      logger.error('Bot test error', { error });
       toast({
         title: "Bot test error ❌",
         description: "Failed to test bot integration",

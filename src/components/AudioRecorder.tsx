@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import logger from '@/utils/logger';
 import { Button } from '@/components/ui/button';
 import { Mic, Square, Play, Pause, Trash, Send } from 'lucide-react';
 import { useFileUpload } from '@/hooks/useFileUpload';
@@ -57,7 +58,7 @@ export const AudioRecorder = ({ onAudioRecorded, disabled }: AudioRecorderProps)
                 setRecordingTime(prev => prev + 1);
             }, 1000);
         } catch (err) {
-            console.error('Error accessing microphone:', err);
+            logger.error('Error accessing microphone', { error: err });
             toast({
                 title: "Microphone Error",
                 description: "Could not access microphone. Please check permissions.",

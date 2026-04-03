@@ -61,11 +61,17 @@ export const NotificationCenter = () => {
   const unreadNotifications = notifications.filter(n => !n.is_read);
   const readNotifications = notifications.filter(n => n.is_read);
 
+  // Group unread notifications by type for summary
+  const groupedUnread = unreadNotifications.reduce((acc, n) => {
+    acc[n.type] = (acc[n.type] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
+        <Button variant="ghost" size="icon" className="relative" aria-label={unreadCount > 0 ? `Notifications, ${unreadCount} unread` : "Notifications"}>
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
             <Badge 
               variant="destructive" 
@@ -122,7 +128,18 @@ export const NotificationCenter = () => {
                   {unreadNotifications.length > 0 && (
                     <>
                       <div className="p-3 text-sm font-medium text-muted-foreground bg-muted/50">
-                        New ({unreadNotifications.length})
+                        <div className="flex items-center justify-between">
+                          <span>New ({unreadNotifications.length})</span>
+                          {Object.keys(groupedUnread).length > 1 && (
+                            <div className="flex gap-1.5">
+                              {Object.entries(groupedUnread).map(([type, count]) => (
+                                <span key={type} className="inline-flex items-center gap-0.5 text-xs bg-background px-1.5 py-0.5 rounded-full">
+                                  {getNotificationIcon(type)} {count}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       {unreadNotifications.map((notification) => (
                         <div
@@ -147,8 +164,9 @@ export const NotificationCenter = () => {
                                     e.stopPropagation();
                                     markAsRead(notification.id);
                                   }}
+                                  aria-label="Mark as read"
                                 >
-                                  <Check className="h-3 w-3" />
+                                  <Check className="h-3 w-3" aria-hidden="true" />
                                 </Button>
                               </div>
                               {notification.message && (

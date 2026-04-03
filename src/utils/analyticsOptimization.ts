@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 
 // Cache configuration
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -159,7 +160,7 @@ export const useOptimizedAnalytics = <T>(
 
       setData(result);
     } catch (err) {
-      console.error(`Error in ${queryKey}:`, err);
+      logger.error(`Error in ${queryKey}`, { error: err });
       setError(`Failed to fetch ${queryKey}`);
     } finally {
       setLoading(false);
@@ -215,7 +216,7 @@ export const batchAnalyticsQueries = async <T extends Record<string, any>>(
       const result = await queryFn();
       return { key, result, error: null };
     } catch (error) {
-      console.error(`Error in batch query ${String(key)}:`, error);
+      logger.error(`Error in batch query ${String(key)}`, { error });
       return { key, result: null, error };
     }
   });
@@ -255,7 +256,7 @@ export const preloadAnalyticsData = (
         const cacheKey = generateCacheKey(query.key, {});
         analyticsCache.set(cacheKey, result);
       } catch (error) {
-        console.error(`Error preloading ${query.key}:`, error);
+        logger.error(`Error preloading ${query.key}`, { error });
       }
     }, delay * index);
   });
@@ -280,14 +281,14 @@ export const trackQueryPerformance = async <T>(
     
     // Log slow queries (> 2 seconds)
     if (duration > 2000) {
-      console.warn(`Slow analytics query detected: ${queryName} took ${duration.toFixed(2)}ms`);
+      logger.warn(`Slow analytics query detected: ${queryName} took ${duration.toFixed(2)}ms`);
     }
     
     return result;
   } catch (error) {
     const endTime = performance.now();
     const duration = endTime - startTime;
-    console.error(`Analytics query failed: ${queryName} after ${duration.toFixed(2)}ms`, error);
+    logger.error(`Analytics query failed: ${queryName} after ${duration.toFixed(2)}ms`, { error });
     throw error;
   }
 };

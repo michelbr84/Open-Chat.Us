@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -113,7 +114,7 @@ export const ModerationOverview = () => {
         setRecentAlerts(alerts || []);
 
       } catch (error) {
-        console.error('Failed to fetch moderation stats:', error);
+        logger.error('Failed to fetch moderation stats', { error });
       } finally {
         setLoading(false);
       }

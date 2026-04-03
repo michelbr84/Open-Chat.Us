@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
 
 interface ContentFilter {
@@ -36,7 +37,7 @@ export const useAutoModeration = () => {
         if (error) throw error;
         setContentFilters(data || []);
       } catch (error) {
-        console.error('Failed to load content filters:', error);
+        logger.error('Failed to load content filters', { error });
       }
     };
 
@@ -58,7 +59,7 @@ export const useAutoModeration = () => {
           const regex = new RegExp(filter.pattern, 'gi');
           match = regex.test(content);
         } catch (e) {
-          console.warn('Invalid regex pattern:', filter.pattern);
+          logger.warn('Invalid regex pattern', { pattern: filter.pattern });
           continue;
         }
       } else {
@@ -118,7 +119,7 @@ export const useAutoModeration = () => {
           const regex = new RegExp(filter.pattern, 'gi');
           match = regex.test(content);
         } catch (e) {
-          console.warn('Invalid regex pattern:', filter.pattern);
+          logger.warn('Invalid regex pattern', { pattern: filter.pattern });
           continue;
         }
       } else {
@@ -149,7 +150,7 @@ export const useAutoModeration = () => {
           const regex = new RegExp(filter.pattern, 'gi');
           match = regex.test(content);
         } catch (e) {
-          console.warn('Invalid regex pattern:', filter.pattern);
+          logger.warn('Invalid regex pattern', { pattern: filter.pattern });
           continue;
         }
       } else {
@@ -177,13 +178,13 @@ export const useAutoModeration = () => {
       });
 
       if (error) {
-        console.error('Rate limit check failed:', error);
+        logger.error('Rate limit check failed', { error });
         return true; // Fail open - allow if we can't check
       }
 
       return data as boolean;
     } catch (error) {
-      console.error('Rate limit error:', error);
+      logger.error('Rate limit error', { error });
       return true;
     }
   }, []);
@@ -263,7 +264,7 @@ export const useAutoModeration = () => {
       };
 
     } catch (error) {
-      console.error('Moderation error:', error);
+      logger.error('Moderation error', { error });
       // Fail safe - allow content but log error
       return {
         allowed: true,
@@ -309,7 +310,7 @@ export const useAutoModeration = () => {
       setContentFilters(data || []);
 
     } catch (error) {
-      console.error('Failed to add filter:', error);
+      logger.error('Failed to add filter', { error });
       toast({
         title: "Error",
         description: "Failed to add content filter.",

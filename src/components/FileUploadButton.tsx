@@ -17,7 +17,7 @@ export const FileUploadButton: React.FC<FileUploadButtonProps> = ({
   className = '',
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { uploadFile, uploading, allowedTypes, maxFileSize } = useFileUpload();
+  const { uploadFile, uploading, uploadProgress, allowedTypes, maxFileSize } = useFileUpload();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -53,21 +53,32 @@ export const FileUploadButton: React.FC<FileUploadButtonProps> = ({
       />
       
       {variant === 'icon' ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          onClick={handleClick}
-          disabled={disabled || uploading}
-          className={`h-8 w-8 p-0 ${className}`}
-          title={`Upload file (max ${maxSizeMB}MB)`}
-        >
-          {uploading ? (
-            <Upload className="w-4 h-4 animate-spin" />
-          ) : (
-            <Paperclip className="w-4 h-4" />
+        <div className="relative">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleClick}
+            disabled={disabled || uploading}
+            className={`h-8 w-8 p-0 ${className}`}
+            title={uploading ? `Uploading... ${uploadProgress}%` : `Upload file (max ${maxSizeMB}MB)`}
+            aria-label={uploading ? `Uploading file ${uploadProgress}%` : `Upload file, max ${maxSizeMB}MB`}
+          >
+            {uploading ? (
+              <Upload className="w-4 h-4 animate-spin" />
+            ) : (
+              <Paperclip className="w-4 h-4" />
+            )}
+          </Button>
+          {uploading && uploadProgress > 0 && (
+            <div className="absolute -bottom-1 left-0 right-0 h-0.5 bg-muted rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all duration-200"
+                style={{ width: `${uploadProgress}%` }}
+              />
+            </div>
           )}
-        </Button>
+        </div>
       ) : (
         <Button
           type="button"

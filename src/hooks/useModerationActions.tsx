@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
 
 export type ModerationAction = 'warn' | 'mute' | 'unmute' | 'ban' | 'unban' | 'suspend' | 'unsuspend';
@@ -80,7 +81,7 @@ export const useModerationActions = () => {
 
       return true;
     } catch (error) {
-      console.error('Moderation action failed:', error);
+      logger.error('Moderation action failed', { error });
       toast({
         title: "Error",
         description: "Failed to apply moderation action.",
@@ -104,7 +105,7 @@ export const useModerationActions = () => {
       if (error) throw error;
       return data as UserModerationStatus | null;
     } catch (error) {
-      console.error('Failed to get user moderation status:', error);
+      logger.error('Failed to get user moderation status', { error });
       return null;
     }
   }, []);
@@ -116,7 +117,7 @@ export const useModerationActions = () => {
       if (!status?.muted_until) return false;
       return new Date(status.muted_until) > new Date();
     } catch (error) {
-      console.error('Failed to check mute status:', error);
+      logger.error('Failed to check mute status', { error });
       return false;
     }
   }, [getUserModerationStatus]);
@@ -128,7 +129,7 @@ export const useModerationActions = () => {
       if (!status?.banned_until) return false;
       return new Date(status.banned_until) > new Date();
     } catch (error) {
-      console.error('Failed to check ban status:', error);
+      logger.error('Failed to check ban status', { error });
       return false;
     }
   }, [getUserModerationStatus]);
@@ -145,7 +146,7 @@ export const useModerationActions = () => {
       if (error) throw error;
       return data?.reputation || 100;
     } catch (error) {
-      console.error('Failed to get user reputation:', error);
+      logger.error('Failed to get user reputation', { error });
       return 100;
     }
   }, []);
@@ -172,7 +173,7 @@ export const useModerationActions = () => {
         description: `Warning issued to user for: ${reason}`,
       });
     } catch (error) {
-      console.error('Failed to issue warning:', error);
+      logger.error('Failed to issue warning', { error });
       toast({
         title: "Error",
         description: "Failed to issue warning.",
@@ -193,7 +194,7 @@ export const useModerationActions = () => {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Failed to get moderation history:', error);
+      logger.error('Failed to get moderation history', { error });
       return [];
     }
   }, []);
@@ -211,7 +212,7 @@ export const useModerationActions = () => {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Failed to get user warnings:', error);
+      logger.error('Failed to get user warnings', { error });
       return [];
     }
   }, []);

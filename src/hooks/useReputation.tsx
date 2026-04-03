@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 
 export interface ReputationActivity {
@@ -104,7 +105,7 @@ export const useReputation = () => {
         }
 
       } catch (error) {
-        console.error('Failed to load reputation:', error);
+        logger.error('Failed to load reputation', { error });
       } finally {
         setLoading(false);
       }
@@ -157,7 +158,7 @@ export const useReputation = () => {
         }));
       }
     } catch (error) {
-      console.error('Failed to award reputation points:', error);
+      logger.error('Failed to award reputation points', { error });
     }
   };
 
@@ -171,7 +172,7 @@ export const useReputation = () => {
 
       return (count || 0) + 1;
     } catch (error) {
-      console.error('Failed to get reputation rank:', error);
+      logger.error('Failed to get reputation rank', { error });
       return null;
     }
   };

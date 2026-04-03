@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import logger from '@/utils/logger';
 import { useRooms } from '@/hooks/useRooms';
 import { useContacts } from '@/hooks/useContacts';
 import { useAuth } from '@/hooks/useAuth';
@@ -82,7 +83,7 @@ export const GroupMembersPanel = ({ roomId, roomName }: GroupMembersPanelProps) 
                 setMembers([]);
             }
         } catch (error) {
-            console.error('Error fetching members:', error);
+            logger.error('Error fetching members', { error });
             toast.error('Failed to load group members');
         } finally {
             setIsLoading(false);
@@ -141,7 +142,7 @@ export const GroupMembersPanel = ({ roomId, roomName }: GroupMembersPanelProps) 
             toast.success(`Member promoted to ${newRole}`);
             fetchMembers();
         } catch (error) {
-            console.error('Error promoting member:', error);
+            logger.error('Error promoting member', { error });
             toast.error('Failed to promote member');
         }
     };
@@ -159,7 +160,7 @@ export const GroupMembersPanel = ({ roomId, roomName }: GroupMembersPanelProps) 
             toast.success('Member demoted');
             fetchMembers();
         } catch (error) {
-            console.error('Error demoting member:', error);
+            logger.error('Error demoting member', { error });
             toast.error('Failed to demote member');
         }
     };

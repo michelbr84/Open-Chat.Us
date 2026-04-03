@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 
 interface PerformanceResult {
   test: string;
@@ -217,34 +218,34 @@ export const usePerformanceTesting = () => {
     
     const allResults: PerformanceResult[] = [];
 
-    console.log('🚀 Starting OpenChat Performance Tests...');
+    logger.info('Starting OpenChat Performance Tests');
 
     // Test 1: Message Loading
-    console.log('📥 Testing message loading...');
+    logger.info('Testing message loading');
     const loadingResult = await testMessageLoading();
     allResults.push(loadingResult);
     setResults([...allResults]);
 
     // Test 2: Message Throughput (small batch)
-    console.log('📤 Testing message throughput...');
+    logger.info('Testing message throughput');
     const throughputResult = await testMessageThroughput(5);
     allResults.push(throughputResult);
     setResults([...allResults]);
 
     // Test 3: Reactions Performance
-    console.log('💫 Testing reactions performance...');
+    logger.info('Testing reactions performance');
     const reactionsResult = await testReactionsPerformance();
     allResults.push(reactionsResult);
     setResults([...allResults]);
 
     // Test 4: Real-time Performance
-    console.log('⚡ Testing real-time performance...');
+    logger.info('Testing real-time performance');
     const realtimeResult = await testRealtimePerformance(3000);
     allResults.push(realtimeResult);
     setResults([...allResults]);
 
     setIsRunning(false);
-    console.log('✅ Performance tests completed!');
+    logger.info('Performance tests completed');
     
     return allResults;
   };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
 
 interface BotStatus {
@@ -47,7 +48,7 @@ export const useBotIntegration = () => {
       return isOnline;
 
     } catch (error) {
-      console.error('Bot status check error:', error);
+      logger.error('Bot status check error', { error });
       setBotStatus(prev => ({
         ...prev,
         isOnline: false,
@@ -63,7 +64,7 @@ export const useBotIntegration = () => {
   // Send message to bot and return response data
   const sendMessageToBot = async (message: string, username: string, mentions: any[] = [], channelId?: string | null) => {
     try {
-      console.log('🚀 Sending message to bot via edge function:', { message, username, mentions, channelId });
+      logger.debug('Sending message to bot via edge function', { message, username, mentions, channelId });
 
       const { data, error } = await supabase.functions.invoke('chat-bot', {
         body: {
@@ -75,7 +76,7 @@ export const useBotIntegration = () => {
       });
 
       if (error) {
-        console.error('❌ Edge function error:', error);
+        logger.error('Edge function error', { error });
         toast({
           title: "Bot error",
           description: "Failed to send message to the AI bot. Please try again.",
@@ -91,19 +92,19 @@ export const useBotIntegration = () => {
         return { success: false, error: 'Edge function error' };
       }
 
-      console.log('✅ Bot response received:', data);
+      logger.debug('Bot response received', { data });
 
       // Handle different response formats
       if (data?.success === false) {
         // Bot returned an error but with a friendly message
-        console.log('⚠️ Bot returned error with message:', data.error);
+        logger.warn('Bot returned error with message', { error: data.error });
         if (data.botResponse) {
           // Bot gave us a friendly error response, show it to user but treat as success for UI
-          console.log('🔄 Displaying bot error message to user:', data.botResponse);
+          logger.debug('Displaying bot error message to user', { botResponse: data.botResponse });
           return { success: true, botResponse: data.botResponse, savedToDatabase: false };
         } else {
           // No friendly response, show error toast
-          console.log('❌ No bot response, showing error toast');
+          logger.debug('No bot response, showing error toast');
           toast({
             title: "Bot unavailable",
             description: data.error || "Bot is having issues right now.",
@@ -129,7 +130,7 @@ export const useBotIntegration = () => {
       };
 
     } catch (error) {
-      console.error('❌ Failed to send message to bot:', error);
+      logger.error('Failed to send message to bot', { error });
       toast({
         title: "Connection error",
         description: "Could not connect to the AI bot. Please check your connection.",

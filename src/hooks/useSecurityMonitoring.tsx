@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import logger from '@/utils/logger';
 import { getOrCreateGuestId, validateGuestSession } from '@/utils/secureGuestId';
 import { useToast } from '@/hooks/use-toast';
 
@@ -12,7 +13,7 @@ export const useSecurityMonitoring = () => {
     // Validate guest session on mount
     const guestId = getOrCreateGuestId();
     if (!validateGuestSession(guestId)) {
-      console.warn('Invalid guest session detected');
+      logger.warn('Invalid guest session detected');
       // Clear invalid session
       localStorage.removeItem('secure_guest_id');
       localStorage.removeItem('secure_guest_name');
@@ -81,7 +82,7 @@ export const useSecurityMonitoring = () => {
       ...data
     };
 
-    console.warn('Security Event:', securityLog);
+    logger.warn('Security Event', securityLog);
     
     // In production, you might want to send this to a logging service
     // analyticsService.track('security_event', securityLog);

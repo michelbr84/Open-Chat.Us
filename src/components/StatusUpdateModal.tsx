@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import logger from '@/utils/logger';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -73,7 +74,7 @@ export const StatusUpdateModal = ({ isOpen, onClose }: StatusUpdateModalProps) =
       await updateUserStatus(selectedStatus, customMessage || undefined);
       onClose();
     } catch (error) {
-      console.error('Error updating status:', error);
+      logger.error('Error updating status', { error });
     } finally {
       setIsUpdating(false);
     }

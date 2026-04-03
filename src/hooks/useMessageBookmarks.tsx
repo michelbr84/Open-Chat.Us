@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -64,7 +65,7 @@ export const useMessageBookmarks = () => {
       setBookmarks(bookmarksData);
       setBookmarkedMessageIds(new Set(bookmarksData.map((b: any) => b.message_id)));
     } catch (error: any) {
-      console.error('Error loading bookmarks:', error);
+      logger.error('Error loading bookmarks', { error });
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +86,7 @@ export const useMessageBookmarks = () => {
       loadBookmarks();
       return true;
     } catch (error: any) {
-      console.error('Error adding bookmark:', error);
+      logger.error('Error adding bookmark', { error });
       return false;
     }
   };

@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import logger from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
 
 export interface SlashCommand {
@@ -134,7 +135,7 @@ export const useSlashCommands = () => {
       const result = await parsed.command.handler(parsed.args);
       return result;
     } catch (error) {
-      console.error('Slash command error:', error);
+      logger.error('Slash command error', { error });
       toast({
         title: 'Command Error',
         description: 'Failed to execute command. Please try again.',

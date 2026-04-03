@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -82,7 +83,7 @@ export const ActionHistory = () => {
       
       setActions(data || []);
     } catch (error) {
-      console.error('Failed to fetch action history:', error);
+      logger.error('Failed to fetch action history', { error });
     } finally {
       setLoading(false);
     }

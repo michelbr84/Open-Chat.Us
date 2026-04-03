@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 
 export interface LeaderboardEntry {
   id: string;
@@ -90,7 +91,7 @@ export const useLeaderboard = (filters: LeaderboardFilters) => {
         setLeaderboard(transformedData);
 
       } catch (error) {
-        console.error('Failed to load leaderboard:', error);
+        logger.error('Failed to load leaderboard', { error });
       } finally {
         setLoading(false);
       }

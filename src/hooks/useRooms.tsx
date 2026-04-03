@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -92,7 +93,7 @@ export const useRooms = () => {
       setRooms(validRooms);
       setIsLoading(false);
     } catch (error) {
-      console.error('Error fetching rooms:', error);
+      logger.error('Error fetching rooms', { error });
       setIsLoading(false);
     }
   }, [user]);
@@ -115,7 +116,7 @@ export const useRooms = () => {
         if (error) throw error;
         setRoomMembers((data || []) as RoomMember[]);
       } catch (error) {
-        console.error('Error fetching room members:', error);
+        logger.error('Error fetching room members', { error });
       }
     };
 
@@ -167,7 +168,7 @@ export const useRooms = () => {
         });
 
       if (memberError) {
-        console.error('Error adding creator as member:', memberError);
+        logger.error('Error adding creator as member', { error: memberError });
       }
 
       setRooms(prev => [...prev, room as Room]);
@@ -175,7 +176,7 @@ export const useRooms = () => {
       
       return room as Room;
     } catch (error: any) {
-      console.error('Error creating room:', error);
+      logger.error('Error creating room', { error });
       toast.error('Failed to create room');
       return null;
     }
@@ -208,7 +209,7 @@ export const useRooms = () => {
       toast.success('Room deleted successfully!');
       return true;
     } catch (error) {
-      console.error('Error deleting room:', error);
+      logger.error('Error deleting room', { error });
       toast.error('Failed to delete room');
       return false;
     }
@@ -233,7 +234,7 @@ export const useRooms = () => {
       toast.success('Member added successfully!');
       return true;
     } catch (error: any) {
-      console.error('Error adding member:', error);
+      logger.error('Error adding member', { error });
       if (error.code === '23505') {
         toast.error('User is already a member');
       } else {
@@ -260,7 +261,7 @@ export const useRooms = () => {
       toast.success('Member removed successfully!');
       return true;
     } catch (error) {
-      console.error('Error removing member:', error);
+      logger.error('Error removing member', { error });
       toast.error('Failed to remove member');
       return false;
     }
@@ -288,7 +289,7 @@ export const useRooms = () => {
       toast.success('Left room successfully!');
       return true;
     } catch (error) {
-      console.error('Error leaving room:', error);
+      logger.error('Error leaving room', { error });
       toast.error('Failed to leave room');
       return false;
     }

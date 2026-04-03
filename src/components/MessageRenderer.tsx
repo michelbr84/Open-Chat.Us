@@ -1,4 +1,5 @@
 import React from 'react';
+import logger from '@/utils/logger';
 import { parseMarkdown, MarkdownSegment } from '@/utils/markdownFormatter';
 import { parseEmojiShortcodes } from '@/utils/emojiSystem';
 import { formatMessageWithMentions, isUserMentioned } from '@/utils/mentionParser';
@@ -65,7 +66,7 @@ export const MessageRenderer: React.FC<MessageRendererProps> = ({
           `}
           title={`Mentioned user: ${segment.mention?.display_name || segment.content}`}
           onClick={() => {
-            console.log('Clicked mention:', segment.mention);
+            logger.debug('Clicked mention', { mention: segment.mention });
           }}
         >
           {segment.content}

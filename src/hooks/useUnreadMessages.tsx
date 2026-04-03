@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,7 +33,7 @@ export const useUnreadMessages = () => {
       setUnreadCount(typeof countData === 'number' ? countData : 0);
       setUnreadConversations(Array.isArray(conversationsData) ? conversationsData : []);
     } catch (error: any) {
-      console.error('Error fetching unread messages:', error);
+      logger.error('Error fetching unread messages', { error });
     } finally {
       setLoading(false);
     }
@@ -44,7 +45,7 @@ export const useUnreadMessages = () => {
       await supabase.rpc('mark_messages_as_read', { p_sender_id: senderId, p_user_id: user.id });
       await fetchUnreadMessages();
     } catch (error: any) {
-      console.error('Error marking messages as read:', error);
+      logger.error('Error marking messages as read', { error });
     }
   };
 

@@ -1,4 +1,5 @@
 import { useToast } from '@/hooks/use-toast';
+import logger from '@/utils/logger';
 import { sanitizeMessageContent, containsInappropriateContent, isContentValidationRateLimited } from '@/utils/sanitization';
 import { getOrCreateGuestId } from '@/utils/secureGuestId';
 import { useAutoModeration } from '@/hooks/useAutoModeration';
@@ -101,7 +102,7 @@ export const useSecureMessageHandling = () => {
         });
       }
     } catch (moderationError) {
-      console.error('Moderation check failed:', moderationError);
+      logger.error('Moderation check failed', { error: moderationError });
       // Continue with basic validation if moderation fails
     }
 
@@ -109,7 +110,7 @@ export const useSecureMessageHandling = () => {
   };
 
   const logSecurityEvent = (eventType: string, details: any) => {
-    console.warn(`Security Event [${eventType}]:`, {
+    logger.warn(`Security Event [${eventType}]`, {
       timestamp: new Date().toISOString(),
       guestId: getOrCreateGuestId(),
       ...details

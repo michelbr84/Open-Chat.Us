@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -43,7 +44,7 @@ export const useAchievements = () => {
         if (error) throw error;
         setAchievements((data || []) as Achievement[]);
       } catch (error) {
-        console.error('Failed to load achievements:', error);
+        logger.error('Failed to load achievements', { error });
       }
     };
 
@@ -69,7 +70,7 @@ export const useAchievements = () => {
         if (error) throw error;
         setUserAchievements(data || []);
       } catch (error) {
-        console.error('Failed to load user achievements:', error);
+        logger.error('Failed to load user achievements', { error });
       } finally {
         setLoading(false);
       }

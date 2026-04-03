@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { getOrCreateGuestId } from '@/utils/secureGuestId';
@@ -26,7 +27,7 @@ export const useMessageReactions = () => {
       .select('*');
 
     if (error) {
-      console.error('Failed to load reactions:', error);
+      logger.error('Failed to load reactions', { error });
       return;
     }
 
@@ -88,7 +89,7 @@ export const useMessageReactions = () => {
     
     if (!user) {
       // For guests, reactions will persist using secure localStorage-based IDs
-      console.log('Guest reaction will persist using secure guest ID');
+      logger.debug('Guest reaction will persist using secure guest ID');
     }
 
     const currentReaction = reactions[messageId]?.[emoji];

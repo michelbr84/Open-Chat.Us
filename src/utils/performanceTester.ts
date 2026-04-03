@@ -14,7 +14,8 @@ class OpenChatPerformanceTester {
     return new Promise<void>((resolve) => {
       const intervalId = setInterval(async () => {
         const startTime = Date.now();
-        const { error } = await supabase.from('messages').insert({ content: `Perf test ${this.metrics.messagesSent + 1}`, sender_name: `PerfTest${Math.floor(Math.random() * 1000)}`, sender_id: null });
+        const perfRand = new Uint16Array(1); crypto.getRandomValues(perfRand);
+        const { error } = await supabase.from('messages').insert({ content: `Perf test ${this.metrics.messagesSent + 1}`, sender_name: `PerfTest${perfRand[0] % 1000}`, sender_id: null });
         this.responseTimes.push(Date.now() - startTime);
         if (!error) this.metrics.messagesSent++;
       }, interval);

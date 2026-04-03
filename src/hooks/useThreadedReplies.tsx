@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -65,7 +66,7 @@ export const useThreadedReplies = () => {
         [parentMessageId]: mappedMessages
       }));
     } catch (error) {
-      console.error('Error loading thread replies:', error);
+      logger.error('Error loading thread replies', { error });
       toast({
         title: 'Error',
         description: 'Failed to load thread replies',
@@ -129,7 +130,7 @@ export const useThreadedReplies = () => {
       setReplyingTo(null);
       return true;
     } catch (error) {
-      console.error('Error sending reply:', error);
+      logger.error('Error sending reply', { error });
       toast({
         title: 'Error',
         description: 'Failed to send reply',

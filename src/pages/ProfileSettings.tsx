@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -52,7 +53,7 @@ export default function ProfileSettings() {
                 });
             }
         } catch (error) {
-            console.error('Error loading profile:', error);
+            logger.error('Error loading profile', { error });
         } finally {
             setLoading(false);
         }

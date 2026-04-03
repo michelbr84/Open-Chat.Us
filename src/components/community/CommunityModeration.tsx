@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -67,7 +68,7 @@ export const CommunityModeration = ({
         });
       }
     } catch (error) {
-      console.error('Failed to submit report:', error);
+      logger.error('Failed to submit report', { error });
     } finally {
       setSubmitting(false);
     }

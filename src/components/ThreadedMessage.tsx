@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import logger from '@/utils/logger';
 import { MessageCircle, ChevronDown, ChevronRight, Reply, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,7 +61,7 @@ export const ThreadedMessage = ({
         toggleThread(messageThread.id);
       }
     } catch (error) {
-      console.error('Error sending reply:', error);
+      logger.error('Error sending reply', { error });
     } finally {
       setIsSendingReply(false);
     }

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, ArrowLeft, MessageCircle } from 'lucide-react';
@@ -12,7 +13,7 @@ const ThankYou = () => {
       gtag('event', 'conversion', {
         send_to: 'AW-17395476760/form_submission',
         event_callback: () => {
-          console.log('Contact form conversion tracked');
+          logger.info('Contact form conversion tracked');
         }
       });
     }

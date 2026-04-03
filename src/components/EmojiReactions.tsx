@@ -63,8 +63,9 @@ export const EmojiReactions = ({
             size="sm"
             className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-muted"
             title="Add reaction"
+            aria-label="Add emoji reaction"
           >
-            <Smile className="w-3 h-3" />
+            <Smile className="w-3 h-3" aria-hidden="true" />
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-80 p-3" align="start">

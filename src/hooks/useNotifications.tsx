@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import logger from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -70,7 +71,7 @@ export const useNotifications = () => {
         data: n.data as Record<string, unknown> | null,
       })) || []);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications', { error });
     } finally {
       setIsLoading(false);
     }
@@ -158,7 +159,7 @@ export const useNotifications = () => {
         return false;
       }
     } catch (error) {
-      console.error('Error requesting notification permission:', error);
+      logger.error('Error requesting notification permission', { error });
       return false;
     }
   }, [toast]);
@@ -168,7 +169,7 @@ export const useNotifications = () => {
       try {
         new Notification(title, options);
       } catch (e) {
-        console.error('Notification error:', e);
+        logger.error('Notification error', { error: e });
       }
     }
   }, [permission]);
@@ -189,7 +190,7 @@ export const useNotifications = () => {
         prev.map(n => n.id === notificationId ? { ...n, is_read: true } : n)
       );
     } catch (error) {
-      console.error('Error marking notification as read:', error);
+      logger.error('Error marking notification as read', { error });
     }
   }, [user]);
 
@@ -207,7 +208,7 @@ export const useNotifications = () => {
 
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     } catch (error) {
-      console.error('Error marking all notifications as read:', error);
+      logger.error('Error marking all notifications as read', { error });
     }
   }, [user]);
 

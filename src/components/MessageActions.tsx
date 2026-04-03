@@ -103,8 +103,9 @@ export const MessageActions = ({
             variant="ghost"
             size="sm"
             className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+            aria-label="Message actions"
           >
-            <MoreHorizontal className="w-3 h-3" />
+            <MoreHorizontal className="w-3 h-3" aria-hidden="true" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-48">

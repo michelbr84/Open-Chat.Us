@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -91,7 +92,7 @@ export const UserManagement = () => {
 
       setUsers(transformedUsers);
     } catch (error) {
-      console.error('Failed to fetch users:', error);
+      logger.error('Failed to fetch users', { error });
       toast({
         title: "Error",
         description: "Failed to load user data.",
@@ -128,7 +129,7 @@ export const UserManagement = () => {
       setActionDuration('');
       fetchUsers();
     } catch (error) {
-      console.error('Moderation action failed:', error);
+      logger.error('Moderation action failed', { error });
     }
   };
 

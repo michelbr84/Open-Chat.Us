@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -51,7 +52,7 @@ export const useContacts = () => {
           .in('user_id', contactUserIds);
 
         if (profilesError) {
-          console.error('Error fetching profiles:', profilesError);
+          logger.error('Error fetching profiles', { error: profilesError });
         }
 
         const contactsWithProfiles = contactsData.map(contact => ({
@@ -66,7 +67,7 @@ export const useContacts = () => {
 
       setIsLoading(false);
     } catch (error) {
-      console.error('Error fetching contacts:', error);
+      logger.error('Error fetching contacts', { error });
       setIsLoading(false);
     }
   }, [user]);
@@ -116,7 +117,7 @@ export const useContacts = () => {
       toast.success('Contact added successfully!');
       return true;
     } catch (error: any) {
-      console.error('Error adding contact:', error);
+      logger.error('Error adding contact', { error });
       if (error.code === '23505') {
         toast.error('This user is already in your contacts');
       } else {
@@ -143,7 +144,7 @@ export const useContacts = () => {
       toast.success('Contact removed successfully!');
       return true;
     } catch (error) {
-      console.error('Error removing contact:', error);
+      logger.error('Error removing contact', { error });
       toast.error('Failed to remove contact');
       return false;
     }
@@ -168,7 +169,7 @@ export const useContacts = () => {
       toast.success('Nickname updated!');
       return true;
     } catch (error) {
-      console.error('Error updating nickname:', error);
+      logger.error('Error updating nickname', { error });
       toast.error('Failed to update nickname');
       return false;
     }
@@ -194,7 +195,7 @@ export const useContacts = () => {
       if (error) throw error;
       return data || [];
     } catch (error) {
-      console.error('Error searching users:', error);
+      logger.error('Error searching users', { error });
       return [];
     }
   };

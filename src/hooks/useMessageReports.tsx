@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
@@ -59,7 +60,7 @@ export const useMessageReports = () => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Failed to load user reports:', error);
+      logger.error('Failed to load user reports', { error });
       return [];
     }
 

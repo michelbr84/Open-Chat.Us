@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useToast } from '@/hooks/use-toast';
 
 export interface ModerationResult {
@@ -70,7 +71,7 @@ export const useEnhancedAutoModeration = () => {
         user_reputation: 100
       };
     } catch (error) {
-      console.error('Enhanced auto-moderation error:', error);
+      logger.error('Enhanced auto-moderation error', { error });
       return null;
     } finally {
       setIsProcessing(false);
@@ -99,13 +100,13 @@ export const useEnhancedAutoModeration = () => {
       }).select().single();
 
       if (error) {
-        console.error('Error creating moderation queue entry:', error);
+        logger.error('Error creating moderation queue entry', { error });
         return null;
       }
 
       return data?.id || null;
     } catch (error) {
-      console.error('Failed to create moderation queue entry:', error);
+      logger.error('Failed to create moderation queue entry', { error });
       return null;
     }
   }, []);
@@ -125,7 +126,7 @@ export const useEnhancedAutoModeration = () => {
       });
 
       if (error) {
-        console.error('Error processing moderation action:', error);
+        logger.error('Error processing moderation action', { error });
         toast({
           title: 'Action Failed',
           description: 'Failed to process moderation action. Please try again.',
@@ -141,7 +142,7 @@ export const useEnhancedAutoModeration = () => {
 
       return true;
     } catch (error) {
-      console.error('Failed to process moderation action:', error);
+      logger.error('Failed to process moderation action', { error });
       return false;
     }
   }, [toast]);
@@ -159,7 +160,7 @@ export const useEnhancedAutoModeration = () => {
         .limit(limit);
 
       if (error) {
-        console.error('Error fetching moderation queue:', error);
+        logger.error('Error fetching moderation queue', { error });
         return [];
       }
 
@@ -175,7 +176,7 @@ export const useEnhancedAutoModeration = () => {
         created_at: item.created_at
       }));
     } catch (error) {
-      console.error('Failed to fetch moderation queue:', error);
+      logger.error('Failed to fetch moderation queue', { error });
       return [];
     }
   }, []);
@@ -189,13 +190,13 @@ export const useEnhancedAutoModeration = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching user moderation status:', error);
+        logger.error('Error fetching user moderation status', { error });
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('Failed to fetch user moderation status:', error);
+      logger.error('Failed to fetch user moderation status', { error });
       return null;
     }
   }, []);
@@ -206,7 +207,7 @@ export const useEnhancedAutoModeration = () => {
     channelContext?: string
   ) => {
     // Simply log the violation - no dedicated table needed
-    console.warn('Rate limit violation:', { userIdentifier, violationType, channelContext });
+    logger.warn('Rate limit violation', { userIdentifier, violationType, channelContext });
   }, []);
 
   return {

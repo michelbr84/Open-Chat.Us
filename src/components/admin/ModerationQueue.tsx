@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -94,7 +95,7 @@ export const ModerationQueue = () => {
         flagged_by_user: item.flagged_by_user || null
       })) || []);
     } catch (error) {
-      console.error('Failed to fetch flagged items:', error);
+      logger.error('Failed to fetch flagged items', { error });
       toast({
         title: "Error",
         description: "Failed to load moderation queue.",
@@ -128,7 +129,7 @@ export const ModerationQueue = () => {
       setReviewNotes('');
       fetchFlaggedItems();
     } catch (error) {
-      console.error('Failed to review item:', error);
+      logger.error('Failed to review item', { error });
       toast({
         title: "Error",
         description: "Failed to review item.",

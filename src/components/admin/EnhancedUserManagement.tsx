@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import logger from '@/utils/logger';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +51,7 @@ export const EnhancedUserManagement: React.FC = () => {
       if (error) throw error;
       setUsers((data || []) as UserProfile[]);
     } catch (error) {
-      console.error('Error loading users:', error);
+      logger.error('Error loading users', { error });
       toast({
         title: 'Error',
         description: 'Failed to load users',

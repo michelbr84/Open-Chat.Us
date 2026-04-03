@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import logger from '@/utils/logger';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -48,7 +49,7 @@ export const useThreadedMessages = (channelId?: string) => {
 
         setThreads(data || []);
       } catch (error) {
-        console.error('Error fetching threads:', error);
+        logger.error('Error fetching threads', { error });
       }
     };
 
@@ -142,7 +143,7 @@ export const useThreadedMessages = (channelId?: string) => {
       toast.success('Reply sent!');
       return replyMessage;
     } catch (error: any) {
-      console.error('Error creating thread reply:', error);
+      logger.error('Error creating thread reply', { error });
       toast.error('Failed to send reply');
       return null;
     }
@@ -179,7 +180,7 @@ export const useThreadedMessages = (channelId?: string) => {
         [threadId]: transformedMessages,
       }));
     } catch (error) {
-      console.error('Error fetching thread messages:', error);
+      logger.error('Error fetching thread messages', { error });
       toast.error('Failed to load thread messages');
     } finally {
       setIsLoading(false);
