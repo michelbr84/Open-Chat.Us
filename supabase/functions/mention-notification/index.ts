@@ -88,7 +88,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Failed to process mention notifications',
-        details: error.message 
+        details: error instanceof Error ? error.message : 'Unknown error' 
       }),
       {
         status: 500,
